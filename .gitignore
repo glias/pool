@@ -1,0 +1,10 @@
+.idea
+.vscode
+.eslintcache
+
+# lib
+node_modules
+
+# build
+packages/*/lib
+tsconfig.tsbuildinfo

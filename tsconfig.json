@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": "./packages",
+    "module": "commonjs",
+    "target": "es6",
+    "lib": ["ESNext"],
+    "types": ["node", "jest"],
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@gliaswap/*": ["./*/src"]
+    }
+  },
+  "references": [
+    { "path": "packages/constants"}
+  ]
+}
