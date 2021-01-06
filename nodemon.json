@@ -2,5 +2,5 @@
   "watch": ["packages"],
   "ignore": ["packages/app-server", "packages/app-ui"],
   "ext": "ts",
-  "exec": "npm run build:library"
+  "exec": "npm run build:lib"
 }
