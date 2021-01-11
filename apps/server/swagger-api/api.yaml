@@ -47,6 +47,24 @@ paths:
                       $ref: '#/components/schemas/TokenSchema'
                     token_b:
                       $ref: '#/components/schemas/TokenSchema'
+    post:
+      summary: Create a liquidity pool
+      tags:
+        - liquidity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLiquidityPoolSchema'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PwTransactionSchema'
+
   /v1/liquidity-pool/{pool_id}:
     get:
       description: "Get LP info of user"
@@ -81,6 +99,7 @@ paths:
                     $ref: '#/components/schemas/TokenSchema'
                   token_b:
                     $ref: '#/components/schemas/TokenSchema'
+
   /v1/liquidity-pool/orders:
     get:
       description: "Get liquidity orders"
@@ -137,6 +156,29 @@ paths:
                         $ref: '#/components/schemas/OrderStageSchema'
                     operation:
                       type: string
+    post:
+      summary: Place a liquidity order
+      tags:
+        - orders
+        - liquidity
+      requestBody:
+        required: true
+        content:
+          application/liquidity.order.genesisLiquidity+json:
+            schema:
+              $ref: '#/components/schemas/GenesisLiquidityRequestSchema'
+          application/liquidity.order.addLiquidity+json:
+            schema:
+              $ref: '#/components/schemas/AddLiquidityRequestSchema'
+          application/liquidity.order.removeLiquidity+json:
+            schema:
+              $ref: '#/components/schemas/RemoveLiquidityRequestSchema'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PwTransactionSchema'
 
   /v1/tokens:
     get:
@@ -255,6 +297,24 @@ paths:
                     type:
                       type: string
                       description: "CrossChain/Normal"
+    post:
+      summary: Place a swap order
+      tags:
+        - orders
+        - swap
+      requestBody:
+        required: true
+        content:
+          application/swap.order.swapToken+json:
+            schema:
+              $ref: '#/components/schemas/SwapTokenRequestSchema'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PwTransactionSchema'
+
 components:
   schemas:
     TokenSchema:
@@ -307,4 +367,223 @@ components:
           type: string
         data:
           type: string
-
+    OrderTypeSchema:
+      type: string
+      enum:
+        - genesisLiquidity
+        - addLiquidity
+        - removeLiquidity
+        - swapToken
+    ScriptHashTypeSchema:
+      type: string
+      enum:
+        - data
+        - type
+    ScriptSchema:
+      type: object
+      required:
+        - code_hash
+        - hash_type
+        - args
+      properties:
+        code_hash:
+          type: string
+        hash_type:
+          type: '#/components/schemas/ScriptHashTypeSchema'
+        args:
+          type: string
+    OrderTokenAmountSchema:
+      type: object
+      required:
+        - amount
+        - token_type_hash
+      properties:
+        amount:
+          type: string
+        token_type_hash: # 0x00 to be ckb
+          type: string
+        token_type_script:
+          type: '#/components/schemas/ScriptSchema'
+    OutPointSchema:
+      type: object
+      required:
+        - tx_hash
+        - index
+      properties:
+        tx_hash:
+          type: string
+        index:
+          type: string
+    TokenScriptSchema:
+      type: object
+      required:
+        - type_hash
+      properties:
+        type_hash:
+          type: string
+        script:
+          type: '#/components/schemas/ScriptSchema'
+    CreateLiquidityPoolRequestSchema:
+      type: object
+      required:
+        - token_a_script
+        - token_b_script
+        - user_lock_script
+      properties:
+        token_a_script:
+          type: '#/components/schemas/TokenScriptSchema'
+        token_b_script:
+          type: '#/components/schemas/TokenScriptSchema'
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    CreateLiquidityPoolResponseSchema:
+      type: object
+      required:
+        - pw_transaction
+        - liquidity_token_script
+      properties:
+        pw_transaction:
+          type: '#/components/schemas/PwTransactionSchema'
+        liquidity_token_script:
+          type: '#/components/schemas/TokenScriptSchema'
+    GenesisLiquidityRequestSchema:
+      type: object
+      required:
+        - token_a_amount
+        - token_b_amount
+        - pool_id
+        - user_lock_script
+      properties:
+        token_a_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_b_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        pool_id:
+          description: "info type hash"
+          type: string
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    AddLiquidityRequestSchema:
+      type: object
+      required:
+        - token_a_desired_amount
+        - token_a_min_amount
+        - token_b_desired_amount
+        - token_b_min_amount
+        - pool_id
+        - user_lock_script
+      properties:
+        token_a_desired_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_a_min_amount:
+          description: "amount includes slipage"
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_b_desired_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_b_min_amount:
+          description: "amount includes slipage"
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        pool_id:
+          description: "info type hash"
+          type: string
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    RemoveLiquidityRequestSchema:
+      type: object
+      required:
+        - liquidity_token_amount
+        - token_a_min_amount
+        - token_b_min_amount
+        - pool_id
+        - user_lock_script
+      properties:
+        liquidity_token_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_a_min_amount:
+          description: "amount includes slipage"
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_b_min_amount:
+          description: "amount includes slipage"
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        pool_id:
+          description: "info type hash"
+          type: string
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    SwapTokenRequestSchema:
+      type: object
+      required:
+        - token_in_amount
+        - token_out_min_amount
+        - user_lock_script
+      properties:
+        token_in_amount:
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        token_out_min_amount:
+          description: "amount includes slipage"
+          type: '#/components/schemas/OrderTokenAmountSchema'
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    PwTransactionSchema:
+      type: object
+      required:
+        - version
+        - cell_deps
+        - header_deps
+        - inputs
+        - outputs
+        - witnesses
+        - outputs_data
+        - hash
+      properties:
+        version:
+          type: string
+        cell_deps:
+          type: array
+          items:
+            type: object
+            properties:
+              out_point:
+                type: '#/components/schemas/OutPointSchema'
+              dep_type:
+                type: string
+                enum:
+                  - code
+                  - depGroup
+        header_deps:
+          type: array
+          items:
+            type: string
+        inputs:
+          type: array
+          items:
+            type: object
+            properties:
+              previous_output:
+                type: '#/components/schemas/OutPointSchema'
+              since:
+                type: string
+        outputs:
+          type: array
+          items:
+            type: object
+            required:
+              - capacity
+              - lock
+            properties::
+              capacity:
+                type: string
+              lock:
+                type: '#/components/schemas/ScriptSchema'
+              type:
+                type: '#/components/schemas/ScriptSchema'
+        witnesses:
+          type: array
+          items:
+            type: string
+        outputs_data:
+          type: array
+          items:
+            type: sring
+        hash:
+          type: string
