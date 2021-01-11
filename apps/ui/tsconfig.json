@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
+    "baseUrl": "src",
+    "target": "ES2015",
     "lib": [
       "dom",
       "dom.iterable",
@@ -19,14 +20,26 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": [
+      "node",
+      "../../node_modules/@types/jest"
+    ],
+    "typeRoots": [
+      "src/react-app-env.d.ts",
+      "node_modules/@types"
+    ]
   },
   "include": [
-    "src"
+    "src",
+    "src/**/*.json"
   ],
   "references": [
     {
       "path": "../../packages/constants"
+    },
+    {
+      "path": "../../packages/spec"
     }
   ]
 }

@@ -14,11 +14,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "emitDeclarationOnly": true,
+    "jsx": "react",
     "paths": {
       "@gliaswap/*": ["./*/src"]
     }
   },
-  "references": [
-    { "path": "packages/constants"}
-  ]
+  "references": [{ "path": "packages/constants" }, { "path": "packages/types" }]
 }
