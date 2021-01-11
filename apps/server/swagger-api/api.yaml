@@ -131,10 +131,10 @@ paths:
                     amount_out:
                       $ref: '#/components/schemas/TokenSchema'
                     stage:
-                      type: object
-                      required:
-                        - step
-                        - message
+                      type: array
+                      items:
+                        type: object
+                        $ref: '#/components/schemas/OrderStageSchema'
                     operation:
                       type: string
 
@@ -147,7 +147,6 @@ paths:
       parameters:
         - name: lock
           in: query
-          required: true
           schema:
             $ref: '#/components/schemas/LockScriptSchema'
         - name: limit
@@ -252,9 +251,7 @@ paths:
                       $ref: '#/components/schemas/TokenSchema'
                     stage:
                       type: object
-                      required:
-                        - step
-                        - message
+                      $ref: '#/components/schemas/OrderStageSchema'
                     type:
                       type: string
                       description: "CrossChain/Normal"
@@ -264,6 +261,7 @@ components:
       type: object
       required:
         - type_hash
+        - hash_type
         - type_code_hash
         - type_args
         - name
@@ -297,3 +295,16 @@ components:
           type: string
         code_hash:
           type: string
+    OrderStageSchema:
+      required:
+        - step
+        - message
+        - data
+      properties:
+        step:
+          type: string
+        message:
+          type: string
+        data:
+          type: string
+
