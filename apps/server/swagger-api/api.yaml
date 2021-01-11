@@ -1,0 +1,299 @@
+openapi: '3.0.2'
+info:
+  title: DEX-Server
+  version: '1.0'
+servers:
+  - url: https://dex.app/v1
+paths:
+  /v1/liquidity-pool:
+    get:
+      description: "Get my or all of the liquidity pool"
+      tags:
+        - liquidity
+      parameters:
+        - name: lock
+          in: query
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - pool_id
+                    - token_a
+                    - token_b
+                  properties:
+                    pool_id:
+                      type: string
+                    token_a:
+                      $ref: '#/components/schemas/TokenSchema'
+                    token_b:
+                      $ref: '#/components/schemas/TokenSchema'
+  /v1/liquidity-pool/{pool_id}:
+    get:
+      description: "Get LP info of user"
+      tags:
+        - liquidity
+      parameters:
+        - name: lock
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+        - name: pool_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - pool_id
+                  - token_a
+                  - token_b
+                properties:
+                  pool_id:
+                    type: string
+                  token_a:
+                    $ref: '#/components/schemas/TokenSchema'
+                  token_b:
+                    $ref: '#/components/schemas/TokenSchema'
+  /v1/liquidity-pool/orders:
+    get:
+      description: "Get liquidity orders"
+      tags:
+        - orders
+        - liquidity
+      parameters:
+        - name: lock
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - transaction_hash
+                    - timestamp
+                    - amount_in
+                    - amount_out
+                    - stage
+                    - operation
+                  properties:
+                    transaction_hash:
+                      type: string
+                    timestamp:
+                      type: string
+                    amount_in:
+                      $ref: '#/components/schemas/TokenSchema'
+                    amount_out:
+                      $ref: '#/components/schemas/TokenSchema'
+                    stage:
+                      type: object
+                      required:
+                        - step
+                        - message
+                    operation:
+                      type: string
+
+  /v1/tokens:
+    get:
+      description: "Get Token List"
+      tags:
+        - token
+        - info
+      parameters:
+        - name: lock
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/components/schemas/TokenSchema'
+
+  /v1/tokens/{token_type_hash}:
+    get:
+      description: "Gets the token by type hash"
+      tags:
+        - token
+        - info
+      parameters:
+        - name: token_type_hash
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lock
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/TokenSchema'
+
+  /v1/swap/orders:
+    get:
+      description: "Get swap orders"
+      tags:
+        - orders
+        - swap
+      parameters:
+        - name: lock
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LockScriptSchema'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - transaction_hash
+                    - timestamp
+                    - amount_in
+                    - amount_out
+                    - stage
+                    - type
+                  properties:
+                    transaction_hash:
+                      type: string
+                    timestamp:
+                      type: string
+                    amount_in:
+                      type: object
+                      $ref: '#/components/schemas/TokenSchema'
+                    amount_out:
+                      type: object
+                      $ref: '#/components/schemas/TokenSchema'
+                    stage:
+                      type: object
+                      required:
+                        - step
+                        - message
+                    type:
+                      type: string
+                      description: "CrossChain/Normal"
+components:
+  schemas:
+    TokenSchema:
+      type: object
+      required:
+        - type_hash
+        - type_code_hash
+        - type_args
+        - name
+        - symbol
+        - decimals
+        - logo_uri
+        - balance
+      properties:
+        type_hash:
+          type: string
+        type_code_hash:
+          type: string
+        type_args:
+          type: string
+        name:
+          type: string
+        symbol:
+          type: string
+        decimals:
+          type: integer
+        logo_uri:
+          type: string
+        balance:
+          type: string
+    LockScriptSchema:
+      required:
+        - type_args
+        - type_code_hash
+      properties:
+        args:
+          type: string
+        code_hash:
+          type: string
