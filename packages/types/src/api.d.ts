@@ -1,6 +1,10 @@
 /// <reference types="@nervosnetwork/ckb-types" />
+/// <reference types="@lay2/pw-core" />
+import { Script, Transaction } from '@lay2/pw-core';
+
 declare namespace API {
-  type U64 = string;
+  export type U64 = string;
+  export type U128 = string;
 
   type Get<QS, Response> = QS extends null
     ? Response extends null
@@ -32,4 +36,24 @@ declare namespace API {
   }
 
   type ClientRequest<T> = T extends { queryString: infer QS; response: infer Res } ? (qs: QS) => Promise<Res> : never;
+
+  export interface Token {
+    amount: U128;
+    typeHash: string;
+    typeScript: Script;
+  }
+
+  export interface AddLiquidityRequest {
+    tokenADesiredAmount: Token;
+    tokenAMinAmount: Token;
+    tokenBDesiredAmount: Token;
+    tokenBMinAmount: Token;
+    poolId: string;
+    userLockScript: Script;
+  }
+
+  export interface TransactionWithFee {
+    pwTransaction: Transaction;
+    fee: U64;
+  }
 }

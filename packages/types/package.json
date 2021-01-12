@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "./lib/index.js",
   "dependencies": {
+    "@lay2/pw-core": "^0.3.22",
     "@nervosnetwork/ckb-types": "^0.38.2"
   }
 }

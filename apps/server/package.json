@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "./lib/index.js",
   "dependencies": {
+    "@gliaswap/types": "*",
     "@gliaswap/constants": "*",
     "@lay2/pw-core": "^0.3.22",
     "@types/koa-bodyparser": "^4.3.0",
