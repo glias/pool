@@ -179,6 +179,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PwTransactionSchema'
+    delete:
+      summary: Cancel a liquidity order
+      tags:
+        - orders
+        - liquidity
+      requestBody:
+        required: true
+        content:
+          application/liquidity.order.cancel+json:
+            schema:
+              $ref: '#/components/schemas/CancelOrderRequestSchema'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PwTransactionSchema'
 
   /v1/tokens:
     get:
@@ -308,6 +325,23 @@ paths:
           application/swap.order.swapToken+json:
             schema:
               $ref: '#/components/schemas/SwapTokenRequestSchema'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PwTransactionSchema'
+    delete:
+      summary: Cancel a swap order
+      tags:
+        - orders
+        - swap
+      requestBody:
+        required: true
+        content:
+          application/swap.order.cancel+json:
+            schema:
+              $ref: '#/components/schemas/CancelOrderRequestSchema'
       responses:
         '200':
           content:
@@ -522,6 +556,19 @@ components:
         token_out_min_amount:
           description: "amount includes slipage"
           type: '#/components/schemas/OrderTokenAmountSchema'
+        user_lock_script:
+          type: '#/components/schemas/ScriptSchema'
+    CancelOrderRequestSchema:
+      type: object
+      required:
+        - tx_hash
+        - output_index
+        - user_lock_script
+      properties:
+        tx_hash:
+          type: string
+        output_index:
+          type: integer
         user_lock_script:
           type: '#/components/schemas/ScriptSchema'
     PwTransactionSchema:
