@@ -56,7 +56,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateLiquidityPoolSchema'
+              $ref: '#/components/schemas/CreateLiquidityPoolRequestSchema'
       responses:
         '200':
           description: OK
@@ -173,25 +173,12 @@ paths:
           application/liquidity.order.removeLiquidity+json:
             schema:
               $ref: '#/components/schemas/RemoveLiquidityRequestSchema'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PwTransactionSchema'
-    delete:
-      summary: Cancel a liquidity order
-      tags:
-        - orders
-        - liquidity
-      requestBody:
-        required: true
-        content:
           application/liquidity.order.cancel+json:
             schema:
               $ref: '#/components/schemas/CancelOrderRequestSchema'
       responses:
         '200':
+          description: Ok
           content:
             application/json:
               schema:
@@ -325,25 +312,12 @@ paths:
           application/swap.order.swapToken+json:
             schema:
               $ref: '#/components/schemas/SwapTokenRequestSchema'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PwTransactionSchema'
-    delete:
-      summary: Cancel a swap order
-      tags:
-        - orders
-        - swap
-      requestBody:
-        required: true
-        content:
           application/swap.order.cancel+json:
             schema:
               $ref: '#/components/schemas/CancelOrderRequestSchema'
       responses:
         '200':
+          description: Ok
           content:
             application/json:
               schema:
@@ -401,13 +375,6 @@ components:
           type: string
         data:
           type: string
-    OrderTypeSchema:
-      type: string
-      enum:
-        - genesisLiquidity
-        - addLiquidity
-        - removeLiquidity
-        - swapToken
     ScriptHashTypeSchema:
       type: string
       enum:
@@ -423,7 +390,7 @@ components:
         code_hash:
           type: string
         hash_type:
-          type: '#/components/schemas/ScriptHashTypeSchema'
+          $ref: '#/components/schemas/ScriptHashTypeSchema'
         args:
           type: string
     OrderTokenAmountSchema:
@@ -434,10 +401,11 @@ components:
       properties:
         amount:
           type: string
-        token_type_hash: # 0x00 to be ckb
+        token_type_hash:
+          description: "token type hash, 0x00 for ckb"
           type: string
         token_type_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     OutPointSchema:
       type: object
       required:
@@ -454,9 +422,10 @@ components:
         - type_hash
       properties:
         type_hash:
+          description: "token type hash, 0x00 for ckb"
           type: string
         script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     CreateLiquidityPoolRequestSchema:
       type: object
       required:
@@ -465,11 +434,11 @@ components:
         - user_lock_script
       properties:
         token_a_script:
-          type: '#/components/schemas/TokenScriptSchema'
+          $ref: '#/components/schemas/TokenScriptSchema'
         token_b_script:
-          type: '#/components/schemas/TokenScriptSchema'
+          $ref: '#/components/schemas/TokenScriptSchema'
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     CreateLiquidityPoolResponseSchema:
       type: object
       required:
@@ -477,9 +446,9 @@ components:
         - liquidity_token_script
       properties:
         pw_transaction:
-          type: '#/components/schemas/PwTransactionSchema'
+          $ref: '#/components/schemas/PwTransactionSchema'
         liquidity_token_script:
-          type: '#/components/schemas/TokenScriptSchema'
+          $ref: '#/components/schemas/TokenScriptSchema'
     GenesisLiquidityRequestSchema:
       type: object
       required:
@@ -489,14 +458,14 @@ components:
         - user_lock_script
       properties:
         token_a_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_b_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         pool_id:
           description: "info type hash"
           type: string
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     AddLiquidityRequestSchema:
       type: object
       required:
@@ -508,20 +477,20 @@ components:
         - user_lock_script
       properties:
         token_a_desired_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_a_min_amount:
           description: "amount includes slipage"
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_b_desired_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_b_min_amount:
           description: "amount includes slipage"
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         pool_id:
           description: "info type hash"
           type: string
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     RemoveLiquidityRequestSchema:
       type: object
       required:
@@ -532,18 +501,18 @@ components:
         - user_lock_script
       properties:
         liquidity_token_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_a_min_amount:
           description: "amount includes slipage"
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_b_min_amount:
           description: "amount includes slipage"
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         pool_id:
           description: "info type hash"
           type: string
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     SwapTokenRequestSchema:
       type: object
       required:
@@ -552,12 +521,12 @@ components:
         - user_lock_script
       properties:
         token_in_amount:
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         token_out_min_amount:
           description: "amount includes slipage"
-          type: '#/components/schemas/OrderTokenAmountSchema'
+          $ref: '#/components/schemas/OrderTokenAmountSchema'
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     CancelOrderRequestSchema:
       type: object
       required:
@@ -570,7 +539,7 @@ components:
         output_index:
           type: integer
         user_lock_script:
-          type: '#/components/schemas/ScriptSchema'
+          $ref: '#/components/schemas/ScriptSchema'
     PwTransactionSchema:
       type: object
       required:
@@ -591,7 +560,7 @@ components:
             type: object
             properties:
               out_point:
-                type: '#/components/schemas/OutPointSchema'
+                $ref: '#/components/schemas/OutPointSchema'
               dep_type:
                 type: string
                 enum:
@@ -607,7 +576,7 @@ components:
             type: object
             properties:
               previous_output:
-                type: '#/components/schemas/OutPointSchema'
+                $ref: '#/components/schemas/OutPointSchema'
               since:
                 type: string
         outputs:
@@ -617,13 +586,13 @@ components:
             required:
               - capacity
               - lock
-            properties::
+            properties:
               capacity:
                 type: string
               lock:
-                type: '#/components/schemas/ScriptSchema'
+                $ref: '#/components/schemas/ScriptSchema'
               type:
-                type: '#/components/schemas/ScriptSchema'
+                $ref: '#/components/schemas/ScriptSchema'
         witnesses:
           type: array
           items:
@@ -631,6 +600,6 @@ components:
         outputs_data:
           type: array
           items:
-            type: sring
+            type: string
         hash:
           type: string
