@@ -5,7 +5,6 @@
   "dependencies": {
     "@ant-design/icons": "^4.3.0",
     "@gliaswap/constants": "*",
-    "@gliaswap/spec": "*",
     "@lay2/pw-core": "^0.3.22",
     "@nervosnetwork/ckb-types": "^0.38.2",
     "@testing-library/jest-dom": "^5.11.4",
