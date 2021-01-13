@@ -15,5 +15,10 @@
     "koa-json": "^2.0.2",
     "koa-logger": "^3.2.1",
     "koa-router": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/yamljs": "^0.2.31",
+    "koa2-swagger-ui": "^5.0.5",
+    "yamljs": "^0.3.0"
   }
 }
