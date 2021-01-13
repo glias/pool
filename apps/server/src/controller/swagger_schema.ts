@@ -10,14 +10,8 @@ export class ScriptSchema {
   @swaggerProperty({ type: 'string', required: true })
   args: string;
 }
-
 @swaggerClass()
-export class TokenSchema {
-  @swaggerProperty({ type: 'string', required: true })
-  typeHash: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
-  typeScript: Script;
+export class TokenInfoSchema {
   @swaggerProperty({ type: 'string', required: true })
   name: string;
   @swaggerProperty({ type: 'string', required: true })
@@ -28,4 +22,17 @@ export class TokenSchema {
   logoUri: string;
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
+}
+
+@swaggerClass()
+export class TokenSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  typeHash: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
+  typeScript: Script;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument, required: true })
+  info: TokenInfoSchema;
 }
