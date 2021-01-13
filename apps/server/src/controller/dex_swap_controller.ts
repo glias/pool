@@ -19,9 +19,9 @@ export default class DexTokenController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amount_in: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountIn: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amount_out: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountOut: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
             stage: {
               type: 'array',
               items: {
