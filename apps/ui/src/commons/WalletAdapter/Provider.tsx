@@ -4,7 +4,7 @@ import { ConnectStatus, Signer, WalletAdapter } from './types';
 
 type Proxies<T, key extends keyof T> = T[key];
 
-interface AdapterContextState<T extends WalletAdapter = WalletAdapter> {
+export interface AdapterContextState<T extends WalletAdapter = WalletAdapter> {
   status: ConnectStatus;
   signer: Signer;
 

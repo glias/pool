@@ -1,7 +1,7 @@
 import { QuestionOutlined } from '@ant-design/icons';
 import Icon from '@ant-design/icons/es/components/Icon';
 import { Button } from 'antd';
-import { useAdapter, Web3ModalAdapter } from 'hooks/use-wallet-adapter';
+import { useAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import i18n from 'i18n';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
