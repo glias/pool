@@ -1,5 +1,5 @@
 {
-  "name": "app-ui",
+  "name": "@gliaswap/ui",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -39,7 +39,8 @@
     "build": "craco build",
     "test": "craco test",
     "storybook": "start-storybook -p 6006 -s public",
-    "build-storybook": "build-storybook -s public"
+    "build-storybook": "build-storybook -s public",
+    "lint": "eslint --ext js,ts,tsx src"
   },
   "eslintConfig": {
     "extends": [

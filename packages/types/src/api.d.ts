@@ -1,6 +1,8 @@
 /// <reference types="@nervosnetwork/ckb-types" />
+
 declare namespace API {
-  type U64 = string;
+  export type U64 = string;
+  export type U128 = string;
 
   type Get<QS, Response> = QS extends null
     ? Response extends null
