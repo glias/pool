@@ -11,3 +11,10 @@ tsconfig.tsbuildinfo
 
 # Mac OS
 .DS_Store
+
+# indexer_data
+apps/server/env/ckb-testnet/data
+apps/server/env/opt
+
+# env
+apps/server/.env
