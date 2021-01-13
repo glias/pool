@@ -1,8 +1,13 @@
-import Router from 'koa-router';
-import { pool } from './controller';
+import { SwaggerRouter } from 'koa-swagger-decorator';
+import * as path from 'path';
 
-const router = new Router();
+const router = new SwaggerRouter();
 
-router.post('/v1/liquidity-pool/orders/add-liquidity', pool.addLiquidityOrder);
+router.swagger({
+  title: 'POOL',
+  description: 'API DOC',
+  version: '1.0.0',
+});
 
-export { router };
+router.mapDir(path.resolve(__dirname, './controller/'));
+export default router;

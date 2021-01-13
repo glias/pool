@@ -2,13 +2,13 @@ import Koa from 'koa';
 import logger from 'koa-logger';
 import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
-import yamljs from 'yamljs';
-import { koaSwagger } from 'koa2-swagger-ui';
+// import yamljs from 'yamljs';
+// import { koaSwagger } from 'koa2-swagger-ui';
 
-import { router } from './routes';
+import router from './routes';
 
-const spec = yamljs.load('./swagger-api/api.yaml');
-router.get('/docs', koaSwagger({ routePrefix: false, swaggerOptions: { spec } }));
+// const spec = yamljs.load('./swagger-api/api.yaml');
+// router.get('/docs', koaSwagger({ routePrefix: false, swaggerOptions: { spec } }));
 
 const app = new Koa();
 
