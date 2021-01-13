@@ -10,6 +10,8 @@ export interface WalletAdapter<Config = unknown> {
   //  such as not being easily cancelled, etc.
   connect: (config?: Config) => Promise<Signer>;
 
+  disconnect?: () => Promise<void>;
+
   on: (eventName: 'signerChanged', cb: (signer: Signer | Promise<Signer>) => void) => void;
 }
 
