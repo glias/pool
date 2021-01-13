@@ -42,7 +42,7 @@
     "lint": "concurrently \"npm run lint:lib\" \"npm run lint:ui\" \"npm run lint:server\" ",
     "lint:lib": "eslint --format=pretty -c .eslintrc.js packages/**/*.{ts,tsx}",
     "lint:ui": "yarn workspace @gliaswap/ui run lint",
-    "lint:server": "eslint --format=pretty -c .eslintrc.js apps/server/**/*.{ts,tsx} ",
+    "lint:server": "eslint --format=pretty -c .eslintrc.js apps/server/src --ext ts,js",
     "test": "jest",
     "clean": "rimraf packages/*/lib packages/*/tsconfig.tsbuildinfo"
   },

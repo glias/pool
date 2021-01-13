@@ -3,7 +3,7 @@ info:
   title: DEX-Server
   version: '1.0'
 servers:
-  - url: https://dex.app/v1
+  - url: http://localhost:3000/
 paths:
   /v1/liquidity-pool:
     get:
