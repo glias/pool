@@ -21,6 +21,7 @@ export default class DexTokenController {
             typeScript: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             info: { tyep: 'object', properties: (TokenInfoSchema as any).swaggerDocument },
+            balance: { type: 'string', required: true },
           },
         },
       },
@@ -51,6 +52,7 @@ export default class DexTokenController {
           typeScript: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           info: { tyep: 'object', properties: (TokenInfoSchema as any).swaggerDocument },
+          balance: { type: 'string', required: true },
         },
       },
     },

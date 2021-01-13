@@ -20,8 +20,6 @@ export class TokenInfoSchema {
   decimal: number;
   @swaggerProperty({ type: 'string', required: true })
   logoUri: string;
-  @swaggerProperty({ type: 'string', required: true })
-  balance: string;
 }
 
 @swaggerClass()
@@ -31,8 +29,9 @@ export class TokenSchema {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
   typeScript: Script;
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument, required: true })
   info: TokenInfoSchema;
+  @swaggerProperty({ type: 'string', required: true })
+  balance: string;
 }
