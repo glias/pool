@@ -3,6 +3,17 @@
   "version": "0.0.1",
   "main": "./lib/index.js",
   "dependencies": {
-    "@gliaswap/constants": "*"
+    "@gliaswap/types": "*",
+    "@gliaswap/constants": "*",
+    "@lay2/pw-core": "^0.3.22",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-json": "^2.0.18",
+    "@types/koa-logger": "^3.1.1",
+    "@types/koa-router": "^7.4.1",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "koa-json": "^2.0.2",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^10.0.0"
   }
 }
