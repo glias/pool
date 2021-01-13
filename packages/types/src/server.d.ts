@@ -1,4 +1,3 @@
-/// <reference types="@lay2/pw-core" />
 import { Script, Transaction } from '@lay2/pw-core';
 
 declare namespace Server {

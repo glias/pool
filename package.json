@@ -39,7 +39,10 @@
     "watch:types": "nodemon",
     "build:lib": "babel --relative packages/**/src/ -d ../lib --extensions \".ts\" --ignore \"packages/**/*.spec.ts\"",
     "build:types": "tsc -b",
-    "lint": "eslint --format=pretty -c .eslintrc.js {packages,apps}/**/*.{ts,tsx}",
+    "lint": "concurrently \"npm run lint:lib\" \"npm run lint:ui\" \"npm run lint:server\" ",
+    "lint:lib": "eslint --format=pretty -c .eslintrc.js packages/**/*.{ts,tsx}",
+    "lint:ui": "yarn workspace @gliaswap/ui run lint",
+    "lint:server": "eslint --format=pretty -c .eslintrc.js apps/server/**/*.{ts,tsx} ",
     "test": "jest",
     "clean": "rimraf packages/*/lib packages/*/tsconfig.tsbuildinfo"
   },
