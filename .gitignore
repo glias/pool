@@ -8,3 +8,6 @@ node_modules
 # build
 packages/*/lib
 tsconfig.tsbuildinfo
+
+# Mac OS
+.DS_Store
