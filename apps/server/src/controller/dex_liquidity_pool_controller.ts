@@ -159,4 +159,43 @@ export default class DexLiquidityPoolController {
     ctx.status = 200;
     ctx.body = txWithFee;
   }
+
+  @request('post', '/v1/liquidity-pool/remove-liquidity')
+  @summary('Create remove liquidity order')
+  @description('Create remove liquidity order')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // FIXME: real pw transaction
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          fee: { type: 'string', required: true },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    liquidityTokenAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    poolId: { type: 'string', required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+  })
+  public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
+    const req = <Server.RemoveLiquidityRequest>ctx.request.body;
+
+    // TODO: ensure req token type script exists
+    const orderBuilder = new OrderBuilder(new CellCollector());
+    const txWithFee = await orderBuilder.buildRemoveLiquidityOrder(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = txWithFee;
+  }
 }

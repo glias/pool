@@ -60,11 +60,11 @@ export class OrderBuilder {
       ctx,
       minOutputCapacity,
       tokenDesiredAmount,
-      req.userLockScript,
+      req.userLock,
       txFee,
     );
 
-    const userLockHash = req.userLockScript.toHash();
+    const userLockHash = req.userLock.toHash();
     const version = '0x01'.slice(2);
     const tokenAMinAmount = new Amount(req.tokenAMinAmount.balance).toUInt128LE().slice(2);
     const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
@@ -87,6 +87,59 @@ export class OrderBuilder {
     const estimatedTxFee = Builder.calcFee(tx);
     if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
       return await this.buildAddLiquidityOrder(ctx, req, estimatedTxFee);
+    }
+
+    changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);
+    tx.raw.outputs.pop();
+    tx.raw.outputs.push(changeOutput);
+    return {
+      pwTransaction: tx,
+      fee: estimatedTxFee.toString(),
+    };
+  }
+
+  public async buildRemoveLiquidityOrder(
+    ctx: Context,
+    req: Server.RemoveLiquidityRequest,
+    txFee: Amount = Amount.ZERO,
+  ): Promise<Server.TransactionWithFee> {
+    if (req.tokenAMinAmount.typeHash != CKB_TYPE_HASH && req.tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw('token/token pool isnt support yet', 400);
+    }
+
+    let outputs: Array<Cell> = [];
+    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString());
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
+      ctx,
+      minOutputCapacity,
+      req.liquidityTokenAmount,
+      req.userLock,
+      txFee,
+    );
+
+    const userLockHash = req.userLock.toHash();
+    const version = '0x01'.slice(2);
+    const tokenAMinAmount = new Amount(req.tokenAMinAmount.balance).toUInt128LE().slice(2);
+    const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
+    const infoTypeHash20 = req.poolId.slice(2, 40);
+    const orderLockScript = new Script(
+      LIQUIDITY_ORDER_LOCK_CODE_HASH,
+      `${userLockHash}${version}${tokenAMinAmount}${tokenBMinAmount}${infoTypeHash20}`,
+      HashType.type,
+    );
+
+    // Order data is passed through lock args
+    forgedOutput.lock = orderLockScript;
+    outputs.push(forgedOutput);
+    outputs.push(changeOutput);
+
+    const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+
+    // TODO: add a hardcode tx fee in first run to avoid too deep recursives
+    const estimatedTxFee = Builder.calcFee(tx);
+    if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
+      return await this.buildRemoveLiquidityOrder(ctx, req, estimatedTxFee);
     }
 
     changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);
