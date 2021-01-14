@@ -10,6 +10,7 @@ export class ScriptSchema {
   @swaggerProperty({ type: 'string', required: true })
   args: string;
 }
+
 @swaggerClass()
 export class TokenInfoSchema {
   @swaggerProperty({ type: 'string', required: true })

@@ -15,6 +15,7 @@ tsconfig.tsbuildinfo
 # indexer_data
 apps/server/env/ckb-testnet/data
 apps/server/env/opt
+apps/server/lib
 
 # env
 apps/server/.env

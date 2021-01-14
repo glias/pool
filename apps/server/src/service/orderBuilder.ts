@@ -55,7 +55,7 @@ export class OrderBuilder {
       req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenADesiredAmount : req.tokenBDesiredAmount;
 
     let outputs: Array<Cell> = [];
-    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(ckbDesiredAmount.amount);
+    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(new Amount(ckbDesiredAmount.balance));
     const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
       ctx,
       minOutputCapacity,
@@ -66,8 +66,8 @@ export class OrderBuilder {
 
     const userLockHash = req.userLockScript.toHash();
     const version = '0x01'.slice(2);
-    const tokenAMinAmount = req.tokenAMinAmount.amount.toUInt128LE().slice(2);
-    const tokenBMinAmount = req.tokenBMinAmount.amount.toUInt128LE().slice(2);
+    const tokenAMinAmount = new Amount(req.tokenAMinAmount.balance).toUInt128LE().slice(2);
+    const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
     const orderLockScript = new Script(
       LIQUIDITY_ORDER_LOCK_CODE_HASH,
@@ -94,7 +94,7 @@ export class OrderBuilder {
     tx.raw.outputs.push(changeOutput);
     return {
       pwTransaction: tx,
-      fee: estimatedTxFee,
+      fee: estimatedTxFee.toString(),
     };
   }
 
@@ -118,6 +118,7 @@ export class OrderBuilder {
     let inputs: Array<Cell> = [];
     let inputTokenAmount = Amount.ZERO;
     let inputCapacity = Amount.ZERO;
+    const tokenAmount = new Amount(token.balance);
 
     const tokenLiveCells = await this.cellCollector.collect(token, userLock);
     tokenLiveCells.forEach((cell) => {
@@ -125,12 +126,12 @@ export class OrderBuilder {
       inputs.push(cell);
       inputCapacity = inputCapacity.add(cell.capacity);
     });
-    if (inputTokenAmount.lt(token.amount)) {
-      ctx.throw('free sudt not enough', 400, { required: token.amount.toString() });
+    if (inputTokenAmount.lt(tokenAmount)) {
+      ctx.throw('free sudt not enough', 400, { required: token.balance });
     }
 
     let minOutputCapacity = capacity.add(extraCapacity);
-    const hasTokenChange = inputTokenAmount.gt(token.amount);
+    const hasTokenChange = inputTokenAmount.gt(new Amount(token.balance));
     if (hasTokenChange) {
       // Need to generate a sudt change output cell
       minOutputCapacity = minOutputCapacity.add(new Amount(MIN_SUDT_CAPACITY.toString()));
@@ -139,9 +140,10 @@ export class OrderBuilder {
     // More capacities to ensure that we can cover extraCapacity
     if (inputCapacity.lte(minOutputCapacity)) {
       const extraNeededCapacity: Server.Token = {
-        amount: minOutputCapacity.sub(inputCapacity),
+        balance: minOutputCapacity.sub(inputCapacity).toString(),
         typeHash: CKB_TYPE_HASH,
         typeScript: undefined,
+        info: undefined,
       };
       const ckbLiveCells = await this.cellCollector.collect(extraNeededCapacity, userLock);
       ckbLiveCells.forEach((cell) => {
@@ -156,13 +158,13 @@ export class OrderBuilder {
     }
 
     let forgedCell = new Cell(capacity, userLock, token.typeScript);
-    forgedCell.setHexData(token.amount.toUInt128LE());
+    forgedCell.setHexData(tokenAmount.toUInt128LE());
 
     let changeCell: Cell;
     const changeCapacity = inputCapacity.sub(capacity);
     if (hasTokenChange) {
       changeCell = new Cell(changeCapacity, userLock, token.typeScript);
-      changeCell.setHexData(inputTokenAmount.sub(token.amount).toUInt128LE());
+      changeCell.setHexData(inputTokenAmount.sub(tokenAmount).toUInt128LE());
     } else {
       changeCell = new Cell(changeCapacity, userLock);
     }

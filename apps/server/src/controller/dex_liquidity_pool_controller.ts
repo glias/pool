@@ -2,6 +2,8 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 import { Script } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
 import { ScriptSchema, TokenSchema } from './swagger_schema';
+import { Server } from '@gliaswap/types';
+import { OrderBuilder, CellCollector } from '../service';
 
 const liquidityTag = tags(['Liquidity']);
 
@@ -25,9 +27,9 @@ export default class DexLiquidityPoolController {
           properties: {
             poolId: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenA: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenB: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
           },
         },
       },
@@ -35,7 +37,7 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })
@@ -56,16 +58,16 @@ export default class DexLiquidityPoolController {
         properties: {
           poolId: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenA: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+          tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenB: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+          tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
         },
       },
     },
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
   })
   public async getLiquidityPoolByTypeHash(ctx: Context): Promise<void> {
@@ -87,9 +89,9 @@ export default class DexLiquidityPoolController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountIn: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountIn: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountOut: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountOut: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
             stage: {
               type: 'array',
               items: {
@@ -109,11 +111,52 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })
   public async getOrders(ctx: Context): Promise<void> {
     console.log(ctx);
+  }
+
+  @request('post', '/v1/liquidity-pool/add-liquidity')
+  @summary('Create add liquidity order')
+  @description('Create add liquidity order')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // FIXME: real pw transaction
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          fee: { type: 'string', required: true },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    poolId: { type: 'string', required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+  })
+  public async createAddLiquidityOrder(ctx: Context): Promise<void> {
+    const req = <Server.AddLiquidityRequest>ctx.request.body;
+
+    // TODO: ensure req token type script exists
+    const orderBuilder = new OrderBuilder(new CellCollector());
+    const txWithFee = await orderBuilder.buildAddLiquidityOrder(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = txWithFee;
   }
 }
