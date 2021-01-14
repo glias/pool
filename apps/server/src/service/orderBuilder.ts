@@ -108,6 +108,7 @@ export class OrderBuilder {
   }
 
   // TODO: check token.script exists
+  // FIXME: make sure that capacity is bigger or equal than MIN_SUDT_CAPACITY
   async forgeCell(
     ctx: Context,
     capacity: Amount,

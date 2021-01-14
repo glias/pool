@@ -24,5 +24,15 @@
     "koa-swagger-decorator": "^1.7.3",
     "mysql": "^2.18.1",
     "request-promise": "^4.2.6"
+  },
+  "devDependencies": {
+    "@shopify/jest-koa-mocks": "^2.3.0",
+    "@types/chai": "^4.2.14",
+    "@types/jest": "^26.0.20",
+    "@types/yamljs": "^0.2.31",
+    "chai": "^4.2.0",
+    "koa2-swagger-ui": "^5.0.5",
+    "ts-jest": "^26.4.4",
+    "yamljs": "^0.3.0"
   }
 }
