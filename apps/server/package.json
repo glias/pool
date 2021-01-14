@@ -5,6 +5,8 @@
   "dependencies": {
     "@ckb-lumos/base": "^0.14.2-rc6",
     "@ckb-lumos/sql-indexer": "^0.14.2-rc6",
+    "@gliaswap/constants": "*",
+    "@gliaswap/types": "*",
     "@lay2/pw-core": "^0.3.22",
     "@nervosnetwork/ckb-sdk-core": "^0.39.0",
     "@nervosnetwork/ckb-types": "^0.39.0",

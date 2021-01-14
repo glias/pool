@@ -1,15 +1,176 @@
 import { Server } from '@gliaswap/types';
-import { Transaction, RawTransaction, Builder } from '@lay2/pw-core';
+import {
+  MIN_SUDT_CAPACITY,
+  LIQUIDITY_ORDER_CAPACITY,
+  CKB_TYPE_HASH,
+  LIQUIDITY_ORDER_LOCK_CODE_HASH,
+} from '@gliaswap/constants';
+import {
+  Transaction,
+  RawTransaction,
+  Builder,
+  Amount,
+  Cell,
+  Script,
+  HashType,
+  CellDep,
+  DepType,
+  OutPoint,
+} from '@lay2/pw-core';
+import { Context } from 'koa';
 
-import { CellCollector } from './cellCollector';
+import { ICellCollector } from './cellCollector';
+
+export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
+export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
+  DepType.code,
+  new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
+);
+
+interface ForgedCell {
+  inputs: Array<Cell>;
+  forgedOutput: Cell;
+  changeOutput: Cell;
+}
 
 export class OrderBuilder {
-  public static async buildAddLiquidityOrder(req: Server.AddLiquidityRequest): Promise<Transaction> {
-    // FIXME: outputs
-    const outputs = [];
-    const inputs = await CellCollector.collect(req.tokenADesiredAmount);
-    inputs.concat(await CellCollector.collect(req.tokenBDesiredAmount));
+  cellCollector: ICellCollector;
 
-    return new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+  constructor(cellCollector: ICellCollector) {
+    this.cellCollector = cellCollector;
+  }
+
+  public async buildAddLiquidityOrder(
+    ctx: Context,
+    req: Server.AddLiquidityRequest,
+    txFee: Amount = Amount.ZERO,
+  ): Promise<Server.TransactionWithFee> {
+    if (req.tokenADesiredAmount.typeHash != CKB_TYPE_HASH && req.tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw('token/token pool isnt support yet', 400);
+    }
+
+    const tokenDesiredAmount =
+      req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenBDesiredAmount : req.tokenADesiredAmount;
+    const ckbDesiredAmount =
+      req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenADesiredAmount : req.tokenBDesiredAmount;
+
+    let outputs: Array<Cell> = [];
+    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(ckbDesiredAmount.amount);
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
+      ctx,
+      minOutputCapacity,
+      tokenDesiredAmount,
+      req.userLockScript,
+      txFee,
+    );
+
+    const userLockHash = req.userLockScript.toHash();
+    const version = '0x01'.slice(2);
+    const tokenAMinAmount = req.tokenAMinAmount.amount.toUInt128LE().slice(2);
+    const tokenBMinAmount = req.tokenBMinAmount.amount.toUInt128LE().slice(2);
+    const infoTypeHash20 = req.poolId.slice(2, 40);
+    const orderLockScript = new Script(
+      LIQUIDITY_ORDER_LOCK_CODE_HASH,
+      `${userLockHash}${version}${tokenAMinAmount}${tokenBMinAmount}${infoTypeHash20}`,
+      HashType.type,
+    );
+
+    // Order data is passed through lock args
+    forgedOutput.lock = orderLockScript;
+    outputs.push(forgedOutput);
+    outputs.push(changeOutput);
+
+    const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+
+    // TODO: add a hardcode tx fee in first run to avoid too deep recursives
+    const estimatedTxFee = Builder.calcFee(tx);
+    if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
+      return await this.buildAddLiquidityOrder(ctx, req, estimatedTxFee);
+    }
+
+    changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);
+    tx.raw.outputs.pop();
+    tx.raw.outputs.push(changeOutput);
+    return {
+      pwTransaction: tx,
+      fee: estimatedTxFee,
+    };
+  }
+
+  isChangeCoverTxFee(changeCell: Cell, txFee: Amount): boolean {
+    // If no type script, ensure we have a change cell, so that
+    // txFee won't be changed.
+    return (
+      (changeCell.type != undefined && changeCell.capacity.gte(new Amount(MIN_SUDT_CAPACITY.toString()).add(txFee))) ||
+      (changeCell.type == undefined && changeCell.capacity.gt(txFee))
+    );
+  }
+
+  // TODO: check token.script exists
+  async forgeCell(
+    ctx: Context,
+    capacity: Amount,
+    token: Server.Token,
+    userLock: Script,
+    extraCapacity: Amount = Amount.ZERO,
+  ): Promise<ForgedCell> {
+    let inputs: Array<Cell> = [];
+    let inputTokenAmount = Amount.ZERO;
+    let inputCapacity = Amount.ZERO;
+
+    const tokenLiveCells = await this.cellCollector.collect(token, userLock);
+    tokenLiveCells.forEach((cell) => {
+      inputTokenAmount = inputTokenAmount.add(cell.getSUDTAmount());
+      inputs.push(cell);
+      inputCapacity = inputCapacity.add(cell.capacity);
+    });
+    if (inputTokenAmount.lt(token.amount)) {
+      ctx.throw('free sudt not enough', 400, { required: token.amount.toString() });
+    }
+
+    let minOutputCapacity = capacity.add(extraCapacity);
+    const hasTokenChange = inputTokenAmount.gt(token.amount);
+    if (hasTokenChange) {
+      // Need to generate a sudt change output cell
+      minOutputCapacity = minOutputCapacity.add(new Amount(MIN_SUDT_CAPACITY.toString()));
+    }
+
+    // More capacities to ensure that we can cover extraCapacity
+    if (inputCapacity.lte(minOutputCapacity)) {
+      const extraNeededCapacity: Server.Token = {
+        amount: minOutputCapacity.sub(inputCapacity),
+        typeHash: CKB_TYPE_HASH,
+        typeScript: undefined,
+      };
+      const ckbLiveCells = await this.cellCollector.collect(extraNeededCapacity, userLock);
+      ckbLiveCells.forEach((cell) => {
+        if (inputCapacity.lte(minOutputCapacity)) {
+          inputs.push(cell);
+          inputCapacity = inputCapacity.add(cell.capacity);
+        }
+      });
+    }
+    if (inputCapacity.lt(minOutputCapacity)) {
+      ctx.throw('free ckb not enough', 400, { required: minOutputCapacity.toString() });
+    }
+
+    let forgedCell = new Cell(capacity, userLock, token.typeScript);
+    forgedCell.setHexData(token.amount.toUInt128LE());
+
+    let changeCell: Cell;
+    const changeCapacity = inputCapacity.sub(capacity);
+    if (hasTokenChange) {
+      changeCell = new Cell(changeCapacity, userLock, token.typeScript);
+      changeCell.setHexData(inputTokenAmount.sub(token.amount).toUInt128LE());
+    } else {
+      changeCell = new Cell(changeCapacity, userLock);
+    }
+
+    return {
+      inputs,
+      forgedOutput: forgedCell,
+      changeOutput: changeCell,
+    };
   }
 }

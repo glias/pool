@@ -1,9 +1,14 @@
 import { Primitive } from '@gliaswap/types';
-import { Cell } from '@lay2/pw-core';
+import { Cell, Script } from '@lay2/pw-core';
 
-export class CellCollector {
-  public static async collect(tokenAmount: Primitive.Token): Promise<Array<Cell>> {
+export interface ICellCollector {
+  collect(tokenAmount: Primitive.Token, userLock: Script): Promise<Array<Cell>>;
+}
+
+export class CellCollector implements ICellCollector {
+  public async collect(tokenAmount: Primitive.Token, userLock: Script): Promise<Array<Cell>> {
     console.log(tokenAmount);
+    console.log(userLock);
 
     const inputs = [];
     return inputs;
