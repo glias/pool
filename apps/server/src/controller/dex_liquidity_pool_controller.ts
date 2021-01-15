@@ -119,6 +119,43 @@ export default class DexLiquidityPoolController {
     console.log(ctx);
   }
 
+  @request('post', '/v1/liquidity-pool/genesis-liquidity')
+  @summary('Create genesis liquidity order')
+  @description('Create genesis liquidity order')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // FIXME: real pw transaction
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          fee: { type: 'string', required: true },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenAAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tokenBAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    poolId: { type: 'string', required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+  })
+  public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
+    const req = <Server.GenesisLiquidityRequest>ctx.request.body;
+
+    // TODO: ensure req token type script exists
+    const orderBuilder = new OrderBuilder(new CellCollector());
+    const txWithFee = await orderBuilder.buildGenesisLiquidityOrder(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = txWithFee;
+  }
+
   @request('post', '/v1/liquidity-pool/add-liquidity')
   @summary('Create add liquidity order')
   @description('Create add liquidity order')

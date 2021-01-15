@@ -1,5 +1,12 @@
 import { Primitive } from '.';
 
+export interface GenesisLiquidityRequest {
+  tokenAAmount: Primitive.Token;
+  tokenBAmount: Primitive.Token;
+  poolId: Primitive.Hash;
+  userLock: Primitive.Script;
+}
+
 export interface AddLiquidityRequest {
   tokenADesiredAmount: Primitive.Token;
   tokenAMinAmount: Primitive.Token;
