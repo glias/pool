@@ -1,5 +1,5 @@
 import { AppHeader } from 'components/Header';
-import { GliaswapProvider } from 'hooks/use-gliaswap';
+import { GliaswapProvider } from 'contexts';
 import React, { useEffect } from 'react';
 import { BrowserRouter, useHistory, useLocation } from 'react-router-dom';
 import { Main } from 'views';

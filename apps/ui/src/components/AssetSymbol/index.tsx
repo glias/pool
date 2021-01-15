@@ -1,7 +1,7 @@
-import { Asset } from 'commons/MultiAsset/types';
+import { Asset } from '@gliaswap/commons';
 import React from 'react';
 import styled from 'styled-components';
-import { getIconBackgroundColor } from '../../hooks/use-gliaswap';
+import { getIconBackgroundColor } from 'suite';
 
 interface WrapperProps {
   iconBackground?: string;

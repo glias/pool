@@ -23,7 +23,7 @@
   "include": ["src", "src/**/*.json"],
   "references": [
     {
-      "path": "../../packages/constants"
+      "path": "../../packages/commons"
     }
   ]
 }
