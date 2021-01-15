@@ -48,7 +48,12 @@ export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
     this.provider = provider;
     const pwWeb3ModalProvider = new PWWeb3ModalProvider(new Web3(provider));
 
-    provider.on('accountsChanged', () => {
+    provider.on('accountsChanged', (accounts: string[] | undefined) => {
+      if (!accounts?.length) {
+        this.modal.clearCachedProvider();
+        this.emit('signerChanged', undefined);
+        return;
+      }
       this.signer = new PWSigner(this.pw);
       this.emit('signerChanged', this.signer);
     });

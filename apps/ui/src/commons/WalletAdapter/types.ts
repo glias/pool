@@ -12,7 +12,7 @@ export interface WalletAdapter<Config = unknown> {
 
   disconnect?: () => Promise<void>;
 
-  on: (eventName: 'signerChanged', cb: (signer: Signer | Promise<Signer>) => void) => void;
+  on: (eventName: 'signerChanged', cb: (signer: Maybe<Signer> | Promise<Maybe<Signer>>) => void) => void;
 }
 
 // TODO replace with a low level RawTransaction to decouple from PWCore Transaction
