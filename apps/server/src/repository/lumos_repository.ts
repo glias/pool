@@ -4,15 +4,18 @@ import knex from 'knex';
 import { indexer_config, mysql_info } from '../config';
 import { TransactionCollector } from './transactio_collector';
 
-class SqlIndexerWrapper {
+export class SqlIndexerWrapper {
   private indexer: Indexer;
   private knex: knex;
+
+  constructor() {
+    this.init();
+  }
 
   init(): void {
     const knex2 = knex({
       client: 'mysql',
       connection: mysql_info,
-      // debug: true
     });
 
     knex2.migrate.up();
@@ -39,7 +42,6 @@ class SqlIndexerWrapper {
 
   async collectTransactions(queryOptions: QueryOptions): Promise<Array<TransactionWithStatus>> {
     const transactionCollector = new TransactionCollector(this.knex, queryOptions, this.indexer['rpc']);
-
     const txs = [];
     for await (const tx of transactionCollector.collect()) {
       txs.push(tx);
@@ -49,4 +51,4 @@ class SqlIndexerWrapper {
   }
 }
 
-export const indexer = new SqlIndexerWrapper();
+export const lumosRepository = new SqlIndexerWrapper();

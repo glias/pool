@@ -20,13 +20,12 @@ services:
     ports:
       - "3306:3306"
     environment:
+      MYSQL_DATABASE: "ckb"
       MYSQL_ROOT_PASSWORD: "123456"
       MYSQL_USER: ckb
       MYSQL_PASSWORD: "123456"
       TZ: Asia/Shanghai
       entrypoint: /entrypoint.sh
     volumes:
-      - ./opt/docker/mysql/data:/usr/local/mysql/data
-      - ./opt/docker/mysql/logs/:/usr/local/mysql/logs
-      - ./init:/docker-entrypoint-initdb.d
+      - ./opt/docker/mysql:/var/lib/mysql
     command: mysqld --character-set-server=utf8 --collation-server=utf8_bin --init-connect='SET NAMES utf8;' --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED

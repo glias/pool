@@ -1,4 +1,4 @@
-import { Script, Transaction } from '@lay2/pw-core';
+import { Transaction } from '@lay2/pw-core';
 
 declare namespace Server {
   export type U64 = string;
@@ -22,5 +22,11 @@ declare namespace Server {
   export interface TransactionWithFee {
     pwTransaction: Transaction;
     fee: U64;
+  }
+
+  export interface Script {
+    codeHash: string;
+    hashType: string;
+    args: string;
   }
 }
