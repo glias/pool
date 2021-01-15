@@ -1,5 +1,5 @@
 import { Tabs } from 'antd';
-import { Asset } from 'commons/MultiAsset';
+import { Asset } from '@gliaswap/commons';
 import React, { useMemo } from 'react';
 import { AssetList, AssetListProps } from './AssetList';
 

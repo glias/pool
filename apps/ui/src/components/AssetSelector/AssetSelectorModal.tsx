@@ -1,8 +1,9 @@
+import { Asset } from '@gliaswap/commons';
 import { Modal } from 'antd';
+import { ModalFuncProps } from 'antd/es/modal';
 import i18n from 'i18n';
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { Asset } from '../../commons/MultiAsset';
 import { AssetList, AssetListProps } from './AssetList';
 import { GroupedAssetList } from './GroupedAssetList';
 
@@ -14,7 +15,7 @@ const AssetSelectorModalWrapper = styled.div`
   }
 `;
 
-interface AssetSelectorModalProps extends AssetListProps, React.ComponentProps<typeof Modal> {
+interface AssetSelectorModalProps extends AssetListProps, ModalFuncProps {
   visible?: boolean;
 
   group?: (asset: Asset) => string;
