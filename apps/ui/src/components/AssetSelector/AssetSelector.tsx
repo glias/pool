@@ -1,5 +1,5 @@
 import { DownOutlined } from '@ant-design/icons';
-import { Asset } from 'commons/MultiAsset';
+import { Asset } from '@gliaswap/commons';
 import React, { Key, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { AssetSymbol } from '../AssetSymbol';
@@ -27,7 +27,7 @@ const TokenSelectorWrapper = styled.span<WrapperProps>`
   }
 `;
 
-export interface TokenSelectorProps extends AssetListProps, React.HTMLAttributes<HTMLSpanElement> {
+export interface TokenSelectorProps extends AssetListProps {
   /**
    * the current selected asset
    */
@@ -53,10 +53,10 @@ export const AssetSelector: React.FC<TokenSelectorProps> = (props) => {
 
   const onSelect = useCallback(
     (key: Key) => {
-      onSelected?.(key);
+      onSelected?.(key, selectedAsset!);
       setModalVisible(false);
     },
-    [onSelected],
+    [onSelected, selectedAsset],
   );
 
   const buttonElem = useMemo(() => {

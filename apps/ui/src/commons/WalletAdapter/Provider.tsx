@@ -45,7 +45,10 @@ export const Provider: React.FC<ProviderProps> = (props) => {
 
       adapter.on('signerChanged', async (signerResolver) => {
         setStatus('connecting');
-        Promise.resolve(signerResolver).then(signerChangedSuccess, signerChangedFailed);
+        Promise.resolve(signerResolver).then((signer) => {
+          if (!signer) return signerChangedFailed(null);
+          return signerChangedSuccess(signer);
+        }, signerChangedFailed);
       });
 
       return adapter.connect(config).then(signerChangedSuccess, signerChangedFailed) as Promise<Signer>;
@@ -57,7 +60,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   return <AdapterContext.Provider value={providerValue}>{children}</AdapterContext.Provider>;
 };
 
-export function useAdapter<T extends WalletAdapter>(): AdapterContextState<T> {
+export function useWalletAdapter<T extends WalletAdapter>(): AdapterContextState<T> {
   const context = useContext(AdapterContext);
 
   if (context == null) {

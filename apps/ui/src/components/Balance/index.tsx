@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js';
+import { Asset } from '@gliaswap/commons';
 import React from 'react';
 import styled from 'styled-components';
-import { AssetWithBalance } from './types';
 
 const BalanceWrapper = styled.span`
   .balance-integer {
@@ -19,7 +19,9 @@ const BalanceWrapper = styled.span`
 `;
 
 export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
-  asset: AssetWithBalance;
+  asset: Asset;
+
+  value: BigNumber.Value;
   /**
    * display the symbol of the asset after the balance
    */
@@ -30,10 +32,10 @@ export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
   maxToFormat?: number;
 }
 
-export const Balance: React.FC<BalanceProps> = (props) => {
-  const { asset, showSuffix, maxToFormat, ...otherProps } = props;
+export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
+  const { value, asset, showSuffix, maxToFormat, ...otherProps } = props;
 
-  const balanceNum = new BigNumber(asset.balance).div(10 ** asset.decimals);
+  const balanceNum = new BigNumber(value).div(10 ** asset.decimals);
   const decimalPlaces = balanceNum.decimalPlaces();
   const balance: string = (() => {
     if (maxToFormat !== undefined) return balanceNum.toFormat(Math.min(maxToFormat, decimalPlaces));
