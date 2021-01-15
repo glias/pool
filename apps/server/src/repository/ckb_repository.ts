@@ -52,7 +52,7 @@ export class CkbRepository implements DexRepository {
         result.push(cell);
       }
     });
-    return dexCells;
+    return result;
   }
 
   async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
