@@ -1,9 +1,16 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
+import { Script } from '../model';
+import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
 import { ScriptSchema, TokenSchema } from './swagger_schema';
 
 const liquidityTag = tags(['Liquidity']);
 
 export default class DexLiquidityPoolController {
+  private readonly service: DexLiquidityPoolService;
+  constructor() {
+    this.service = dexLiquidityPoolService;
+  }
+
   @request('post', '/v1/liquidity-pool')
   @summary('Get my or all of the liquidity pool')
   @description('Get my or all of the liquidity pool')
@@ -33,7 +40,8 @@ export default class DexLiquidityPoolController {
     skip: { type: 'number', required: true },
   })
   public async getLiquidityPools(ctx: Context): Promise<void> {
-    console.log(ctx);
+    const req = <{ lock: Script; limit: number; skip: number }>ctx.request.body;
+    await this.service.getLiquidityPools(req.lock, req.limit, req.skip);
   }
 
   @request('post', '/v1/liquidity-pool/pool-id')

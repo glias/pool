@@ -1,5 +1,6 @@
 import { Primitive } from '.';
 
+
 export interface AddLiquidityRequest {
   tokenADesiredAmount: Primitive.Token;
   tokenAMinAmount: Primitive.Token;

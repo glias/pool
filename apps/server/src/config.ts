@@ -2,11 +2,11 @@ import dotenv from 'dotenv';
 import { MySqlConnectionConfig } from 'knex';
 dotenv.config();
 
-export const indexer_config = {
+export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
 };
 
-export const mysql_info: MySqlConnectionConfig = {
+export const mysqlInfo: MySqlConnectionConfig = {
   host: process.env.MYSQL_HOST || '127.0.0.1',
   port: parseInt(process.env.MYSQL_PORT) || 3306,
   user: process.env.MYSQL_USER || 'root',

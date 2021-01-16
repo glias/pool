@@ -3,10 +3,10 @@ import logger from 'koa-logger';
 import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
 import router from './routes';
-import { indexer } from './repository/indexer';
+import { lumosRepository } from './repository';
 
 const app = new Koa();
-indexer.init();
+lumosRepository.init();
 
 app.use(json());
 app.use(logger());
