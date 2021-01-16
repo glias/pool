@@ -2,9 +2,9 @@ import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import { DexRepository } from '.';
-import { indexer_config } from '../config';
+import { ckbConfig } from '../config';
 import { Cell, cellConver, OutPoint, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
-import { ckb_methons } from './dex_repository';
+import { ckbMethods } from './dex_repository';
 import { lumosRepository, SqlIndexerWrapper } from './lumos_repository';
 
 export class CkbRepository implements DexRepository {
@@ -13,7 +13,7 @@ export class CkbRepository implements DexRepository {
 
   constructor() {
     this.lumosRepository = lumosRepository;
-    this.ckbNode = new CKB(indexer_config.nodeUrl);
+    this.ckbNode = new CKB(ckbConfig.nodeUrl);
   }
 
   async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
@@ -60,7 +60,7 @@ export class CkbRepository implements DexRepository {
     return lumosTxs.map((x) => transactionConver.conver(x));
   }
 
-  async getTransactions(ckbReqParams: Array<[method: ckb_methons, ...rest: []]>): Promise<TransactionWithStatus[]> {
+  async getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]> {
     try {
       const ckbTxs = await this.ckbNode.rpc.createBatchRequest(ckbReqParams).exec();
       return ckbTxs.map((x) => transactionConver.conver(x));
@@ -72,7 +72,7 @@ export class CkbRepository implements DexRepository {
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {
     try {
       const QueryOptions = {
-        url: indexer_config.nodeUrl,
+        url: ckbConfig.nodeUrl,
         method: 'POST',
         json: true,
         headers: {

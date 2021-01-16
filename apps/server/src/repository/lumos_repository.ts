@@ -1,7 +1,7 @@
 import { Cell, QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
-import { indexer_config, mysql_info } from '../config';
+import { ckbConfig, mysqlInfo } from '../config';
 import { TransactionCollector } from './transactio_collector';
 
 export class SqlIndexerWrapper {
@@ -15,13 +15,13 @@ export class SqlIndexerWrapper {
   init(): void {
     const knex2 = knex({
       client: 'mysql',
-      connection: mysql_info,
+      connection: mysqlInfo,
     });
 
     knex2.migrate.up();
     this.knex = knex2;
 
-    this.indexer = new Indexer(indexer_config.nodeUrl, this.knex);
+    this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
     setTimeout(() => {
       this.indexer.startForever();
 

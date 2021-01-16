@@ -1,7 +1,7 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, TransactionWithStatus } from '../model';
 
-export type ckb_methons =
+export type ckbMethods =
   | 'getTipBlockNumber'
   | 'getTipHeader'
   | 'getCurrentEpoch'
@@ -47,5 +47,5 @@ export interface DexRepository {
 
   collectTransactions: (queryOptions: QueryOptions) => Promise<TransactionWithStatus[]>;
 
-  getTransactions(ckbReqParams: Array<[method: ckb_methons, ...rest: []]>): Promise<TransactionWithStatus[]>;
+  getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]>;
 }
