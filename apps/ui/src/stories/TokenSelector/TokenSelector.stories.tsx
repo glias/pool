@@ -1,6 +1,6 @@
 import { Meta } from '@storybook/react/types-6-0';
 import 'antd/dist/antd.css';
-import { AssetWithBalance } from 'commons/MultiAsset';
+import { AssetWithBalance } from '@gliaswap/commons';
 import { AssetSelector } from 'components/AssetSelector';
 import React, { useState } from 'react';
 import TokenImage from './token.svg';
@@ -44,7 +44,10 @@ export const Grouped: React.VFC = () => {
   return (
     <AssetSelector
       selectedKey={selected}
-      onSelected={(key) => setSelected(key as number)}
+      onSelected={(key, asset) => {
+        setSelected(key as number);
+        console.log(asset);
+      }}
       assets={assets}
       renderKey={(_, i) => i}
       group={(asset) => asset.chainType}
