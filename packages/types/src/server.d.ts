@@ -1,4 +1,4 @@
-import { Primitive } from '.';
+import {Primitive} from '.';
 
 export interface GenesisLiquidityRequest {
   tokenAAmount: Primitive.Token;
@@ -13,7 +13,7 @@ export interface AddLiquidityRequest {
   tokenBDesiredAmount: Primitive.Token;
   tokenBMinAmount: Primitive.Token;
   poolId: Primitive.Hash;
-  userLockScript: Primitive.Script;
+  userLock: Primitive.Script;
 }
 
 export interface RemoveLiquidityRequest {

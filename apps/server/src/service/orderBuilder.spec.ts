@@ -1,5 +1,5 @@
 import { ICellCollector, OrderBuilder } from './';
-import { Server } from '@gliaswap/types';
+import { Primitive } from '@gliaswap/types';
 import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import { Script, Cell, Amount, HashType } from '@lay2/pw-core';
 import { createMockContext } from '@shopify/jest-koa-mocks';
@@ -13,7 +13,7 @@ class MockCellCollector implements ICellCollector {
     this.cells = cells;
   }
 
-  async collect(_tokenAmount: Server.Token, _userLock: Script): Promise<Array<Cell>> {
+  async collect(_tokenAmount: Primitive.Token, _userLock: Script): Promise<Array<Cell>> {
     return this.cells;
   }
 }
@@ -35,7 +35,7 @@ describe('OrderBuilder service', () => {
   };
 
   const generateToken = (amount: number) => {
-    const token: Server.Token = {
+    const token: Primitive.Token = {
       balance: amount.toString(),
       typeHash: '0x000',
       typeScript: mockTokenTypeScript,
@@ -69,4 +69,6 @@ describe('OrderBuilder service', () => {
       });
     });
   });
+
+  describe('buildGenesisLiquidityOrder', () => {});
 });

@@ -1,4 +1,4 @@
-import { Server } from '@gliaswap/types';
+import { Server, Primitive } from '@gliaswap/types';
 import {
   MIN_SUDT_CAPACITY,
   LIQUIDITY_ORDER_CAPACITY,
@@ -220,7 +220,7 @@ export class OrderBuilder {
   async forgeCell(
     ctx: Context,
     capacity: Amount,
-    token: Server.Token,
+    token: Primitive.Token,
     userLock: Script,
     extraCapacity: Amount = Amount.ZERO,
   ): Promise<ForgedCell> {
@@ -248,7 +248,7 @@ export class OrderBuilder {
 
     // More capacities to ensure that we can cover extraCapacity
     if (inputCapacity.lte(minOutputCapacity)) {
-      const extraNeededCapacity: Server.Token = {
+      const extraNeededCapacity: Primitive.Token = {
         balance: minOutputCapacity.sub(inputCapacity).toString(),
         typeHash: CKB_TYPE_HASH,
         typeScript: undefined,
