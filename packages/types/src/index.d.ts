@@ -1,3 +1,4 @@
 /// <reference types="./api" />
 /// <reference types="./server" />
-export { Server } from './server.d';
+export * as Server from './server.d';
+export * as Primitive from './primitive.d';
