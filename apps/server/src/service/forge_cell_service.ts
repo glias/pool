@@ -12,6 +12,8 @@ interface ForgedCell {
 }
 
 export interface ForgeCellService {
+  forge(ctx: Context, capacity: Amount, userLock: Script): Promise<ForgedCell>;
+
   forgeToken(
     ctx: Context,
     capacity: Amount,
@@ -26,6 +28,43 @@ export class DefaultForgeCellService implements ForgeCellService {
 
   constructor(service?: TokenCellCollectorService) {
     this.tokenCellCollectorService = (service && service) || new DefaultTokenCellCollectorService();
+  }
+
+  async forge(
+    ctx: Context,
+    capacity: Amount,
+    userLock: Script,
+    extraCapacity: Amount = Amount.ZERO,
+  ): Promise<ForgedCell> {
+    let inputs: Array<Cell> = [];
+    let inputCapacity = Amount.ZERO;
+
+    const minOutputCapacity = capacity.add(extraCapacity);
+    const neededCapacity: Primitive.Token = {
+      balance: capacity.add(extraCapacity).toString(),
+      typeHash: CKB_TYPE_HASH,
+      typeScript: undefined,
+      info: undefined,
+    };
+    const ckbLiveCells = await this.tokenCellCollectorService.collect(neededCapacity, userLock);
+    ckbLiveCells.forEach((cell) => {
+      if (inputCapacity.lte(minOutputCapacity)) {
+        inputs.push(cell);
+        inputCapacity = inputCapacity.add(cell.capacity);
+      }
+    });
+    if (inputCapacity.lt(minOutputCapacity)) {
+      ctx.throw('free ckb not enough', 400, { required: minOutputCapacity.toString() });
+    }
+
+    const forgedCell = new Cell(capacity, userLock);
+    const changeCell = new Cell(inputCapacity.sub(capacity), userLock);
+
+    return {
+      inputs,
+      forgedOutput: forgedCell,
+      changeOutput: changeCell,
+    };
   }
 
   // TODO: check token.script exists
