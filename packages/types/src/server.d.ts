@@ -29,6 +29,12 @@ export interface CancelOrderRequest {
   userLock: Primitive.Script;
 }
 
+export interface SwapOrderRequest {
+  tokenInAmount: Primitive.Token;
+  tokenOutMinAmount: Primitive.Token;
+  userLock: Primitive.Script;
+}
+
 export interface TransactionWithFee {
   pwTransaction: Primitive.Transaction;
   fee: Primitive.U64;
