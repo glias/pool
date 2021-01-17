@@ -19,7 +19,7 @@ import {
 } from '@lay2/pw-core';
 import { Context } from 'koa';
 
-import { ICellCollector } from './cellCollector';
+import { TokenCellCollector } from './token_cell_collector';
 
 export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
 export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
@@ -34,9 +34,9 @@ interface ForgedCell {
 }
 
 export class OrderBuilder {
-  cellCollector: ICellCollector;
+  cellCollector: TokenCellCollector;
 
-  constructor(cellCollector: ICellCollector) {
+  constructor(cellCollector: TokenCellCollector) {
     this.cellCollector = cellCollector;
   }
 

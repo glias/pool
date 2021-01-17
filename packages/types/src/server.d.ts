@@ -1,4 +1,4 @@
-import {Primitive} from '.';
+import { Primitive } from '.';
 
 export interface GenesisLiquidityRequest {
   tokenAAmount: Primitive.Token;
