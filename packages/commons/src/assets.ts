@@ -1,4 +1,4 @@
-import { CommonsEnv } from 'commons/src/env';
+import { CommonsEnv } from './env';
 import { has, propEq } from './utils';
 
 export type ChainType = 'Nervos' | 'Ethereum';
