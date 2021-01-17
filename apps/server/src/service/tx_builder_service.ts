@@ -35,7 +35,7 @@ export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
 
   constructor(service?: ForgeCellService) {
-    this.forgeCellService = (service && service) || new DefaultForgeCellService();
+    this.forgeCellService = service ? service : new DefaultForgeCellService();
   }
 
   // FIXME
