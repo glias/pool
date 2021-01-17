@@ -27,7 +27,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
   new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
 );
 
-export class OrderBuilderService {
+export class TxBuilderService {
   forgeCellService: ForgeCellService;
 
   constructor(service?: ForgeCellService) {

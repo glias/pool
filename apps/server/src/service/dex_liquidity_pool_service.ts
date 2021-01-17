@@ -4,15 +4,15 @@ import { Context } from 'koa';
 
 import { Script } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
-import { OrderBuilderService } from '.';
+import { TxBuilderService } from '.';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
-  private readonly orderBuilderService: OrderBuilderService;
+  private readonly txBuilderService: TxBuilderService;
 
   constructor() {
     this.dexRepository = ckbRepository;
-    this.orderBuilderService = new OrderBuilderService();
+    this.txBuilderService = new TxBuilderService();
   }
 
   public async getLiquidityPools(lock: Script, limit: number, skip: number): Promise<void> {
@@ -33,7 +33,7 @@ export class DexLiquidityPoolService {
     ctx: Context,
     req: Server.GenesisLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
-    return await this.orderBuilderService.buildGenesisLiquidity(ctx, req);
+    return await this.txBuilderService.buildGenesisLiquidity(ctx, req);
   }
 
   // TODO: ensure req token type script exists
@@ -41,7 +41,7 @@ export class DexLiquidityPoolService {
     ctx: Context,
     req: Server.AddLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
-    return await this.orderBuilderService.buildAddLiquidity(ctx, req);
+    return await this.txBuilderService.buildAddLiquidity(ctx, req);
   }
 
   // TODO: ensure req token type script exists
@@ -49,7 +49,7 @@ export class DexLiquidityPoolService {
     ctx: Context,
     req: Server.RemoveLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
-    return await this.orderBuilderService.buildRemoveLiquidity(ctx, req);
+    return await this.txBuilderService.buildRemoveLiquidity(ctx, req);
   }
 }
 
