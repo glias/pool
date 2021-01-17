@@ -46,6 +46,42 @@ export default class DexLiquidityPoolController {
     await this.service.getLiquidityPools(req.lock, req.limit, req.skip);
   }
 
+  @request('post', '/v1/liquidity-pool/create')
+  @summary('Create liquidity pool tx')
+  @description('Create liquidity pool tx')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // FIXME: real pw transaction
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          fee: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          liquidityTokenTypeScript: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenATypeScript: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenBTypeScript: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+  })
+  public async createLiquidityPool(ctx: Context): Promise<void> {
+    const req = <Server.CreateLiquidityPoolRequest>ctx.request.body;
+    const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = resp;
+  }
+
   @request('post', '/v1/liquidity-pool/pool-id')
   @summary('Get LP info of user')
   @description('Get LP info of user')

@@ -1,5 +1,17 @@
 import { Primitive } from '.';
 
+export interface CreateLiquidityPoolRequest {
+  tokenATypeScript: Primitive.Script;
+  tokenBTypeScript: Primitive.Script;
+  userLock: Primitive.Script;
+}
+
+export interface CreateLiquidityPoolResponse {
+  pwTransaction: Primitive.Transaction;
+  fee: Primitive.U64;
+  liquidityTokenTypeScript: Primitive.Script;
+}
+
 export interface GenesisLiquidityRequest {
   tokenAAmount: Primitive.Token;
   tokenBAmount: Primitive.Token;

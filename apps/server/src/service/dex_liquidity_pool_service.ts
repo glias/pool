@@ -28,6 +28,13 @@ export class DexLiquidityPoolService {
     console.log(skip);
   }
 
+  public async buildCreateLiquidityPoolTx(
+    ctx: Context,
+    req: Server.CreateLiquidityPoolRequest,
+  ): Promise<Server.CreateLiquidityPoolResponse> {
+    return await this.txBuilderService.buildCreateLiquidityPool(ctx, req);
+  }
+
   // FIXME: ensure req token type script exists
   public async buildGenesisLiquidityOrderTx(
     ctx: Context,

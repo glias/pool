@@ -38,6 +38,16 @@ export class TxBuilderService {
     this.forgeCellService = (service && service) || new DefaultForgeCellService();
   }
 
+  // FIXME
+  public async buildCreateLiquidityPool(
+    ctx: Context,
+    req: Server.CreateLiquidityPoolRequest,
+    txFee: Amount = Amount.ZERO,
+  ): Promise<Server.CreateLiquidityPoolResponse> {
+    console.log(ctx, req, txFee);
+    return undefined;
+  }
+
   public async buildGenesisLiquidity(
     ctx: Context,
     req: Server.GenesisLiquidityRequest,
@@ -260,12 +270,12 @@ export class TxBuilderService {
     };
   }
 
+  // FIXME:
   public async buildCancelOrder(
     ctx: Context,
     req: Server.CancelOrderRequest,
     txFee: Amount = Amount.ZERO,
   ): Promise<Server.TransactionWithFee> {
-    // FIXME:
     console.log(ctx, req, txFee);
     return undefined;
   }
