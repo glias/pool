@@ -53,5 +53,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx,css,md}": ["eslint --max-warnings=0"]
+  },
+  "dependencies": {
+    "@nervosnetwork/ckb-types": "^0.39.0"
   }
 }
