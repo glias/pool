@@ -34,7 +34,7 @@ export class OrderBuilderService {
     this.forgeCellService = (service && service) || new DefaultForgeCellService();
   }
 
-  public async buildGenesisLiquidityOrder(
+  public async buildGenesisLiquidity(
     ctx: Context,
     req: Server.GenesisLiquidityRequest,
     txFee: Amount = Amount.ZERO,
@@ -77,7 +77,7 @@ export class OrderBuilderService {
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
     if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
-      return await this.buildGenesisLiquidityOrder(ctx, req, estimatedTxFee);
+      return await this.buildGenesisLiquidity(ctx, req, estimatedTxFee);
     }
 
     changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);
@@ -89,7 +89,7 @@ export class OrderBuilderService {
     };
   }
 
-  public async buildAddLiquidityOrder(
+  public async buildAddLiquidity(
     ctx: Context,
     req: Server.AddLiquidityRequest,
     txFee: Amount = Amount.ZERO,
@@ -135,7 +135,7 @@ export class OrderBuilderService {
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
     if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
-      return await this.buildAddLiquidityOrder(ctx, req, estimatedTxFee);
+      return await this.buildAddLiquidity(ctx, req, estimatedTxFee);
     }
 
     changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);
@@ -147,7 +147,7 @@ export class OrderBuilderService {
     };
   }
 
-  public async buildRemoveLiquidityOrder(
+  public async buildRemoveLiquidity(
     ctx: Context,
     req: Server.RemoveLiquidityRequest,
     txFee: Amount = Amount.ZERO,
@@ -188,7 +188,7 @@ export class OrderBuilderService {
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
     if (!this.isChangeCoverTxFee(changeOutput, estimatedTxFee)) {
-      return await this.buildRemoveLiquidityOrder(ctx, req, estimatedTxFee);
+      return await this.buildRemoveLiquidity(ctx, req, estimatedTxFee);
     }
 
     changeOutput.capacity = changeOutput.capacity.sub(estimatedTxFee);

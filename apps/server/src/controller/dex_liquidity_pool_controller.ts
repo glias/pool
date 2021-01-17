@@ -3,12 +3,12 @@ import { Script } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
 import { ScriptSchema, TokenSchema } from './swagger_schema';
 import { Server } from '@gliaswap/types';
-import { OrderBuilder, CellCollector } from '../service';
 
 const liquidityTag = tags(['Liquidity']);
 
 export default class DexLiquidityPoolController {
   private readonly service: DexLiquidityPoolService;
+
   constructor() {
     this.service = dexLiquidityPoolService;
   }
@@ -147,10 +147,7 @@ export default class DexLiquidityPoolController {
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
     const req = <Server.GenesisLiquidityRequest>ctx.request.body;
-
-    // TODO: ensure req token type script exists
-    const orderBuilder = new OrderBuilder(new CellCollector());
-    const txWithFee = await orderBuilder.buildGenesisLiquidityOrder(ctx, req);
+    const txWithFee = await this.service.buildGenesisLiquidityOrder(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee;
@@ -188,10 +185,7 @@ export default class DexLiquidityPoolController {
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
     const req = <Server.AddLiquidityRequest>ctx.request.body;
-
-    // TODO: ensure req token type script exists
-    const orderBuilder = new OrderBuilder(new CellCollector());
-    const txWithFee = await orderBuilder.buildAddLiquidityOrder(ctx, req);
+    const txWithFee = await this.service.buildAddLiquidityOrder(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee;
@@ -227,10 +221,7 @@ export default class DexLiquidityPoolController {
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
     const req = <Server.RemoveLiquidityRequest>ctx.request.body;
-
-    // TODO: ensure req token type script exists
-    const orderBuilder = new OrderBuilder(new CellCollector());
-    const txWithFee = await orderBuilder.buildRemoveLiquidityOrder(ctx, req);
+    const txWithFee = await this.service.buildRemoveLiquidityOrder(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee;
