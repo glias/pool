@@ -69,6 +69,11 @@ export class CkbRepository implements DexRepository {
     }
   }
 
+  async getTransaction(hash: string): Promise<TransactionWithStatus> {
+    const tx = await this.ckbNode.rpc.getTransaction(hash);
+    return transactionConver.conver(tx);
+  }
+
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {
     try {
       const QueryOptions = {

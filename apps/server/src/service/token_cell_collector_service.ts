@@ -45,14 +45,10 @@ export class DefaultTokenCellCollectorService implements TokenCellCollectorServi
 
   private toPWCell(cell: model.Cell): Cell {
     const capacity = new Amount(cell.cellOutput.capacity);
-    const lock = this.fromModelScript(cell.cellOutput.lock);
-    const type = cell.cellOutput.type ? this.fromModelScript(cell.cellOutput.type) : undefined;
+    const lock = model.cellConver.converToPWScript(cell.cellOutput.lock);
+    const type = cell.cellOutput.type ? model.cellConver.converToPWScript(cell.cellOutput.type) : undefined;
     const outPoint = new OutPoint(cell.outPoint.txHash, cell.outPoint.index);
     return new Cell(capacity, lock, type, outPoint, cell.data);
-  }
-
-  private fromModelScript(script: model.Script): Script {
-    return new Script(script.codeHash, script.args, script.hashType == 'type' ? HashType.type : HashType.data);
   }
 
   private toLumosScript(script: Script): lumos.Script {

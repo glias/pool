@@ -24,18 +24,31 @@ import {
 import { Context } from 'koa';
 
 import { ForgeCellService, DefaultForgeCellService } from '.';
+import { ckbRepository, DexRepository } from '../repository';
+import * as model from '../model';
 
 export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
 export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
   DepType.code,
   new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
 );
+export const SWAP_ORDER_LOCK_DEP = new CellDep(
+  DepType.code,
+  new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
+);
+
+export const enum CancelOrderType {
+  Liquidity,
+  Swap,
+}
 
 export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
+  private readonly dexRepository: DexRepository;
 
-  constructor(service?: ForgeCellService) {
+  constructor(service?: ForgeCellService, repository?: DexRepository) {
     this.forgeCellService = service ? service : new DefaultForgeCellService();
+    this.dexRepository = repository ? repository : ckbRepository;
   }
 
   // FIXME
@@ -253,7 +266,7 @@ export class TxBuilderService {
     outputs.push(changeOutput);
 
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([SUDT_DEP, SWAP_ORDER_LOCK_DEP]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -274,13 +287,71 @@ export class TxBuilderService {
   public async buildCancelOrder(
     ctx: Context,
     req: Server.CancelOrderRequest,
-    txFee: Amount = Amount.ZERO,
+    type: CancelOrderType,
   ): Promise<Server.TransactionWithFee> {
-    console.log(ctx, req, txFee);
-    return undefined;
+    const { transaction } = await this.dexRepository.getTransaction(req.txHash);
+    const orderLockCodeHash =
+      type == CancelOrderType.Liquidity ? LIQUIDITY_ORDER_LOCK_CODE_HASH : SWAP_ORDER_LOCK_CODE_HASH;
+    const orderDep = type == CancelOrderType.Liquidity ? LIQUIDITY_ORDER_LOCK_DEP : SWAP_ORDER_LOCK_DEP;
+
+    const idx = transaction.outputs.findIndex((value) => value.lock.codeHash == orderLockCodeHash);
+    if (!idx) {
+      ctx.throw('transaction not found', 404, { txHash: req.txHash });
+    }
+    if (!transaction.outputs[idx].type) {
+      ctx.throw('order cell doesnt have type script', 400, { txHash: req.txHash });
+    }
+
+    const orderInput = this.createOrderInput(transaction, idx);
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forge(
+      ctx,
+      Builder.MIN_CHANGE,
+      req.userLock,
+    );
+
+    const txInputs = inputs.concat(orderInput);
+
+    // FIXME: Right now user lock args is smaller than order size, should sub this
+    // from order capacity.
+    // FIXME: user lock maybe bigger than order lock.
+    const tokenOutput = new Cell(
+      orderInput.capacity,
+      req.userLock,
+      orderInput.type,
+      undefined,
+      orderInput.getHexData(),
+    );
+
+    const changeCapacity = forgedOutput.capacity.add(changeOutput.capacity).sub(Builder.MIN_CHANGE);
+    const change = new Cell(changeCapacity, req.userLock);
+    const outputs = [tokenOutput, change];
+
+    const tx = new Transaction(new RawTransaction(txInputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+    tx.raw.cellDeps.concat([SUDT_DEP, orderDep]);
+
+    // FIXME:
+    const estimatedTxFee = Builder.calcFee(tx);
+    if (Builder.MIN_CHANGE.lt(estimatedTxFee)) {
+      ctx.throw('builder min change donest cover estimated fee', 500, { txFee: estimatedTxFee.toString() });
+    }
+
+    return {
+      pwTransaction: tx,
+      fee: estimatedTxFee.toString(),
+    };
   }
 
-  isChangeCoverTxFee(changeCell: Cell, txFee: Amount): boolean {
+  private createOrderInput(tx: model.Transaction, idx: number): Cell {
+    const output = tx.outputs[idx];
+    const capacity = new Amount(output.capacity);
+    const lock = model.cellConver.converToPWScript(output.lock);
+    const type = model.cellConver.converToPWScript(output.type);
+    const outPoint = new OutPoint(tx.hash, idx.toString(16));
+
+    return new Cell(capacity, lock, type, outPoint, tx.outputsData[idx]);
+  }
+
+  private isChangeCoverTxFee(changeCell: Cell, txFee: Amount): boolean {
     // If no type script, ensure we have a change cell, so that
     // txFee won't be changed.
     return (
