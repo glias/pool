@@ -1,4 +1,4 @@
-import { Server, Primitive } from '@gliaswap/types';
+import { Server } from '@gliaswap/types';
 import {
   MIN_SUDT_CAPACITY,
   LIQUIDITY_ORDER_CAPACITY,
@@ -19,7 +19,7 @@ import {
 } from '@lay2/pw-core';
 import { Context } from 'koa';
 
-import { TokenCellCollector } from './token_cell_collector';
+import { ForgeCellService, DefaultForgeCellService } from '.';
 
 export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
 export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
@@ -27,17 +27,11 @@ export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
   new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
 );
 
-interface ForgedCell {
-  inputs: Array<Cell>;
-  forgedOutput: Cell;
-  changeOutput: Cell;
-}
+export class OrderBuilderService {
+  forgeCellService: ForgeCellService;
 
-export class OrderBuilder {
-  cellCollector: TokenCellCollector;
-
-  constructor(cellCollector: TokenCellCollector) {
-    this.cellCollector = cellCollector;
+  constructor(service?: ForgeCellService) {
+    this.forgeCellService = (service && service) || new DefaultForgeCellService();
   }
 
   public async buildGenesisLiquidityOrder(
@@ -54,7 +48,7 @@ export class OrderBuilder {
 
     let outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(new Amount(ckbAmount.balance));
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       tokenAmount,
@@ -111,7 +105,7 @@ export class OrderBuilder {
 
     let outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(new Amount(ckbDesiredAmount.balance));
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       tokenDesiredAmount,
@@ -164,7 +158,7 @@ export class OrderBuilder {
 
     let outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString());
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCell(
+    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       req.liquidityTokenAmount,
@@ -213,75 +207,5 @@ export class OrderBuilder {
       (changeCell.type != undefined && changeCell.capacity.gte(new Amount(MIN_SUDT_CAPACITY.toString()).add(txFee))) ||
       (changeCell.type == undefined && changeCell.capacity.gt(txFee))
     );
-  }
-
-  // TODO: check token.script exists
-  // FIXME: make sure that capacity is bigger or equal than MIN_SUDT_CAPACITY
-  async forgeCell(
-    ctx: Context,
-    capacity: Amount,
-    token: Primitive.Token,
-    userLock: Script,
-    extraCapacity: Amount = Amount.ZERO,
-  ): Promise<ForgedCell> {
-    let inputs: Array<Cell> = [];
-    let inputTokenAmount = Amount.ZERO;
-    let inputCapacity = Amount.ZERO;
-    const tokenAmount = new Amount(token.balance);
-
-    const tokenLiveCells = await this.cellCollector.collect(token, userLock);
-    tokenLiveCells.forEach((cell) => {
-      inputTokenAmount = inputTokenAmount.add(cell.getSUDTAmount());
-      inputs.push(cell);
-      inputCapacity = inputCapacity.add(cell.capacity);
-    });
-    if (inputTokenAmount.lt(tokenAmount)) {
-      ctx.throw('free sudt not enough', 400, { required: token.balance });
-    }
-
-    let minOutputCapacity = capacity.add(extraCapacity);
-    const hasTokenChange = inputTokenAmount.gt(new Amount(token.balance));
-    if (hasTokenChange) {
-      // Need to generate a sudt change output cell
-      minOutputCapacity = minOutputCapacity.add(new Amount(MIN_SUDT_CAPACITY.toString()));
-    }
-
-    // More capacities to ensure that we can cover extraCapacity
-    if (inputCapacity.lte(minOutputCapacity)) {
-      const extraNeededCapacity: Primitive.Token = {
-        balance: minOutputCapacity.sub(inputCapacity).toString(),
-        typeHash: CKB_TYPE_HASH,
-        typeScript: undefined,
-        info: undefined,
-      };
-      const ckbLiveCells = await this.cellCollector.collect(extraNeededCapacity, userLock);
-      ckbLiveCells.forEach((cell) => {
-        if (inputCapacity.lte(minOutputCapacity)) {
-          inputs.push(cell);
-          inputCapacity = inputCapacity.add(cell.capacity);
-        }
-      });
-    }
-    if (inputCapacity.lt(minOutputCapacity)) {
-      ctx.throw('free ckb not enough', 400, { required: minOutputCapacity.toString() });
-    }
-
-    let forgedCell = new Cell(capacity, userLock, token.typeScript);
-    forgedCell.setHexData(tokenAmount.toUInt128LE());
-
-    let changeCell: Cell;
-    const changeCapacity = inputCapacity.sub(capacity);
-    if (hasTokenChange) {
-      changeCell = new Cell(changeCapacity, userLock, token.typeScript);
-      changeCell.setHexData(inputTokenAmount.sub(tokenAmount).toUInt128LE());
-    } else {
-      changeCell = new Cell(changeCapacity, userLock);
-    }
-
-    return {
-      inputs,
-      forgedOutput: forgedCell,
-      changeOutput: changeCell,
-    };
   }
 }

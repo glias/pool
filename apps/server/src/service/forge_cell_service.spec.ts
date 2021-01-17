@@ -1,4 +1,4 @@
-import { ICellCollector, OrderBuilder } from './';
+import { TokenCellCollectorService, DefaultForgeCellService } from './';
 import { Primitive } from '@gliaswap/types';
 import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import { Script, Cell, Amount, HashType } from '@lay2/pw-core';
@@ -6,7 +6,7 @@ import { createMockContext } from '@shopify/jest-koa-mocks';
 import chai from 'chai';
 chai.should();
 
-class MockCellCollector implements ICellCollector {
+class MockCellCollector implements TokenCellCollectorService {
   cells: Array<Cell>;
 
   constructor(cells: Array<Cell>) {
@@ -18,11 +18,11 @@ class MockCellCollector implements ICellCollector {
   }
 }
 
-describe('OrderBuilder service', () => {
+describe('DefaultForgeCellService', () => {
   const mockUserLock = new Script('0x00000000000000000000000000000000', '0x00', HashType.type);
   const mockTokenTypeScript = new Script('0x00000000000000000000000000000001', '0x00', HashType.type);
 
-  let orderBuilder: OrderBuilder;
+  let forgeCellService: DefaultForgeCellService;
   let mockInputCells: Array<Cell>;
 
   const generateCell = (capacity: number, tokenAmount: number) => {
@@ -49,11 +49,11 @@ describe('OrderBuilder service', () => {
     describe('with enough free ckb and free sudt', () => {
       beforeEach(async () => {
         mockInputCells = [generateCell(200 + MIN_SUDT_CAPACITY, 200)];
-        orderBuilder = new OrderBuilder(new MockCellCollector(mockInputCells));
+        forgeCellService = new DefaultForgeCellService(new MockCellCollector(mockInputCells));
       });
       it('returns input cells, forged output cell and change output cell', async () => {
         const ctx = createMockContext();
-        const result = await orderBuilder.forgeCell(
+        const result = await forgeCellService.forgeToken(
           ctx,
           new Amount('100').add(new Amount(MIN_SUDT_CAPACITY.toString())),
           generateToken(100),
@@ -69,6 +69,4 @@ describe('OrderBuilder service', () => {
       });
     });
   });
-
-  describe('buildGenesisLiquidityOrder', () => {});
 });

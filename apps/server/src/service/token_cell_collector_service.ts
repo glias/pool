@@ -5,7 +5,7 @@ export interface TokenCellCollectorService {
   collect(tokenAmount: Primitive.Token, userLock: Script): Promise<Array<Cell>>;
 }
 
-export class DefaultTokenCellCollectorService implements TokenCellCollector {
+export class DefaultTokenCellCollectorService implements TokenCellCollectorService {
   public async collect(tokenAmount: Primitive.Token, userLock: Script): Promise<Array<Cell>> {
     console.log(tokenAmount);
     console.log(userLock);
