@@ -12,6 +12,8 @@ export class TokenInfo {
   symbol: string;
   decimal: number;
   logoUri: string;
+  issuerAddress: string;
+  chainType: string;
 }
 
 export class TokenHolder {
