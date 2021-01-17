@@ -32,7 +32,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
 );
 
 export class TxBuilderService {
-  forgeCellService: ForgeCellService;
+  private readonly forgeCellService: ForgeCellService;
 
   constructor(service?: ForgeCellService) {
     this.forgeCellService = (service && service) || new DefaultForgeCellService();

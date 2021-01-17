@@ -24,7 +24,7 @@ export interface ForgeCellService {
 }
 
 export class DefaultForgeCellService implements ForgeCellService {
-  tokenCellCollectorService: TokenCellCollectorService;
+  private readonly tokenCellCollectorService: TokenCellCollectorService;
 
   constructor(service?: TokenCellCollectorService) {
     this.tokenCellCollectorService = (service && service) || new DefaultTokenCellCollectorService();
