@@ -28,28 +28,30 @@ export class DexLiquidityPoolService {
     console.log(skip);
   }
 
-  // TODO: ensure req token type script exists
-  public async buildGenesisLiquidityOrder(
+  // FIXME: ensure req token type script exists
+  public async buildGenesisLiquidityOrderTx(
     ctx: Context,
     req: Server.GenesisLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
     return await this.txBuilderService.buildGenesisLiquidity(ctx, req);
   }
 
-  // TODO: ensure req token type script exists
-  public async buildAddLiquidityOrder(
+  public async buildAddLiquidityOrderTx(
     ctx: Context,
     req: Server.AddLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
     return await this.txBuilderService.buildAddLiquidity(ctx, req);
   }
 
-  // TODO: ensure req token type script exists
-  public async buildRemoveLiquidityOrder(
+  public async buildRemoveLiquidityOrderTx(
     ctx: Context,
     req: Server.RemoveLiquidityRequest,
   ): Promise<Server.TransactionWithFee> {
     return await this.txBuilderService.buildRemoveLiquidity(ctx, req);
+  }
+
+  public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
+    return await this.txBuilderService.buildCancelOrder(ctx, req);
   }
 }
 

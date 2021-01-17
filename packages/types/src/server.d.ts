@@ -24,6 +24,11 @@ export interface RemoveLiquidityRequest {
   userLock: Primitive.Script;
 }
 
+export interface CancelOrderRequest {
+  txHash: Primitive.Hash;
+  userLock: Primitive.Script;
+}
+
 export interface TransactionWithFee {
   pwTransaction: Primitive.Transaction;
   fee: Primitive.U64;

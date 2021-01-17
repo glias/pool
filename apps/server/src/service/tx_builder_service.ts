@@ -200,6 +200,16 @@ export class TxBuilderService {
     };
   }
 
+  public async buildCancelOrder(
+    ctx: Context,
+    req: Server.CancelOrderRequest,
+    txFee: Amount = Amount.ZERO,
+  ): Promise<Server.TransactionWithFee> {
+    // FIXME:
+    console.log(ctx, req, txFee);
+    return undefined;
+  }
+
   isChangeCoverTxFee(changeCell: Cell, txFee: Amount): boolean {
     // If no type script, ensure we have a change cell, so that
     // txFee won't be changed.
