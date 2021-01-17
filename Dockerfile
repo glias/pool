@@ -6,7 +6,7 @@ ADD ./ .
 
 RUN yarn install && yarn tsc
 RUN cd apps/server && npm install && yarn tsc 
-RUN pwd
+RUN cp -r /server/apps/server/migrations /server/migrations
 
 EXPOSE 3000
 
