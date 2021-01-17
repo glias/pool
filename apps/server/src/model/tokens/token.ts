@@ -26,6 +26,6 @@ export class TokenHolder {
   }
 
   getTypeScripts(): Script[] {
-    return this.toknes.map((x) => x.typeScript);
+    return this.toknes.filter((x) => x.typeScript !== null).map((x) => x.typeScript);
   }
 }
