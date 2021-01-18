@@ -13,6 +13,10 @@ class MockCellCollector implements TokenCellCollectorService {
     this.cells = cells;
   }
 
+  async collectFreeCkb(_userLock: Script): Promise<Array<Cell>> {
+    return undefined;
+  }
+
   async collect(_tokenAmount: Primitive.Token, _userLock: Script): Promise<Array<Cell>> {
     return this.cells;
   }
