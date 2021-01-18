@@ -7157,6 +7157,11 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
+easy-byte@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/easy-byte/-/easy-byte-0.1.0.tgz#6d663248dd5b6e17e29acb1882db594e9fd13f6c"
+  integrity sha512-/qxUCkSPLSG8mVuxbjKXWvEqWguriXIE3Y6PevomdqjWLaRAtJG1n0g/pqx0ycL17fFoe2hbh/XBTO+jN7vxEg==
+
 ecc-jsbn@~0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz#3a83a904e54353287874c564b7549386849a98c9"
