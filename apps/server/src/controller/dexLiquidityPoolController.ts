@@ -1,7 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { Script } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
-import { ScriptSchema, TokenSchema } from './swagger_schema';
+import { ScriptSchema, TokenSchema } from './swaggerSchema';
 import { Server } from '@gliaswap/types';
 
 const liquidityTag = tags(['Liquidity']);
