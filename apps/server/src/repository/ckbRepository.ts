@@ -1,9 +1,10 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
+import * as pw from '@lay2/pw-core';
 import { DexRepository } from '.';
-import { ckbConfig } from '../config';
-import { Cell, cellConver, OutPoint, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
+import { ckbConfig, forceBridgeServerUrl } from '../config';
+import { Cell, cellConver, OutPoint, Script, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
 import { ckbMethods } from './dexRepository';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 
@@ -72,6 +73,34 @@ export class CkbRepository implements DexRepository {
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
     const tx = await this.ckbNode.rpc.getTransaction(hash);
     return transactionConver.conver(tx);
+  }
+
+  /**
+   *
+   * @param lock  user lock
+   * @param pureCross  If pureCross = true, then it is a cross chain order, otherwise it is an cross chain order + place order
+   */
+  async getForceBridgeHistory(lock: Script, pureCross: boolean): Promise<[]> {
+    const userLock = new pw.Script(lock.codeHash, lock.args, <pw.HashType>lock.hashType);
+    const orderLock = new pw.Script(
+      '0x5cc4c841e8ccf0b0fb3334c7903e72da399c3fa9815c07b96c529738c3807353',
+      userLock.toHash(),
+      <pw.HashType>'type',
+    );
+
+    const QueryOptions = {
+      url: `${forceBridgeServerUrl}/get_crosschain_history`,
+      method: 'POST',
+      body: {
+        ckb_recipient_lockscript_addr: pureCross
+          ? userLock.toAddress().addressString
+          : orderLock.toAddress().addressString,
+        eth_recipient_addr: new pw.Address('', pw.AddressType.eth).addressString,
+      },
+      json: true,
+    };
+    const result = await rp(QueryOptions);
+    return result;
   }
 
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {

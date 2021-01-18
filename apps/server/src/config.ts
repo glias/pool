@@ -89,3 +89,5 @@ export const PW_CORE_CONFIG = {
     new Script('0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b', '0x', HashType.type),
   ],
 };
+
+export const forceBridgeServerUrl = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://121.196.29.165:3003';

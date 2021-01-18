@@ -36,7 +36,7 @@ export class DefaultForgeCellService implements ForgeCellService {
     userLock: Script,
     extraCapacity: Amount = Amount.ZERO,
   ): Promise<ForgedCell> {
-    let inputs: Array<Cell> = [];
+    const inputs: Array<Cell> = [];
     let inputCapacity = Amount.ZERO;
 
     const minOutputCapacity = capacity.add(extraCapacity);
@@ -76,7 +76,7 @@ export class DefaultForgeCellService implements ForgeCellService {
     userLock: Script,
     extraCapacity: Amount = Amount.ZERO,
   ): Promise<ForgedCell> {
-    let inputs: Array<Cell> = [];
+    const inputs: Array<Cell> = [];
     let inputTokenAmount = Amount.ZERO;
     let inputCapacity = Amount.ZERO;
     const tokenAmount = new Amount(token.balance);

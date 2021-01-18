@@ -2,12 +2,15 @@ import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
 
 import { TxBuilderService, CancelOrderType } from '.';
+import { ckbRepository, DexRepository } from '../repository';
 
 export class DexSwapService {
   private readonly txBuilderService: TxBuilderService;
+  private readonly dexRepository: DexRepository;
 
   constructor() {
     this.txBuilderService = new TxBuilderService();
+    this.dexRepository = ckbRepository;
   }
 
   public async buildSwapOrderTx(ctx: Context, req: Server.SwapOrderRequest): Promise<Server.TransactionWithFee> {
@@ -23,6 +26,9 @@ export class DexSwapService {
     console.log(lock);
     console.log(limit);
     console.log(skip);
+
+    const ll = await this.dexRepository.getForceBridgeHistory({ ...lock }, false);
+    console.log(ll);
 
     return [];
   }
