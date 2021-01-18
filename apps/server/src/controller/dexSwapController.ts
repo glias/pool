@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 import { Server } from '@gliaswap/types';
 
 import { dexSwapService, DexSwapService } from '../service';
-import { ScriptSchema, TokenSchema } from './swagger_schema';
+import { ScriptSchema, TokenSchema } from './swaggerSchema';
 
 const swapTag = tags(['Swap']);
 

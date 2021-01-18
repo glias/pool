@@ -1,6 +1,6 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { TokenTokenHolderFactory } from '../model';
-import { ScriptSchema, TokenInfoSchema } from './swagger_schema';
+import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
 
 const tokenTag = tags(['Token']);
 
