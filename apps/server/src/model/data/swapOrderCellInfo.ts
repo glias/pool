@@ -33,10 +33,8 @@ export class SwapOrderCellInfoSerialization {
     const args = SwapOrderCellInfoSerialization.getStructDefine();
     const structObj = args.decode(Buffer.from(argsHex.slice(66, argsHex.length), 'hex'));
     const swapOrderCellData: SwapOrderCellArgs = {
+      ...structObj,
       userLockHash: argsHex.slice(0, 66),
-      version: structObj.version,
-      amountIn: structObj.amountIn,
-      minAmountOut: structObj.minAmountOut,
       orderType: structObj.orderType,
     };
     return swapOrderCellData;
