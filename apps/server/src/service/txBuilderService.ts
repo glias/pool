@@ -5,14 +5,9 @@ import {
   CKB_TYPE_HASH,
   SWAP_ORDER_CAPACITY,
   ORDER_VERSION,
-  LIQUIDITY_ORDER_LOCK_CODE_HASH,
-  INFO_TYPE_CODE_HASH,
-  SWAP_ORDER_LOCK_CODE_HASH,
   ORDER_TYPE,
   INFO_CAPACITY,
   MIN_POOL_CAPACITY,
-  INFO_LOCK_CODE_HASH,
-  SUDT_TYPE_CODE_HASH,
 } from '@gliaswap/constants';
 import {
   Transaction,
@@ -22,8 +17,6 @@ import {
   Cell,
   Script,
   HashType,
-  CellDep,
-  DepType,
   OutPoint,
   Blake2bHasher,
 } from '@lay2/pw-core';
@@ -33,16 +26,7 @@ import { ForgeCellService, DefaultForgeCellService } from '.';
 import { ckbRepository, DexRepository } from '../repository';
 import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 import * as model from '../model';
-
-export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
-export const LIQUIDITY_ORDER_LOCK_DEP = new CellDep(
-  DepType.code,
-  new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
-);
-export const SWAP_ORDER_LOCK_DEP = new CellDep(
-  DepType.code,
-  new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'),
-);
+import * as config from '../config';
 
 export const enum CancelOrderType {
   Liquidity,
@@ -98,7 +82,7 @@ export class TxBuilderService {
         this.hasher.update('0x00');
         return this.hasher.digest().serializeJson();
       })();
-      const type = new Script(INFO_TYPE_CODE_HASH, id, HashType.type);
+      const type = new Script(config.INFO_TYPE_CODE_HASH, id, HashType.type);
 
       const pairedHash = (() => {
         const tokenTypeHash = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeHash : req.tokenB.typeHash;
@@ -110,12 +94,12 @@ export class TxBuilderService {
       })();
       const typeHash20 = type.toHash().slice(2).slice(20); // Strip first '0x' then our 20 bytes
       const lockArgs = `${pairedHash}${typeHash20}`;
-      const lock = new Script(INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
+      const lock = new Script(config.INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
 
       const ckbReserve = '0x00';
       const tokenReserve = '0x00'.slice(2);
       const totalLiquidity = '0x00'.slice(2);
-      const liquidityTokenTypeScript = new Script(SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
+      const liquidityTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
       const liquidityTokenTypeHash20 = liquidityTokenTypeScript.toHash().slice(2).slice(20);
       const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${liquidityTokenTypeHash20}`;
 
@@ -138,7 +122,7 @@ export class TxBuilderService {
 
     const outputs = [infoCell, poolCell, changeCell];
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([config.SUDT_TYPE_DEP, config.INFO_TYPE_DEP]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -184,7 +168,7 @@ export class TxBuilderService {
     const amountPlaceHolder = new Amount('0').toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
     const orderLockScript = new Script(
-      LIQUIDITY_ORDER_LOCK_CODE_HASH,
+      config.LIQUIDITY_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${amountPlaceHolder}${amountPlaceHolder}${infoTypeHash20}`,
       HashType.type,
     );
@@ -195,7 +179,12 @@ export class TxBuilderService {
     outputs.push(changeOutput);
 
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([
+      config.SUDT_TYPE_DEP,
+      config.LIQUIDITY_ORDER_LOCK_DEP,
+      config.INFO_TYPE_DEP,
+      config.INFO_LOCK_DEP,
+    ]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -242,7 +231,7 @@ export class TxBuilderService {
     const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
     const orderLockScript = new Script(
-      LIQUIDITY_ORDER_LOCK_CODE_HASH,
+      config.LIQUIDITY_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${tokenAMinAmount}${tokenBMinAmount}${infoTypeHash20}`,
       HashType.type,
     );
@@ -253,7 +242,12 @@ export class TxBuilderService {
     outputs.push(changeOutput);
 
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([
+      config.SUDT_TYPE_DEP,
+      config.LIQUIDITY_ORDER_LOCK_DEP,
+      config.INFO_TYPE_DEP,
+      config.INFO_LOCK_DEP,
+    ]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -295,7 +289,7 @@ export class TxBuilderService {
     const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
     const orderLockScript = new Script(
-      LIQUIDITY_ORDER_LOCK_CODE_HASH,
+      config.LIQUIDITY_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${tokenAMinAmount}${tokenBMinAmount}${infoTypeHash20}`,
       HashType.type,
     );
@@ -306,7 +300,12 @@ export class TxBuilderService {
     outputs.push(changeOutput);
 
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([
+      config.SUDT_TYPE_DEP,
+      config.LIQUIDITY_ORDER_LOCK_DEP,
+      config.INFO_TYPE_DEP,
+      config.INFO_LOCK_DEP,
+    ]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -352,7 +351,7 @@ export class TxBuilderService {
     const orderType =
       req.tokenInAmount.typeHash == CKB_TYPE_HASH ? ORDER_TYPE.SellCKB.slice(2) : ORDER_TYPE.BuyCKB.slice(2);
     const orderLockScript = new Script(
-      SWAP_ORDER_LOCK_CODE_HASH,
+      config.SWAP_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${tokenInAmount}${tokenOutMinAmount}${orderType}`,
       HashType.type,
     );
@@ -362,7 +361,12 @@ export class TxBuilderService {
     outputs.push(changeOutput);
 
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, SWAP_ORDER_LOCK_DEP]);
+    tx.raw.cellDeps.concat([
+      config.SUDT_TYPE_DEP,
+      config.SWAP_ORDER_LOCK_DEP,
+      config.INFO_TYPE_DEP,
+      config.INFO_LOCK_DEP,
+    ]);
 
     // TODO: add a hardcode tx fee in first run to avoid too deep recursives
     const estimatedTxFee = Builder.calcFee(tx);
@@ -379,7 +383,6 @@ export class TxBuilderService {
     };
   }
 
-  // FIXME:
   public async buildCancelOrder(
     ctx: Context,
     req: Server.CancelOrderRequest,
@@ -388,8 +391,8 @@ export class TxBuilderService {
   ): Promise<Server.TransactionWithFee> {
     const { transaction } = await this.dexRepository.getTransaction(req.txHash);
     const orderLockCodeHash =
-      type == CancelOrderType.Liquidity ? LIQUIDITY_ORDER_LOCK_CODE_HASH : SWAP_ORDER_LOCK_CODE_HASH;
-    const orderDep = type == CancelOrderType.Liquidity ? LIQUIDITY_ORDER_LOCK_DEP : SWAP_ORDER_LOCK_DEP;
+      type == CancelOrderType.Liquidity ? config.LIQUIDITY_ORDER_LOCK_CODE_HASH : config.SWAP_ORDER_LOCK_CODE_HASH;
+    const orderDep = type == CancelOrderType.Liquidity ? config.LIQUIDITY_ORDER_LOCK_DEP : config.SWAP_ORDER_LOCK_DEP;
 
     const idx = transaction.outputs.findIndex((value) => value.lock.codeHash == orderLockCodeHash);
     if (!idx) {
@@ -426,7 +429,7 @@ export class TxBuilderService {
 
     const outputs = [tokenOutput];
     const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
-    tx.raw.cellDeps.concat([SUDT_DEP, orderDep]);
+    tx.raw.cellDeps.concat([config.SUDT_TYPE_DEP, config.INFO_TYPE_DEP, config.INFO_LOCK_DEP, orderDep]);
 
     const estimatedTxFee = Builder.calcFee(tx);
     if (estimatedTxFee.lt(txFee)) {

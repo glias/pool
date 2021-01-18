@@ -1,3 +1,4 @@
+import { CellDep, OutPoint, DepType } from '@lay2/pw-core';
 import dotenv from 'dotenv';
 import { MySqlConnectionConfig } from 'knex';
 dotenv.config();
@@ -15,3 +16,30 @@ export const mysqlInfo: MySqlConnectionConfig = {
 };
 
 export const env = process.env.NODE_ENV || 'development';
+
+export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
+export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
+export const INFO_TYPE_CODE_HASH = process.env.INFO_TYPE_CODE_HASH;
+export const INFO_LOCK_CODE_HASH = process.env.INFO_LOCK_CODE_HASH;
+export const SUDT_TYPE_CODE_HASH = process.env.SUDT_TYPE_CODE_HASH;
+
+export const LIQUIDITY_ORDER_LOCK_DEP = (() => {
+  const outPoint = new OutPoint(process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH, '0x0');
+  return new CellDep(DepType.code, outPoint);
+})();
+export const SWAP_ORDER_LOCK_DEP = (() => {
+  const outPoint = new OutPoint(process.env.SWAP_ORDER_LOCK_DEP_TX_HASH, '0x0');
+  return new CellDep(DepType.code, outPoint);
+})();
+export const INFO_TYPE_DEP = (() => {
+  const outPoint = new OutPoint(process.env.INFO_TYPE_DEP_TX_HASH, '0x0');
+  return new CellDep(DepType.code, outPoint);
+})();
+export const INFO_LOCK_DEP = (() => {
+  const outPoint = new OutPoint(process.env.INFO_LOCK_DEP_TX_HASH, '0x0');
+  return new CellDep(DepType.code, outPoint);
+})();
+export const SUDT_TYPE_DEP = (() => {
+  const outPoint = new OutPoint(process.env.SUDT_TYPE_DEP_TX_HASH, '0x0');
+  return new CellDep(DepType.code, outPoint);
+})();
