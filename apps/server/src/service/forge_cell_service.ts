@@ -95,6 +95,8 @@ export class DefaultForgeCellService implements ForgeCellService {
     const hasTokenChange = inputTokenAmount.gt(new Amount(token.balance));
     if (hasTokenChange) {
       // Need to generate a sudt change output cell
+      // FIXME: MIN_SUDT_CAPACITY can be wrong size, since user lock args may not be 32 bytes or
+      // sudt data size may not be 16 bytes.
       minOutputCapacity = minOutputCapacity.add(new Amount(MIN_SUDT_CAPACITY.toString()));
     }
 
