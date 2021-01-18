@@ -1,4 +1,4 @@
-import { envs } from './envs';
+import { CommonsEnv } from './env';
 import { has, propEq } from './utils';
 
 export type ChainType = 'Nervos' | 'Ethereum';
@@ -72,15 +72,15 @@ export function isEthErc20Asset(asset: Asset): asset is EthErc20Asset {
 
 export function isEthErc20Usdt(asset: Asset): asset is EthErc20Asset {
   // TODO
-  return isEthErc20Asset(asset) && asset.address === envs.get('ERC20_USDT_ADDRESS');
+  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_USDT_ADDRESS');
 }
 
 export function isEthErc20Usdc(asset: Asset): asset is EthErc20Asset {
   // TODO
-  return isEthErc20Asset(asset) && asset.address === envs.get('ERC20_USDC_ADDRESS');
+  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_USDC_ADDRESS');
 }
 
 export function isEthErc20Dai(asset: Asset): asset is EthErc20Asset {
   // TODO
-  return isEthErc20Asset(asset) && asset.address === envs.get('ERC20_DAI_ADDRESS');
+  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_DAI_ADDRESS');
 }
