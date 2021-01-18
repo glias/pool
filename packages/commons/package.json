@@ -2,5 +2,13 @@
   "name": "@gliaswap/commons",
   "version": "0.0.1",
   "main": "./lib/index.js",
-  "dependencies": {}
+  "dependencies": {},
+  "peerDependencies": {
+    "@lay2/pw-core": "^0.3.22",
+    "@nervosnetwork/ckb-types": "^0.39.0"
+  },
+  "devDependencies": {
+    "@lay2/pw-core": "^0.3.22",
+    "@nervosnetwork/ckb-types": "^0.39.0"
+  }
 }
