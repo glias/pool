@@ -4,22 +4,24 @@ import { SerializedTransaction } from '../transaction';
 export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
 export interface TransactionSummary {
+  // ckb capacity or sudt amount
   amount: string;
   status: TransactionStatus;
-  date: string;
   txHash: string;
+  fromLock: Script;
+  toLock: Script;
+  // yyyy-MM-dd HH:mm:ss
+  date: string;
 }
 
 export interface TransactionDetail extends TransactionSummary {
-  from: string;
-  to: string;
   fee: string;
   blockNumber: number;
-  status: TransactionStatus;
 }
 
 export interface TransactionSummaryFilter {
   asset: CkbAsset;
+  // filter by the lock script both transaction in or transaction out
   lockScript: Script;
 }
 
