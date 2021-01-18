@@ -1,6 +1,6 @@
 import { Primitive } from '@gliaswap/types';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
-import { Cell, Script, Amount, HashType, OutPoint } from '@lay2/pw-core';
+import { Cell, Script, Amount, OutPoint } from '@lay2/pw-core';
 import * as lumos from '@ckb-lumos/base';
 
 import * as model from '../model';
@@ -9,6 +9,7 @@ import { ckbRepository, DexRepository } from '../repository';
 
 export interface TokenCellCollectorService {
   collect(token: Primitive.Token, userLock: Script): Promise<Array<Cell>>;
+  collectFreeCkb(userLock: Script): Promise<Array<Cell>>;
 }
 
 export class DefaultTokenCellCollectorService implements TokenCellCollectorService {
@@ -22,7 +23,7 @@ export class DefaultTokenCellCollectorService implements TokenCellCollectorServi
     return token.typeHash == CKB_TYPE_HASH ? this.collectFreeCkb(userLock) : this.collectToken(token, userLock);
   }
 
-  private async collectFreeCkb(userLock: Script): Promise<Array<Cell>> {
+  public async collectFreeCkb(userLock: Script): Promise<Array<Cell>> {
     const queryOptions: lumos.QueryOptions = {
       lock: this.toLumosScript(userLock),
     };

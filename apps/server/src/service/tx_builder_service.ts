@@ -25,6 +25,7 @@ import { Context } from 'koa';
 
 import { ForgeCellService, DefaultForgeCellService } from '.';
 import { ckbRepository, DexRepository } from '../repository';
+import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 import * as model from '../model';
 
 export const SUDT_DEP = new CellDep(DepType.code, new OutPoint(process.env.REACT_APP_SUDT_DEP_OUT_POINT!, '0x0'));
@@ -45,10 +46,12 @@ export const enum CancelOrderType {
 export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
   private readonly dexRepository: DexRepository;
+  private readonly tokenCellCollectorService: TokenCellCollectorService;
 
-  constructor(service?: ForgeCellService, repository?: DexRepository) {
+  constructor(service?: ForgeCellService, repository?: DexRepository, tokenCollector?: TokenCellCollectorService) {
     this.forgeCellService = service ? service : new DefaultForgeCellService();
     this.dexRepository = repository ? repository : ckbRepository;
+    this.tokenCellCollectorService = tokenCollector ? tokenCollector : new DefaultTokenCellCollectorService();
   }
 
   // FIXME
@@ -288,6 +291,7 @@ export class TxBuilderService {
     ctx: Context,
     req: Server.CancelOrderRequest,
     type: CancelOrderType,
+    txFee: Amount = Builder.MIN_CHANGE,
   ): Promise<Server.TransactionWithFee> {
     const { transaction } = await this.dexRepository.getTransaction(req.txHash);
     const orderLockCodeHash =
@@ -303,36 +307,39 @@ export class TxBuilderService {
     }
 
     const orderInput = this.createOrderInput(transaction, idx);
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forge(
-      ctx,
-      Builder.MIN_CHANGE,
-      req.userLock,
-    );
 
-    const txInputs = inputs.concat(orderInput);
+    let inputCapacity = Amount.ZERO;
+    let inputs: Array<Cell> = [];
+    const cells = await this.tokenCellCollectorService.collectFreeCkb(req.userLock);
+    cells.forEach((cell) => {
+      if (inputCapacity.lt(txFee)) {
+        inputs.push(cell);
+        inputCapacity = inputCapacity.add(cell.capacity);
+      }
+    });
 
-    // FIXME: Right now user lock args is smaller than order size, should sub this
-    // from order capacity.
+    inputCapacity = inputCapacity.add(orderInput.capacity);
+    inputs.push(orderInput);
+
     // FIXME: user lock maybe bigger than order lock.
+    // FIXME: Fixed this sudt capacity to exactly its size and give use free ckb
     const tokenOutput = new Cell(
-      orderInput.capacity,
+      inputCapacity.sub(txFee),
       req.userLock,
       orderInput.type,
       undefined,
       orderInput.getHexData(),
     );
 
-    const changeCapacity = forgedOutput.capacity.add(changeOutput.capacity).sub(Builder.MIN_CHANGE);
-    const change = new Cell(changeCapacity, req.userLock);
-    const outputs = [tokenOutput, change];
-
-    const tx = new Transaction(new RawTransaction(txInputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+    const outputs = [tokenOutput];
+    const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
     tx.raw.cellDeps.concat([SUDT_DEP, orderDep]);
 
-    // FIXME:
     const estimatedTxFee = Builder.calcFee(tx);
-    if (Builder.MIN_CHANGE.lt(estimatedTxFee)) {
-      ctx.throw('builder min change donest cover estimated fee', 500, { txFee: estimatedTxFee.toString() });
+    if (estimatedTxFee.lt(txFee)) {
+      tokenOutput.capacity.add(txFee.sub(estimatedTxFee));
+      tx.raw.outputs.pop();
+      tx.raw.outputs.push(tokenOutput);
     }
 
     return {
