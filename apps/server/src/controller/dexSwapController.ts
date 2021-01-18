@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 import { Server } from '@gliaswap/types';
 
 import { dexSwapService, DexSwapService } from '../service';
-import { ScriptSchema, TokenSchema } from './swaggerSchema';
+import { ScriptSchema, StepSchema, TokenSchema } from './swaggerSchema';
 
 const swapTag = tags(['Swap']);
 
@@ -32,13 +32,16 @@ export default class DexSwapController {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             amountOut: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
             stage: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  step: { type: 'string', required: true },
-                  message: { type: 'string', required: true },
-                  data: { type: 'string', required: true },
+              type: 'object',
+              properties: {
+                status: { type: 'string', required: true },
+                steps: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    properties: (StepSchema as any).swaggerDocument,
+                  },
                 },
               },
             },
@@ -55,7 +58,8 @@ export default class DexSwapController {
     skip: { type: 'number', required: true },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
-    console.log(ctx);
+    const req = ctx.request.body;
+    await this.service.orders(ctx, req);
   }
 
   @request('post', '/v1/swap/orders/swap')

@@ -17,6 +17,15 @@ export class DexSwapService {
   public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
     return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Swap);
   }
+
+  async orders(ctx: Context, req: Server.OrdersRequest): Promise<[]> {
+    const { lock, limit, skip } = req;
+    console.log(lock);
+    console.log(limit);
+    console.log(skip);
+
+    return [];
+  }
 }
 
 export const dexSwapService = new DexSwapService();
