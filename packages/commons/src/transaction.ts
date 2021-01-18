@@ -49,7 +49,7 @@ function deserializeOutputCell(cell: OutputCell): Cell {
   );
 }
 
-function deserializeCellDeps(dep: CKBComponents.CellDep) {
+function deserializeCellDeps(dep: CKBComponents.CellDep): CellDep {
   return new CellDep(
     dep.depType === 'depGroup' ? DepType.depGroup : DepType.code,
     new OutPoint(dep.outPoint.txHash, dep.outPoint.txHash),

@@ -1,7 +1,7 @@
 import { CkbAsset, Script } from '../assets';
 import { SerializedTransaction } from '../transaction';
 
-type TransactionStatus = 'pending' | 'proposed' | 'committed';
+export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
 export interface TransactionSummary {
   amount: string;
@@ -18,13 +18,12 @@ export interface TransactionDetail extends TransactionSummary {
   status: TransactionStatus;
 }
 
-interface TransactionSummaryFilter {
+export interface TransactionSummaryFilter {
   asset: CkbAsset;
-  fromLock?: Script;
-  toLock?: Script;
+  lockScript: Script;
 }
 
-interface GenerateSendTransactionOptions {
+export interface GenerateSendTransactionOptions {
   asset: CkbAsset;
   fromLock: Script;
   toLock: Script;

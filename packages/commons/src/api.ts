@@ -1,2 +1,2 @@
-export { GliaswapAPI } from './api/GliaswapAPI';
-export { AssetManagerAPI } from './api/AssetManager';
+export * from './api/GliaswapAPI';
+export * from './api/AssetManager';
