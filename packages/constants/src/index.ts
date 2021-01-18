@@ -6,9 +6,9 @@ export const LIQUIDITY_ORDER_CAPACITY = 207;
 export const INFO_CAPACITY = 214;
 export const MIN_POOL_CAPACITY = 162;
 export const enum ORDER_TYPE {
-  SellCKB = '0x00',
-  BuyCKB = '0x01',
+  SellCKB = '0x0',
+  BuyCKB = '0x1',
 }
 
-export const ORDER_VERSION = '0x01';
-export const CKB_TYPE_HASH = '0x00';
+export const ORDER_VERSION = '0x1';
+export const CKB_TYPE_HASH = '0x000';
