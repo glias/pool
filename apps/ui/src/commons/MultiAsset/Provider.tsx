@@ -31,7 +31,7 @@ export function Provider<A extends AssetWithBalance>(props: ProviderProps<A>) {
 
   return (
     <AssetManagerContext.Provider value={{ assets: realtimeAssets }}>
-      <div>{children}</div>
+      {children}
     </AssetManagerContext.Provider>
   );
 }
