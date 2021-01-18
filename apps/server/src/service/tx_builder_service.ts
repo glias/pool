@@ -6,8 +6,13 @@ import {
   SWAP_ORDER_CAPACITY,
   ORDER_VERSION,
   LIQUIDITY_ORDER_LOCK_CODE_HASH,
+  INFO_TYPE_CODE_HASH,
   SWAP_ORDER_LOCK_CODE_HASH,
   ORDER_TYPE,
+  INFO_CAPACITY,
+  MIN_POOL_CAPACITY,
+  INFO_LOCK_CODE_HASH,
+  SUDT_TYPE_CODE_HASH,
 } from '@gliaswap/constants';
 import {
   Transaction,
@@ -20,6 +25,7 @@ import {
   CellDep,
   DepType,
   OutPoint,
+  Blake2bHasher,
 } from '@lay2/pw-core';
 import { Context } from 'koa';
 
@@ -47,21 +53,108 @@ export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
   private readonly dexRepository: DexRepository;
   private readonly tokenCellCollectorService: TokenCellCollectorService;
+  private readonly hasher: Blake2bHasher;
 
   constructor(service?: ForgeCellService, repository?: DexRepository, tokenCollector?: TokenCellCollectorService) {
     this.forgeCellService = service ? service : new DefaultForgeCellService();
     this.dexRepository = repository ? repository : ckbRepository;
     this.tokenCellCollectorService = tokenCollector ? tokenCollector : new DefaultTokenCellCollectorService();
+    this.hasher = new Blake2bHasher();
   }
 
-  // FIXME
   public async buildCreateLiquidityPool(
     ctx: Context,
     req: Server.CreateLiquidityPoolRequest,
     txFee: Amount = Amount.ZERO,
   ): Promise<Server.CreateLiquidityPoolResponse> {
-    console.log(ctx, req, txFee);
-    return undefined;
+    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
+      ctx.throw('token/token pool isnt support yet', 400);
+    }
+
+    const minOutputCapacity = new Amount(INFO_CAPACITY.toString())
+      .add(new Amount(MIN_POOL_CAPACITY.toString()))
+      .add(txFee);
+
+    let inputCapacity = Amount.ZERO;
+    let inputs: Array<Cell> = [];
+    const cells = await this.tokenCellCollectorService.collectFreeCkb(req.userLock);
+    cells.forEach((cell) => {
+      if (inputCapacity.lt(minOutputCapacity)) {
+        inputs.push(cell);
+        inputCapacity = inputCapacity.add(cell.capacity);
+      }
+    });
+    if (inputCapacity.lt(minOutputCapacity)) {
+      ctx.throw('free ckb not enough', 400, { required: minOutputCapacity.toString() });
+    }
+    if (!inputs[0].outPoint) {
+      ctx.throw('create pool failed, first input donest have outpoint', 500);
+    }
+
+    const { infoCell, liquidityTokenTypeScript } = (() => {
+      const id = (() => {
+        this.hasher.reset();
+        this.hasher.update(inputs[0].outPoint.txHash);
+        this.hasher.update('0x00');
+        return this.hasher.digest().serializeJson();
+      })();
+      const type = new Script(INFO_TYPE_CODE_HASH, id, HashType.type);
+
+      const pairedHash = (() => {
+        const tokenTypeHash = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeHash : req.tokenB.typeHash;
+
+        this.hasher.reset();
+        this.hasher.update('ckb');
+        this.hasher.update(tokenTypeHash);
+        return this.hasher.digest().serializeJson();
+      })();
+      const typeHash20 = type.toHash().slice(2).slice(20); // Strip first '0x' then our 20 bytes
+      const lockArgs = `${pairedHash}${typeHash20}`;
+      const lock = new Script(INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
+
+      const ckbReserve = '0x00';
+      const tokenReserve = '0x00'.slice(2);
+      const totalLiquidity = '0x00'.slice(2);
+      const liquidityTokenTypeScript = new Script(SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
+      const liquidityTokenTypeHash20 = liquidityTokenTypeScript.toHash().slice(2).slice(20);
+      const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${liquidityTokenTypeHash20}`;
+
+      const infoCell = new Cell(new Amount(INFO_CAPACITY.toString()), lock, type, undefined, data);
+
+      return {
+        infoCell,
+        liquidityTokenTypeScript,
+      };
+    })();
+
+    const poolCell = (() => {
+      const data = '0x00';
+      const token = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA : req.tokenB;
+
+      return new Cell(new Amount(MIN_POOL_CAPACITY.toString()), infoCell.lock, token.typeScript, undefined, data);
+    })();
+
+    const changeCell = new Cell(inputCapacity.sub(infoCell.capacity).sub(poolCell.capacity), req.userLock);
+
+    const outputs = [infoCell, poolCell, changeCell];
+    const tx = new Transaction(new RawTransaction(inputs, outputs), [Builder.WITNESS_ARGS.Secp256k1]);
+    tx.raw.cellDeps.concat([SUDT_DEP, LIQUIDITY_ORDER_LOCK_DEP]);
+
+    // TODO: add a hardcode tx fee in first run to avoid too deep recursives
+    const estimatedTxFee = Builder.calcFee(tx);
+    if (!this.isChangeCoverTxFee(changeCell, estimatedTxFee)) {
+      return await this.buildCreateLiquidityPool(ctx, req, estimatedTxFee);
+    }
+
+    changeCell.capacity = changeCell.capacity.sub(estimatedTxFee);
+    tx.raw.outputs.pop();
+    tx.raw.outputs.push(changeCell);
+
+    return {
+      pwTransaction: tx,
+      fee: estimatedTxFee.toString(),
+      liquidityTokenTypeScript,
+    };
   }
 
   public async buildGenesisLiquidity(

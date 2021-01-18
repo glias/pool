@@ -1,8 +1,8 @@
 import { Primitive } from '.';
 
 export interface CreateLiquidityPoolRequest {
-  tokenATypeScript: Primitive.Script;
-  tokenBTypeScript: Primitive.Script;
+  tokenA: Primitive.Token;
+  tokenB: Primitive.Token;
   userLock: Primitive.Script;
 }
 
