@@ -3,7 +3,7 @@ const { join } = require('path');
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  rootDir: 'packages',
+  roots: ['packages', 'apps/server'],
   testMatch: ['<rootDir>/**/*.spec.ts'],
   setupFiles: ['regenerator-runtime/runtime'],
   globals: {
