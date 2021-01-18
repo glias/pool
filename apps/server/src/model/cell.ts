@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as lumos from '@ckb-lumos/base';
+import * as pw from '@lay2/pw-core';
+
 export interface Cell {
   cellOutput: CellOutput;
   outPoint: OutPoint;
@@ -64,6 +66,10 @@ class CellConver {
     };
 
     return script;
+  }
+
+  converToPWScript(script: Script): pw.Script {
+    return new pw.Script(script.codeHash, script.args, script.hashType == 'type' ? pw.HashType.type : pw.HashType.data);
   }
 }
 

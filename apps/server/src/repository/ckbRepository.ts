@@ -4,8 +4,8 @@ import rp from 'request-promise';
 import { DexRepository } from '.';
 import { ckbConfig } from '../config';
 import { Cell, cellConver, OutPoint, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
-import { ckbMethods } from './dex_repository';
-import { lumosRepository, SqlIndexerWrapper } from './lumos_repository';
+import { ckbMethods } from './dexRepository';
+import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
@@ -67,6 +67,11 @@ export class CkbRepository implements DexRepository {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async getTransaction(hash: string): Promise<TransactionWithStatus> {
+    const tx = await this.ckbNode.rpc.getTransaction(hash);
+    return transactionConver.conver(tx);
   }
 
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {

@@ -48,4 +48,6 @@ export interface DexRepository {
   collectTransactions: (queryOptions: QueryOptions) => Promise<TransactionWithStatus[]>;
 
   getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]>;
+
+  getTransaction(hash: string): Promise<TransactionWithStatus>;
 }
