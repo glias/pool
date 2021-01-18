@@ -1,7 +1,7 @@
 import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
 
-import { TxBuilderService } from '.';
+import { TxBuilderService, CancelOrderType } from '.';
 
 export class DexSwapService {
   private readonly txBuilderService: TxBuilderService;
@@ -15,7 +15,7 @@ export class DexSwapService {
   }
 
   public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req);
+    return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Swap);
   }
 }
 

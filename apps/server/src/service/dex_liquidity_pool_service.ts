@@ -4,7 +4,7 @@ import { Context } from 'koa';
 
 import { Script } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
-import { TxBuilderService } from '.';
+import { TxBuilderService, CancelOrderType } from '.';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
@@ -58,7 +58,7 @@ export class DexLiquidityPoolService {
   }
 
   public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req);
+    return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Liquidity);
   }
 }
 
