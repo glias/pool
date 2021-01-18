@@ -2,7 +2,7 @@ import { Cell, QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
 import { ckbConfig, mysqlInfo } from '../config';
-import { TransactionCollector } from './transactio_collector';
+import { TransactionCollector } from './transactionCollector';
 
 export class SqlIndexerWrapper {
   private indexer: Indexer;
