@@ -28,6 +28,9 @@ import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../
 import * as model from '../model';
 import * as config from '../config';
 
+import PWCore from '@lay2/pw-core';
+PWCore.config = config.PW_CORE_CONFIG;
+
 export const enum CancelOrderType {
   Liquidity,
   Swap,

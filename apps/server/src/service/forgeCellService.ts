@@ -5,7 +5,7 @@ import { Context } from 'koa';
 
 import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '.';
 
-interface ForgedCell {
+export interface ForgedCell {
   inputs: Array<Cell>;
   forgedOutput: Cell;
   changeOutput: Cell;
