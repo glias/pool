@@ -1,4 +1,4 @@
-export function has<K extends string>(obj: unknown, key: K): obj is Record<K, unknown> {
+export function has<K extends string, V>(obj: unknown, key: K): obj is Record<K, V> {
   if (!obj) return false;
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
