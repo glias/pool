@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "files": [],
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "rootDir": ".",
+    "typeRoots": ["./node_modules/@types", "./node_modules/@nervosnetwork/ckb-types"],
+    "types": ["node", "jest", "@nervosnetwork/ckb-types"]
+  },
+  "references": [{ "path": "packages/constants" }, { "path": "packages/types" }, { "path": "packages/commons" }]
+}

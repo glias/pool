@@ -29,6 +29,10 @@ function deserializeScript(script: CKBComponents.Script): Script {
   return new Script(script.codeHash, script.args, hashType);
 }
 
+function serializeScript(script: Script): CKBComponents.Script {
+  return script.serializeJson() as CKBComponents.Script;
+}
+
 function deserializeInputCell(cell: InputCell): Cell {
   return new Cell(
     new Amount(cell.capacity),
@@ -37,6 +41,10 @@ function deserializeInputCell(cell: InputCell): Cell {
     cell.txHash && cell.index && new OutPoint(cell.txHash, cell.index),
     cell.data,
   );
+}
+
+function serializeInputCell(cell: Cell): InputCell {
+  return cell.serializeJson() as InputCell;
 }
 
 function deserializeOutputCell(cell: OutputCell): Cell {
@@ -49,6 +57,10 @@ function deserializeOutputCell(cell: OutputCell): Cell {
   );
 }
 
+function serializeOutputCell(cell: Cell): OutputCell {
+  return cell.serializeJson() as OutputCell;
+}
+
 function deserializeCellDeps(dep: CKBComponents.CellDep): CellDep {
   return new CellDep(
     dep.depType === 'depGroup' ? DepType.depGroup : DepType.code,
@@ -56,7 +68,11 @@ function deserializeCellDeps(dep: CKBComponents.CellDep): CellDep {
   );
 }
 
-export function deserializeTransaction(serialized: SerializedTransaction): Transaction {
+function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
+  return dep.serializeJson() as CKBComponents.CellDep;
+}
+
+function deserializeTransaction(serialized: SerializedTransaction): Transaction {
   const inputCells: Cell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
   const outputCells: Cell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
   const cellDeps: CellDep[] = serialized.cellDeps.map(deserializeCellDeps);
@@ -71,3 +87,24 @@ export function deserializeTransaction(serialized: SerializedTransaction): Trans
     })),
   );
 }
+
+function serializeTransaction(transaction: Transaction): SerializedTransaction {
+  return transaction.serializeJson() as SerializedTransaction;
+}
+
+/**
+ * serialize and deserialize between PW Transaction and plan object Transaction
+ */
+export const TransactionHelper = {
+  deserializeCellDeps,
+  deserializeOutputCell,
+  deserializeInputCell,
+  deserializeScript,
+  deserializeTransaction,
+
+  serializeCellDep,
+  serializeScript,
+  serializeOutputCell,
+  serializeInputCell,
+  serializeTransaction,
+};

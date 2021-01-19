@@ -5,6 +5,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
-    "typeRoots": ["src/types.d.ts"]
+    "typeRoots": ["../../node_modules/@types", "../../node_modules/@nervosnetwork/ckb-types"],
+    "types": ["node", "jest", "@nervosnetwork/ckb-types"]
   }
 }

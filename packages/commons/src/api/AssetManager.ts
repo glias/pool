@@ -19,10 +19,12 @@ export interface TransactionDetail extends TransactionSummary {
   blockNumber: number;
 }
 
+type TransactionSummaryDirectionFilter = { fromLock: Script } | { toLock: Script } | Script;
+
 export interface TransactionSummaryFilter {
   asset: CkbAsset;
-  // filter by the lock script both transaction in or transaction out
-  lockScript: Script;
+  // filter the transactions from the lock script
+  lock: TransactionSummaryDirectionFilter;
 }
 
 export interface GenerateSendTransactionOptions {
