@@ -169,7 +169,7 @@ export class TxBuilderService {
     const userLockHash = req.userLock.toHash();
     const version = ORDER_VERSION.slice(2);
     const amountPlaceHolder = new Amount('0').toUInt128LE().slice(2);
-    const infoTypeHash20 = req.poolId.slice(2, 40);
+    const infoTypeHash20 = req.poolId.slice(2, 42);
     const orderLockScript = new Script(
       config.LIQUIDITY_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${amountPlaceHolder}${amountPlaceHolder}${infoTypeHash20}`,
