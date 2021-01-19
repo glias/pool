@@ -1,7 +1,5 @@
 import { CkbAsset, Script } from '../assets';
-import { SerializedTransaction } from '../transaction';
-
-export type TransactionStatus = 'pending' | 'proposed' | 'committed';
+import { SerializedTransaction, TransactionStatus } from '../transaction';
 
 export interface TransactionSummary {
   // ckb capacity or sudt amount

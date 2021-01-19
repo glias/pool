@@ -1,5 +1,7 @@
 import { Amount, Cell, CellDep, DepType, HashType, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
 
+export type TransactionStatus = 'pending' | 'proposed' | 'committed';
+
 export type CellLike = {
   capacity: CKBComponents.Capacity;
   lock: Script;

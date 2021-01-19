@@ -1,8 +1,18 @@
-import { Asset, GliaswapAssetWithBalance, LiquidityPool, Script } from '@gliaswap/commons';
+import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Script } from '@gliaswap/commons';
+
+interface LiquidityInfoFilter {
+  poolId?: string;
+  lock?: Script;
+}
+
+interface LiquidityOrderSummaryFilter {
+  poolId: string;
+  lock: Script;
+}
 
 export interface GliaswapAPI {
   /**
-   * get the default asset list
+   * get the default asset list, used as a placeholder
    */
   getDefaultAssetList: () => Asset[];
   /**
@@ -13,8 +23,14 @@ export interface GliaswapAPI {
    * Get assets with balances, if no `assets` is passed, the built-in AssetWithBalance is returned
    */
   getAssetsWithBalance: (lock: Script, assets?: Asset[]) => Promise<GliaswapAssetWithBalance[]>;
+  /**
+   * get liquidity pools information
+   */
+  getLiquidityInfos: (filter: LiquidityInfoFilter) => Promise<LiquidityInfo[]>;
 
-  getLiquidityPools: (lock?: Script) => Promise<LiquidityPool[]>;
+  getAddLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
+
+  getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
   // TODO generate transaction and the other data API
 }

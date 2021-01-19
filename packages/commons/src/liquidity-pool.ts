@@ -1,10 +1,15 @@
-import { Asset } from './assets';
+import { AssetWithBalance, TransactionStatus } from '.';
 
-type Amounted = { amount: string };
-
-export type LiquidityAsset = Asset & Amounted;
-
-export interface LiquidityPool {
+export interface LiquidityInfo {
   poolId: string;
-  assets: LiquidityAsset[];
+  // the liquidity provider token corresponding to the liquidity pool
+  lpToken: AssetWithBalance;
+  // the liquidity assets in the pool
+  assets: AssetWithBalance[];
+}
+
+export interface LiquidityOrderSummary {
+  poolId: string;
+  assets: AssetWithBalance[];
+  status: TransactionStatus;
 }
