@@ -3,6 +3,7 @@ import { Server } from '@gliaswap/types';
 
 import { dexSwapService, DexSwapService } from '../service';
 import { ScriptSchema, StepSchema, TokenSchema } from './swaggerSchema';
+import { cellConver } from '../model';
 
 const swapTag = tags(['Swap']);
 
@@ -59,7 +60,8 @@ export default class DexSwapController {
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
     const req = ctx.request.body;
-    await this.service.orders(ctx, req);
+    const { lock, limit, skip } = req;
+    await this.service.orders(cellConver.converScript(lock), limit, skip);
   }
 
   @request('post', '/v1/swap/orders/swap')

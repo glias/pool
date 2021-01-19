@@ -19,6 +19,7 @@ export const env = process.env.NODE_ENV || 'development';
 
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
+export const SWAP_ORDER_LOCK_CODE_TYPE_HASH = process.env.SWAP_ORDER_LOCK_CODE_TYPE_HASH;
 export const INFO_TYPE_CODE_HASH = process.env.INFO_TYPE_CODE_HASH;
 export const INFO_LOCK_CODE_HASH = process.env.INFO_LOCK_CODE_HASH;
 export const SUDT_TYPE_CODE_HASH =

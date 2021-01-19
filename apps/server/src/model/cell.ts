@@ -17,10 +17,32 @@ export interface CellOutput {
   type?: Script;
 }
 
-export interface Script {
+export class Script {
   codeHash: string;
   hashType: string;
   args: string;
+
+  constructor(codeHash: string, hashType: string, args: string) {
+    this.codeHash = codeHash;
+    this.hashType = hashType;
+    this.args = args;
+  }
+
+  toLumosScript(): lumos.Script {
+    return {
+      code_hash: this.codeHash,
+      hash_type: <lumos.HashType>this.hashType,
+      args: this.args,
+    };
+  }
+
+  toPwScript(): pw.Script {
+    return new pw.Script(this.codeHash, this.args, <pw.HashType>this.hashType);
+  }
+
+  toHash(): string {
+    return this.toPwScript().toHash();
+  }
 }
 
 export interface OutPoint {
@@ -32,7 +54,7 @@ class CellConver {
   conver(lumosCell: any): Cell {
     const cell: Cell = {
       cellOutput: {
-        capacity: lumosCell.cell_output.capacity,
+        capacity: 'cellOutput' in lumosCell ? lumosCell.cellOutput.capacity : lumosCell.cell_output.capacity,
         lock: this.converScript('cellOutput' in lumosCell ? lumosCell.cellOutput.lock : lumosCell.cell_output.lock),
         type: this.converScript('cellOutput' in lumosCell ? lumosCell.cellOutput.type : lumosCell.cell_output.type),
       },
@@ -54,18 +76,14 @@ class CellConver {
     return outPoint;
   }
 
-  converScript(lumosScript: lumos.Script): Script {
+  converScript(lumosScript: any): Script {
     if (!lumosScript) {
       return undefined;
     }
-
-    const script = {
-      codeHash: lumosScript.code_hash,
-      hashType: lumosScript.hash_type,
-      args: lumosScript.args,
-    };
-
-    return script;
+    if ('codeHash' in lumosScript) {
+      return new Script(lumosScript.codeHash, lumosScript.hashType, lumosScript.args);
+    }
+    return new Script(lumosScript.code_hash, lumosScript.hash_type, lumosScript.args);
   }
 
   converToPWScript(script: Script): pw.Script {

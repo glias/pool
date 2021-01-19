@@ -3,7 +3,7 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import * as pw from '@lay2/pw-core';
 import { DexRepository } from '.';
-import { ckbConfig, forceBridgeServerUrl } from '../config';
+import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
 import { Cell, cellConver, OutPoint, Script, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
 import { ckbMethods } from './dexRepository';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
@@ -81,12 +81,12 @@ export class CkbRepository implements DexRepository {
    * @param pureCross  If pureCross = true, then it is a cross chain order, otherwise it is an cross chain order + place order
    */
   async getForceBridgeHistory(lock: Script, pureCross: boolean): Promise<[]> {
-    const userLock = new pw.Script(lock.codeHash, lock.args, <pw.HashType>lock.hashType);
-    const orderLock = new pw.Script(
-      '0x5cc4c841e8ccf0b0fb3334c7903e72da399c3fa9815c07b96c529738c3807353',
+    const userLock = lock.toPwScript();
+    const orderLock = new Script(
+      SWAP_ORDER_LOCK_CODE_HASH,
+      SWAP_ORDER_LOCK_CODE_TYPE_HASH,
       userLock.toHash(),
-      <pw.HashType>'type',
-    );
+    ).toPwScript();
 
     const QueryOptions = {
       url: `${forceBridgeServerUrl}/get_crosschain_history`,
