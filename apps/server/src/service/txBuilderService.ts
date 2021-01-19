@@ -1,4 +1,4 @@
-import { Server } from '@gliaswap/types';
+import { Server, Primitive } from '@gliaswap/types';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import * as constants from '@gliaswap/constants';
 import { Transaction, RawTransaction, Builder, Amount, Cell, Script, HashType, OutPoint } from '@lay2/pw-core';
@@ -61,7 +61,7 @@ export class TxBuilderService {
       ctx.throw('create pool failed, first input donest have outpoint', 500);
     }
 
-    const { infoCell, lpTokenTypeScript } = (() => {
+    const { infoCell, lpToken } = (() => {
       const id = (() => {
         this.hasher.reset();
         this.hasher.update(inputs[0].outPoint.txHash);
@@ -78,22 +78,29 @@ export class TxBuilderService {
         this.hasher.update(tokenTypeHash);
         return this.hasher.digest().serializeJson();
       })();
-      const typeHash20 = type.toHash().slice(2).slice(20); // Strip first '0x' then our 20 bytes
+      const typeHash20 = type.toHash().slice(2, 42); // Strip first '0x' then our 20 bytes
       const lockArgs = `${pairedHash}${typeHash20}`;
       const lock = new Script(config.INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
 
-      const ckbReserve = '0x00';
-      const tokenReserve = '0x00'.slice(2);
-      const totalLiquidity = '0x00'.slice(2);
+      const ckbReserve = '0x0';
+      const tokenReserve = '0x0'.slice(2);
+      const totalLiquidity = '0x0'.slice(2);
+
       const lpTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
-      const liquidityTokenTypeHash20 = lpTokenTypeScript.toHash().slice(2).slice(20);
-      const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${liquidityTokenTypeHash20}`;
+      const lpTokenTypeHash20 = lpTokenTypeScript.toHash().slice(2, 42);
+      const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash20}`;
 
       const infoCell = new Cell(new Amount(constants.INFO_CAPACITY.toString()), lock, type, undefined, data);
+      const lpToken: Primitive.Token = {
+        balance: '0',
+        typeHash: lpTokenTypeScript.toHash(),
+        typeScript: lpTokenTypeScript,
+        info: undefined,
+      };
 
       return {
         infoCell,
-        lpTokenTypeScript,
+        lpToken,
       };
     })();
 
@@ -129,7 +136,7 @@ export class TxBuilderService {
     return {
       transaction: tx,
       fee: estimatedTxFee.toString(),
-      lpTokenTypeScript,
+      lpToken,
     };
   }
 

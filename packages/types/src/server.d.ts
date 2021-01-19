@@ -9,7 +9,7 @@ export interface CreateLiquidityPoolRequest {
 export interface CreateLiquidityPoolResponse {
   transaction: Primitive.Transaction;
   fee: Primitive.U64;
-  lpTokenTypeScript: Primitive.Script;
+  lpToken: Primitive.Token;
 }
 
 export interface GenesisLiquidityRequest {

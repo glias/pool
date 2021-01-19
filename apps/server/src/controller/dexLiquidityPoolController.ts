@@ -62,7 +62,7 @@ export default class DexLiquidityPoolController {
           transaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          lpTokenTypeScript: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+          lpToken: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
         },
       },
     },

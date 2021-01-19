@@ -8,11 +8,20 @@ export function serializeTransactionWithFee(txWithFee: Server.TransactionWithFee
   };
 }
 
+export function serializeToken(token: Primitive.Token) {
+  return {
+    balance: token.balance,
+    typeHash: token.typeHash,
+    typeScript: token.typeScript ? commons.TransactionHelper.serializeScript(token.typeScript) : undefined,
+    info: token.info,
+  };
+}
+
 export function serializeCreateLiquidityPoolResponse(resp: Server.CreateLiquidityPoolResponse) {
   return {
     transaction: commons.TransactionHelper.serializeTransaction(resp.transaction),
     fee: resp.fee,
-    lpTokenTypeScript: commons.TransactionHelper.serializeScript(resp.lpTokenTypeScript),
+    lpToken: serializeToken(resp.lpToken),
   };
 }
 
