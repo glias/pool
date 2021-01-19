@@ -1,7 +1,5 @@
 import { CkbAsset, Script } from '../assets';
-import { SerializedTransaction } from '../transaction';
-
-export type TransactionStatus = 'pending' | 'proposed' | 'committed';
+import { SerializedTransaction, TransactionStatus } from '../transaction';
 
 export interface TransactionSummary {
   // ckb capacity or sudt amount
@@ -19,7 +17,12 @@ export interface TransactionDetail extends TransactionSummary {
   blockNumber: number;
 }
 
-type TransactionSummaryDirectionFilter = { fromLock: Script } | { toLock: Script } | Script;
+export type TransactionDirection = 'in' | 'out' | 'all';
+
+type TransactionSummaryDirectionFilter = {
+  lock: Script;
+  direction: TransactionDirection;
+};
 
 export interface TransactionSummaryFilter {
   asset: CkbAsset;
