@@ -1,4 +1,4 @@
-import { Amount, Cell, CellDep, DepType, HashType, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
+import {Amount, Cell, CellDep, DepType, HashType, OutPoint, RawTransaction, Script, Transaction} from '@lay2/pw-core';
 
 export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
@@ -16,14 +16,20 @@ export type InputCell = CellLike & {
 
 export type OutputCell = CellLike;
 
+export type WitnessArgs = {
+  inputType: string;
+  lock: string;
+  outputType: string;
+};
+
 export type SerializedTransaction = {
   inputCells: InputCell[];
-  outputCells: OutputCell[];
+  outputs: OutputCell[];
   cellDeps: CKBComponents.RawTransactionToSign['cellDeps'];
   headerDeps: CKBComponents.RawTransactionToSign['headerDeps'];
   version: CKBComponents.RawTransactionToSign['version'];
 
-  witnessArgs: CKBComponents.WitnessArgs[];
+  witnessArgs: WitnessArgs[];
 };
 
 function deserializeScript(script: CKBComponents.Script): Script {
@@ -37,7 +43,7 @@ function serializeScript(script: Script): CKBComponents.Script {
 
 function deserializeInputCell(cell: InputCell): Cell {
   return new Cell(
-    new Amount(cell.capacity),
+    new Amount(cell.capacity.amount.toString()),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
     cell.txHash && cell.index && new OutPoint(cell.txHash, cell.index),
@@ -51,7 +57,7 @@ function serializeInputCell(cell: Cell): InputCell {
 
 function deserializeOutputCell(cell: OutputCell): Cell {
   return new Cell(
-    new Amount(cell.capacity, 0),
+    new Amount(cell.capacity.amount.toString(), 0),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
     undefined,
@@ -76,10 +82,10 @@ function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
 
 function deserializeTransaction(serialized: SerializedTransaction): Transaction {
   const inputCells: Cell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
-  const outputCells: Cell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
+  const outputs: Cell[] = serialized.outputs.map((cell) => deserializeOutputCell(cell));
   const cellDeps: CellDep[] = serialized.cellDeps.map(deserializeCellDeps);
 
-  const raw = new RawTransaction(inputCells, outputCells, cellDeps, serialized.headerDeps, serialized.version);
+  const raw = new RawTransaction(inputCells, outputs, cellDeps, serialized.headerDeps, serialized.version);
   return new Transaction(
     raw,
     serialized.witnessArgs.map((arg) => ({
@@ -91,7 +97,14 @@ function deserializeTransaction(serialized: SerializedTransaction): Transaction 
 }
 
 function serializeTransaction(transaction: Transaction): SerializedTransaction {
-  return transaction.serializeJson() as SerializedTransaction;
+  const serialized = transaction.serializeJson() as SerializedTransaction;
+  serialized.witnessArgs = transaction.witnessArgs.map((arg) => ({
+    inputType: arg.input_type,
+    lock: arg.lock,
+    outputType: arg.output_type,
+  }));
+
+  return serialized;
 }
 
 /**
