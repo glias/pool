@@ -1,7 +1,7 @@
 import { Cell, QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
-import { ckbConfig, mysqlInfo } from '../config';
+import { ckbConfig, env, mysqlInfo } from '../config';
 import { TransactionCollector } from './transactionCollector';
 
 export class SqlIndexerWrapper {
@@ -22,14 +22,16 @@ export class SqlIndexerWrapper {
     this.knex = knex2;
 
     this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
-    setTimeout(() => {
-      this.indexer.startForever();
+    if (env !== 'development') {
+      setTimeout(() => {
+        this.indexer.startForever();
 
-      setInterval(async () => {
-        const { block_number } = await this.indexer.tip();
-        console.log('indexer tip block', parseInt(block_number, 16));
-      }, 5000);
-    }, 10000);
+        setInterval(async () => {
+          const { block_number } = await this.indexer.tip();
+          console.log('indexer tip block', parseInt(block_number, 16));
+        }, 5000);
+      }, 10000);
+    }
   }
 
   async collectCells(queryOptons: QueryOptions): Promise<Array<Cell>> {

@@ -5,7 +5,7 @@ export const SWAP_ORDER_CAPACITY = 188;
 export const LIQUIDITY_ORDER_CAPACITY = 207;
 export const INFO_CAPACITY = 214;
 export const MIN_POOL_CAPACITY = 162;
-export const enum ORDER_TYPE {
+export enum ORDER_TYPE {
   SellCKB = '0x0',
   BuyCKB = '0x1',
 }
