@@ -28,10 +28,10 @@ export class TokenSchema {
   @swaggerProperty({ type: 'string', required: true })
   typeHash: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
-  typeScript: Script;
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
+  typeScript: ScriptSchema;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument, required: true })
+  @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
   info: TokenInfoSchema;
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
@@ -91,6 +91,16 @@ export class CellSchema {
 }
 
 @swaggerClass()
+export class WitnessArgsSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  inputType: string;
+  @swaggerProperty({ type: 'string', required: true })
+  lock: string;
+  @swaggerProperty({ type: 'string', required: true })
+  outputType: string;
+}
+
+@swaggerClass()
 export class TransactionSchema {
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
   inputCells: Array<CellSchema>;
@@ -106,6 +116,11 @@ export class TransactionSchema {
   inputs: Array<CellInputSchema>;
   @swaggerProperty({ type: 'string' })
   outputsData: Array<string>;
-  @swaggerProperty({ type: 'string', required: true })
+  @swaggerProperty({
+    type: 'array',
+    items: { type: 'object', properties: (WitnessArgsSchema as any).swaggerProperty },
+  })
+  witnessArgs: Array<WitnessArgsSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'string' } })
   witnesses: Array<string>;
 }
