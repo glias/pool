@@ -2,7 +2,7 @@ import { Server } from '@gliaswap/types';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import * as constants from '@gliaswap/constants';
 import { Transaction, RawTransaction, Builder, Amount, Cell, Script, HashType, OutPoint } from '@lay2/pw-core';
-import * as PwCore from '@lay2/pw-core';
+import * as pw from '@lay2/pw-core';
 import { Context } from 'koa';
 
 import { ForgeCellService, DefaultForgeCellService } from '.';
@@ -23,13 +23,13 @@ export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
   private readonly dexRepository: DexRepository;
   private readonly tokenCellCollectorService: TokenCellCollectorService;
-  private readonly hasher: PwCore.Blake2bHasher;
+  private readonly hasher: pw.Blake2bHasher;
 
   constructor(service?: ForgeCellService, repository?: DexRepository, tokenCollector?: TokenCellCollectorService) {
     this.forgeCellService = service ? service : new DefaultForgeCellService();
     this.dexRepository = repository ? repository : ckbRepository;
     this.tokenCellCollectorService = tokenCollector ? tokenCollector : new DefaultTokenCellCollectorService();
-    this.hasher = new PwCore.Blake2bHasher();
+    this.hasher = new pw.Blake2bHasher();
   }
 
   public async buildCreateLiquidityPool(
@@ -61,7 +61,7 @@ export class TxBuilderService {
       ctx.throw('create pool failed, first input donest have outpoint', 500);
     }
 
-    const { infoCell, liquidityTokenTypeScript } = (() => {
+    const { infoCell, lpTokenTypeScript } = (() => {
       const id = (() => {
         this.hasher.reset();
         this.hasher.update(inputs[0].outPoint.txHash);
@@ -85,15 +85,15 @@ export class TxBuilderService {
       const ckbReserve = '0x00';
       const tokenReserve = '0x00'.slice(2);
       const totalLiquidity = '0x00'.slice(2);
-      const liquidityTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
-      const liquidityTokenTypeHash20 = liquidityTokenTypeScript.toHash().slice(2).slice(20);
+      const lpTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
+      const liquidityTokenTypeHash20 = lpTokenTypeScript.toHash().slice(2).slice(20);
       const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${liquidityTokenTypeHash20}`;
 
       const infoCell = new Cell(new Amount(constants.INFO_CAPACITY.toString()), lock, type, undefined, data);
 
       return {
         infoCell,
-        liquidityTokenTypeScript,
+        lpTokenTypeScript,
       };
     })();
 
@@ -127,9 +127,9 @@ export class TxBuilderService {
     tx.raw.outputs.push(changeCell);
 
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
-      liquidityTokenTypeScript,
+      lpTokenTypeScript,
     };
   }
 
@@ -190,7 +190,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -255,7 +255,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -274,7 +274,7 @@ export class TxBuilderService {
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
-      req.liquidityTokenAmount,
+      req.lpTokenAmount,
       req.userLock,
       txFee,
     );
@@ -313,7 +313,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -376,7 +376,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -437,7 +437,7 @@ export class TxBuilderService {
     }
 
     return {
-      pwTransaction: tx,
+      transaction: tx,
       fee: estimatedTxFee.toString(),
     };
   }
