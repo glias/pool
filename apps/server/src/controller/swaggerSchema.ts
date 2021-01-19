@@ -46,3 +46,66 @@ export class StepSchema {
   @swaggerProperty({ type: 'string', required: true })
   errorMessage: string;
 }
+
+@swaggerClass()
+export class OutPointSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  txHash: string;
+  @swaggerProperty({ type: 'string', required: true })
+  index: string;
+}
+
+@swaggerClass()
+export class CellInputSchema {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (OutPointSchema as any).swaggerDocument, required: true })
+  previousOutput: OutPointSchema;
+  @swaggerProperty({ type: 'string', required: true })
+  since: string;
+}
+
+@swaggerClass()
+export class CellDepSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  depType: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (OutPointSchema as any).swaggerDocument, required: true })
+  outPoint: OutPointSchema;
+}
+
+@swaggerClass()
+export class CellSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  capacity: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
+  lock: ScriptSchema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
+  type: ScriptSchema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (OutPointSchema as any).swaggerDocument })
+  outPoint: OutPointSchema;
+  @swaggerProperty({ type: 'string' })
+  data: string;
+}
+
+@swaggerClass()
+export class TransactionSchema {
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
+  inputCells: Array<CellSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
+  outputs: Array<CellSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellDepSchema as any).swaggerDocument } })
+  cellDeps: Array<CellDepSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'string' } })
+  headerDeps: Array<string>;
+  @swaggerProperty({ type: 'string', required: true })
+  version: string;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellInputSchema as any).swaggerDocument } })
+  inputs: Array<CellInputSchema>;
+  @swaggerProperty({ type: 'string' })
+  outputsData: Array<string>;
+  @swaggerProperty({ type: 'string', required: true })
+  witnesses: Array<string>;
+}

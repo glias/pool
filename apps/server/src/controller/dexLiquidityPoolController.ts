@@ -1,7 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { Script } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
-import { ScriptSchema, TokenSchema } from './swaggerSchema';
+import { ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 import { Server } from '@gliaswap/types';
 
 const liquidityTag = tags(['Liquidity']);
@@ -56,9 +56,8 @@ export default class DexLiquidityPoolController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           liquidityTokenTypeScript: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
@@ -165,9 +164,8 @@ export default class DexLiquidityPoolController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -200,9 +198,8 @@ export default class DexLiquidityPoolController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -239,9 +236,8 @@ export default class DexLiquidityPoolController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -276,9 +272,8 @@ export default class DexLiquidityPoolController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },

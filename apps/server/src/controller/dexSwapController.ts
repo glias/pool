@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 import { Server } from '@gliaswap/types';
 
 import { dexSwapService, DexSwapService } from '../service';
-import { ScriptSchema, StepSchema, TokenSchema } from './swaggerSchema';
+import { ScriptSchema, StepSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 import { cellConver } from '../model';
 
 const swapTag = tags(['Swap']);
@@ -76,9 +76,8 @@ export default class DexSwapController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -110,9 +109,8 @@ export default class DexSwapController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          pwTransaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
