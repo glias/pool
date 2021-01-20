@@ -1,16 +1,4 @@
-export interface OutPoint {
-  txHash: string;
-  index: string;
-}
-
-export interface CellOutput {
-  capacity: string;
-  lock: Script;
-  type?: Script;
-}
-
-export class Script {
-  codeHash: string;
-  hashType: string;
-  args: string;
-}
+export * from './core/token';
+export * from './core/primitive';
+export * from './core/script';
+export * from './core/transaction';
