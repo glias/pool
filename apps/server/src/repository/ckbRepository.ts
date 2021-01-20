@@ -4,7 +4,16 @@ import rp from 'request-promise';
 import * as pw from '@lay2/pw-core';
 import { DexRepository } from '.';
 import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
-import { Cell, cellConver, OutPoint, Script, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
+import {
+  BridgeInfo,
+  Cell,
+  cellConver,
+  OutPoint,
+  Script,
+  scriptEquals,
+  transactionConver,
+  TransactionWithStatus,
+} from '../model';
 import { ckbMethods } from './dexRepository';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 
@@ -104,27 +113,39 @@ export class CkbRepository implements DexRepository {
    * @param lock  user lock
    * @param pureCross  If pureCross = true, then it is a cross chain order, otherwise it is an cross chain order + place order
    */
-  async getForceBridgeHistory(lock: Script, pureCross: boolean): Promise<[]> {
-    const userLock = lock.toPwScript();
-    const orderLock = new Script(
-      SWAP_ORDER_LOCK_CODE_HASH,
-      SWAP_ORDER_LOCK_CODE_TYPE_HASH,
-      userLock.toHash(),
-    ).toPwScript();
+  async getForceBridgeHistory(
+    lock: Script,
+    pureCross: boolean,
+  ): Promise<{
+    eth_to_ckb: BridgeInfo[];
+    ckb_to_eth: BridgeInfo[];
+  }> {
+    try {
+      const userLock = lock.toPwScript();
+      const orderLock = new Script(
+        SWAP_ORDER_LOCK_CODE_HASH,
+        SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+        userLock.toHash(),
+      ).toPwScript();
 
-    const QueryOptions = {
-      url: `${forceBridgeServerUrl}/get_crosschain_history`,
-      method: 'POST',
-      body: {
-        ckb_recipient_lockscript_addr: pureCross
-          ? userLock.toAddress().addressString
-          : orderLock.toAddress().addressString,
-        eth_recipient_addr: new pw.Address('', pw.AddressType.eth).addressString,
-      },
-      json: true,
-    };
-    const result = await rp(QueryOptions);
-    return result;
+      const QueryOptions = {
+        url: `${forceBridgeServerUrl}/get_crosschain_history`,
+        method: 'POST',
+        body: {
+          ckb_recipient_lockscript_addr: pureCross
+            ? userLock.toAddress().addressString
+            : orderLock.toAddress().addressString,
+          eth_recipient_addr: new pw.Address('', pw.AddressType.eth).addressString,
+        },
+        json: true,
+      };
+      const result = await rp(QueryOptions);
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new Error('query bridge server error');
+    }
   }
 
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {

@@ -1,4 +1,4 @@
-import { Input, Script, TransactionWithStatus } from '..';
+import { BridgeInfoMatchChain, Input, Script, TransactionWithStatus } from '..';
 import { DexOrderChain } from './dexOrderChain';
 
 export class DexOrderChainFactory {
@@ -8,10 +8,15 @@ export class DexOrderChainFactory {
 
   private readonly markTheCellThatHasBeenTracked: Set<string> = new Set();
 
-  getOrderChains(lock: Script, type: Script, transactionCollector: TransactionWithStatus[]): DexOrderChain[] {
+  getOrderChains(
+    lock: Script,
+    type: Script,
+    transactionCollector: TransactionWithStatus[],
+    bridgeInfoMatch: BridgeInfoMatchChain,
+  ): DexOrderChain[] {
     const orders = [];
 
-    this.initOrderChainDatas(lock, type, transactionCollector);
+    this.initOrderChainDatas(lock, type, transactionCollector, bridgeInfoMatch);
     this.orderCells.forEach((x) => {
       const inputOutPoint = this.formatOutPoint(x.tx.transaction.hash, x.index);
       if (this.markTheCellThatHasBeenTracked.has(inputOutPoint)) {
@@ -67,7 +72,12 @@ export class DexOrderChainFactory {
     }
   }
 
-  private initOrderChainDatas(lock: Script, type: Script, transactionCollector: TransactionWithStatus[]): void {
+  private initOrderChainDatas(
+    lock: Script,
+    type: Script,
+    transactionCollector: TransactionWithStatus[],
+    bridgeInfoMatch: BridgeInfoMatchChain,
+  ): void {
     const inputOutPointWithTransaction: Map<string, TransactionWithStatus> = new Map();
     const orderCells: DexOrderChain[] = [];
 
@@ -90,7 +100,12 @@ export class DexOrderChainFactory {
           output.type.args === type.args
         ) {
           const data = x.transaction.outputsData[index];
-          orderCells.push(new DexOrderChain(output, data, x, index, null));
+          const bridgeInfoResult = bridgeInfoMatch.match(x.transaction.hash);
+          const isIn = bridgeInfoResult ? bridgeInfoResult.isIn : null;
+          const isOrder = bridgeInfoResult ? bridgeInfoResult.isOrder : null;
+          const bridgeInfo = bridgeInfoResult ? bridgeInfoResult.bridgeInfo : null;
+
+          orderCells.push(new DexOrderChain(output, data, x, index, null, isIn, isOrder, bridgeInfo));
         }
       });
     });

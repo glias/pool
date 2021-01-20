@@ -1,10 +1,11 @@
 import { Script, Output, TransactionWithStatus } from '..';
+import { BridgeInfo } from '../bridge';
 import { SwapOrderCellArgs, SwapOrderCellInfoSerialization } from '../data';
 import { Token, TokenTokenHolderFactory } from '../tokens';
 
 const LIQUIDITY_ORDER_CELL_ARGS_LENGHT = 172;
 const SWAP_ORDER_CELL_ARGS_LENGHT = 134;
-const CKB_TYPE_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const CKB_TYPE_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 const enum PLACE_ORDER_TYPE {
   LIQUIDITY = 'LIQUIDITY',
@@ -16,9 +17,15 @@ export enum ORDER_TYPE {
   BuyCKB = 1,
 }
 
+enum OrderType {
+  CrossChain = 'CrossChain',
+  CrossChainOrder = 'CrossChainOrder',
+  Order = 'Order',
+}
+
 export interface Stage {
-  status: string
-  steps: Step[]
+  status: string;
+  steps: Step[];
 }
 
 export interface Step {
@@ -43,6 +50,9 @@ export class DexOrderChain {
     private readonly _tx: TransactionWithStatus,
     private readonly _index: number,
     private _nextOrderCell: DexOrderChain,
+    private _isIn?: boolean,
+    private _isOrder?: boolean,
+    private _bridgeInfo?: BridgeInfo,
     private _live: boolean = false,
   ) {}
 
@@ -65,57 +75,49 @@ export class DexOrderChain {
     return orders[orders.length - 1];
   }
 
-  getOrderInfo(): OrderHistory {
-    const lastOrder = this.getLastOrder()
-    const transactionHash = lastOrder.tx.transaction.hash;
+  getTxHash(): string {
+    return this.tx.transaction.hash;
+  }
+
+  getOrderHistory(): OrderHistory {
+    const transactionHash = this.getLastOrder().getTxHash();
     const argsData = this.getArgsData();
     const ckbToken = TokenTokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TYPE_HASH);
-    const sudtToken = TokenTokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
-    let amountIn, amountOut;
-    if(argsData.orderType === ORDER_TYPE.BuyCKB) {
-      amountIn = ckbToken;
-      amountOut = sudtToken;
-    } else {
-      amountIn = sudtToken;
-      amountOut = ckbToken;
-    }
+    const sudtToken = TokenTokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
+    const amountIn = argsData.orderType === ORDER_TYPE.BuyCKB ? ckbToken : sudtToken;
+    const amountOut = argsData.orderType === ORDER_TYPE.BuyCKB ? sudtToken : ckbToken;
 
-    amountIn.balance = argsData.amountIn;
-    amountOut.balance = argsData.minAmountOut;
+    amountIn.balance = argsData.amountIn.toString();
+    amountOut.balance = argsData.minAmountOut.toString();
 
     const orderHistory: OrderHistory = {
       transactionHash: transactionHash,
-      timestamp: this.tx.txStatus.timestamp!,
+      timestamp: this.tx.txStatus.timestamp,
       amountIn: amountIn,
       amountOut: amountOut,
       stage: {
-        status: "",
-        steps: []
+        status: '',
+        steps: [],
       },
-      type: "123"
-    } 
-    
-    
+      type: '123',
+    };
 
     return orderHistory;
-
   }
 
   getArgsData(): SwapOrderCellArgs {
-    if(PLACE_ORDER_TYPE.SWAP === this.getOrderType()) {
-     return SwapOrderCellInfoSerialization.decodeArgs(this.cell.lock.args)
+    if (PLACE_ORDER_TYPE.SWAP === this.getPlaceOrderType()) {
+      return SwapOrderCellInfoSerialization.decodeArgs(this.cell.lock.args);
     }
   }
 
   getData(): bigint {
-    if(PLACE_ORDER_TYPE.SWAP === this.getOrderType()) {
-      return SwapOrderCellInfoSerialization.decodeData(this.cell.lock.args)
+    if (PLACE_ORDER_TYPE.SWAP === this.getPlaceOrderType()) {
+      return SwapOrderCellInfoSerialization.decodeData(this.cell.lock.args);
     }
   }
 
-  getOrderType(): string {
-    console.log(this.cell.lock.args.length);
-    
+  getPlaceOrderType(): string {
     if (this.cell.lock.args.length === LIQUIDITY_ORDER_CELL_ARGS_LENGHT) {
       return PLACE_ORDER_TYPE.LIQUIDITY;
     }
