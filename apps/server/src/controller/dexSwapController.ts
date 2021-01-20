@@ -61,7 +61,9 @@ export default class DexSwapController {
   public async getSwapOrders(ctx: Context): Promise<void> {
     const req = ctx.request.body;
     const { lock, limit, skip } = req;
-    await this.service.orders(cellConver.converScript(lock), limit, skip);
+    const result = await this.service.orders(cellConver.converScript(lock), limit, skip);
+    ctx.status = 200;
+    ctx.body = result;
   }
 
   @request('post', '/v1/swap/orders/swap')

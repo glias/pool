@@ -1,19 +1,13 @@
 import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
 import { TxBuilderService, CancelOrderType } from '.';
-import {
-  BridgeInfo,
-  BridgeInfoMatchChain,
-  BridgeInfoMatchChainFactory,
-  Script,
-  TokenTokenHolderFactory,
-} from '../model';
+import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TokenTokenHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { DexOrderChain } from '../model/orders/dexOrderChain';
+import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { mockDev } from '../tests/mock_data';
 
 export class DexSwapService {
@@ -33,7 +27,7 @@ export class DexSwapService {
     return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Swap);
   }
 
-  async orders(lock: Script, limit: number, skip: number): Promise<[]> {
+  async orders(lock: Script, limit: number, skip: number): Promise<OrderHistory[]> {
     const types = TokenTokenHolderFactory.getInstance().getTypeScripts();
     const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock);
@@ -44,9 +38,7 @@ export class DexSwapService {
       txs.forEach((x) => orders.push(x));
     }
 
-    console.log(orders);
-
-    return [];
+    return orders.map((x) => x.getOrderHistory());
   }
 
   private async getBridgeInfoMatch(lock: Script): Promise<BridgeInfoMatchChain> {

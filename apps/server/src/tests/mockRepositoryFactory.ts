@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import sinon from 'sinon';
 import { QueryOptions } from '@ckb-lumos/base';
 import { BridgeInfo, Cell, Script, TransactionWithStatus } from '../model';

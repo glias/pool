@@ -1,4 +1,6 @@
+import { errorMonitor } from 'koa';
 import { Script, Output, TransactionWithStatus } from '..';
+import { SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { SwapOrderCellArgs, SwapOrderCellInfoSerialization } from '../data';
 import { Token, TokenTokenHolderFactory } from '../tokens';
@@ -17,6 +19,12 @@ export enum ORDER_TYPE {
   BuyCKB = 1,
 }
 
+const enum ORDER_STATUS {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  CANCELING = 'canceling',
+}
+
 enum OrderType {
   CrossChain = 'CrossChain',
   CrossChainOrder = 'CrossChainOrder',
@@ -28,10 +36,15 @@ export interface Stage {
   steps: Step[];
 }
 
-export interface Step {
+export class Step {
   transactionHash: string;
-  index: string;
-  errorMessage: string;
+  index?: string;
+  errorMessage?: string;
+  constructor(transactionHash: string, index?: string, errorMessage?: string) {
+    this.transactionHash = transactionHash;
+    this.index = index;
+    this.errorMessage = errorMessage;
+  }
 }
 
 export interface OrderHistory {
@@ -89,6 +102,8 @@ export class DexOrderChain {
 
     amountIn.balance = argsData.amountIn.toString();
     amountOut.balance = argsData.minAmountOut.toString();
+    const steps = this.buildStep();
+    const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
       transactionHash: transactionHash,
@@ -96,10 +111,10 @@ export class DexOrderChain {
       amountIn: amountIn,
       amountOut: amountOut,
       stage: {
-        status: '',
-        steps: [],
+        status: status,
+        steps: steps,
       },
-      type: '123',
+      type: this.getType(),
     };
 
     return orderHistory;
@@ -112,9 +127,39 @@ export class DexOrderChain {
   }
 
   getData(): bigint {
-    if (PLACE_ORDER_TYPE.SWAP === this.getPlaceOrderType()) {
-      return SwapOrderCellInfoSerialization.decodeData(this.cell.lock.args);
+    return SwapOrderCellInfoSerialization.decodeData(this.data);
+  }
+
+  getType(): string {
+    if (this._isOrder) {
+      return OrderType.CrossChainOrder;
     }
+
+    if (this._bridgeInfo) {
+      OrderType.CrossChain;
+    }
+
+    return OrderType.Order;
+  }
+
+  getStatus(): string {
+    const order = this.getLastOrder();
+    if (order.cell.lock.codeHash === SWAP_ORDER_LOCK_CODE_HASH) {
+      return ORDER_STATUS.PENDING;
+    }
+
+    if (this.getArgsData().orderType === ORDER_TYPE.BuyCKB) {
+      if (order.getData() < this.getArgsData().minAmountOut) {
+        return ORDER_STATUS.CANCELING;
+      }
+    } else {
+      const income = BigInt(order.cell.capacity) - BigInt(this.cell.capacity);
+      if (income < this.getArgsData().minAmountOut) {
+        return ORDER_STATUS.CANCELING;
+      }
+    }
+
+    return ORDER_STATUS.COMPLETED;
   }
 
   getPlaceOrderType(): string {
@@ -143,6 +188,42 @@ export class DexOrderChain {
       cell = cell.nextOrderCell;
     }
     return txs;
+  }
+
+  buildStep(): Step[] {
+    const orders = this.getOrders();
+    const result: Step[] = [];
+    if (this._bridgeInfo) {
+      const step: Step = new Step(this._bridgeInfo.eth_tx_hash);
+      result.push(step);
+      result.push(step);
+    }
+
+    orders.forEach((x) => {
+      const step: Step = new Step(x.tx.transaction.hash, x.index.toString());
+      result.push(step);
+    });
+
+    return result;
+  }
+
+  private equalScript(script1: Script, script2: Script): boolean {
+    if (!script1 && script2) {
+      return false;
+    }
+
+    if (script1 && !script2) {
+      return false;
+    }
+
+    if (
+      script1.args !== script2.args ||
+      script1.codeHash !== script2.codeHash ||
+      script1.codeHash !== script2.codeHash
+    ) {
+      return false;
+    }
+    return true;
   }
 
   get cell(): Output {
@@ -175,24 +256,5 @@ export class DexOrderChain {
 
   set live(live: boolean) {
     this._live = live;
-  }
-
-  private equalScript(script1: Script, script2: Script): boolean {
-    if (!script1 && script2) {
-      return false;
-    }
-
-    if (script1 && !script2) {
-      return false;
-    }
-
-    if (
-      script1.args !== script2.args ||
-      script1.codeHash !== script2.codeHash ||
-      script1.codeHash !== script2.codeHash
-    ) {
-      return false;
-    }
-    return true;
   }
 }

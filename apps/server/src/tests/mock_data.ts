@@ -72,13 +72,51 @@ export const mockDev = [
         '0x5843aff4a55a90060000000000000000',
         '0x',
         // '0x0040d20853d74600000000000000000001c164f175c714d80000000000000000003930000000000000f600',
-        SwapOrderCellInfoSerialization.encodeData(1000n),
+        SwapOrderCellInfoSerialization.encodeData(0n),
       ],
       version: '0x0',
       witnesses: [],
     },
     txStatus: {
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4c',
+      status: 'committed',
+    },
+  },
+  {
+    transaction: {
+      cellDeps: [],
+      hash: '0xc16b619a7e8370af9d0284c45bce8a82564437170bb1ecc1355b4f0fe0a72c47',
+      headerDeps: [],
+      inputs: [
+        {
+          previousOutput: {
+            index: '0x2',
+            txHash: '0xc16b619a7e8370af9d0284c45bce8a82564437170bb1ecc1355b4f0fe0a72c46',
+          },
+          since: '0x0',
+        },
+      ],
+      outputs: [
+        {
+          capacity: '0x15bfab7c80',
+          lock: {
+            args: '0x6c8c7f80161485c3e4adceda4c6c425410140054',
+            codeHash: '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
+            hashType: SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+          },
+          type: new Script(
+            '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+            'type',
+            '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+          ),
+        },
+      ],
+      outputsData: [SwapOrderCellInfoSerialization.encodeData(100n)],
+      version: '0x0',
+      witnesses: [],
+    },
+    txStatus: {
+      blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4e',
       status: 'committed',
     },
   },

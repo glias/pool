@@ -176,6 +176,7 @@ export default class DexLiquidityPoolController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenAAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenBAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,6 +213,7 @@ export default class DexLiquidityPoolController {
     tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
@@ -250,6 +252,7 @@ export default class DexLiquidityPoolController {
     liquidityTokenAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
