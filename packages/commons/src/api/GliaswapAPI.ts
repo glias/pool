@@ -1,11 +1,15 @@
-import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Script } from '@gliaswap/commons';
+import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, Script } from '../';
 
-interface LiquidityInfoFilter {
+export interface LiquidityPoolFilter {
+  lock?: Script;
+}
+
+export interface LiquidityInfoFilter {
   poolId: string;
   lock?: Script;
 }
 
-interface LiquidityOrderSummaryFilter {
+export interface LiquidityOrderSummaryFilter {
   poolId: string;
   lock: Script;
 }
@@ -26,13 +30,13 @@ export interface GliaswapAPI {
   /**
    * get liquidity pools information
    */
-  getLiquidityPools: () => Promise<LiquidityInfo[]>;
+  getLiquidityPools: (filter?: LiquidityPoolFilter) => Promise<LiquidityInfo[]>;
 
   /**
    * get liquidity info by poolId, when a lock is passed in,
    * get the {@see LiquidityInfo} associated with the lock
    */
-  getLiquidityInfo: (filter: LiquidityInfoFilter) => Promise<LiquidityInfo>;
+  getLiquidityInfo: (filter: LiquidityInfoFilter) => Promise<Maybe<LiquidityInfo>>;
 
   getAddLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
