@@ -5,8 +5,6 @@ export interface TransactionSummary {
   amount: string;
   status: TransactionStatus;
   txHash: string;
-  fromLock: Script;
-  toLock: Script;
   // yyyy-MM-dd HH:mm:ss
   date: string;
 }
