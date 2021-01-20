@@ -2,7 +2,7 @@ import { CommonsEnv } from './env';
 import { has, propEq } from './utils';
 
 export type ChainType = 'Nervos' | 'Ethereum';
-export type Script = { codeHash: string; args: string; hashType: string };
+export type Script = CKBComponents.Script;
 
 export interface Asset {
   chainType: ChainType;

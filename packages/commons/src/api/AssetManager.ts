@@ -1,7 +1,4 @@
-import { CkbAsset, Script } from '../assets';
-import { SerializedTransaction } from '../transaction';
-
-export type TransactionStatus = 'pending' | 'proposed' | 'committed';
+import { Maybe, CkbAsset, Script, SerializedTransaction, TransactionStatus } from '../';
 
 export interface TransactionSummary {
   // ckb capacity or sudt amount
@@ -19,10 +16,17 @@ export interface TransactionDetail extends TransactionSummary {
   blockNumber: number;
 }
 
+export type TransactionDirection = 'in' | 'out' | 'all';
+
+type TransactionSummaryDirectionFilter = {
+  lock: Script;
+  direction: TransactionDirection;
+};
+
 export interface TransactionSummaryFilter {
   asset: CkbAsset;
-  // filter by the lock script both transaction in or transaction out
-  lockScript: Script;
+  // filter the transactions from the lock script
+  lock: TransactionSummaryDirectionFilter;
 }
 
 export interface GenerateSendTransactionOptions {
@@ -42,7 +46,7 @@ export interface AssetManagerAPI {
    * get TransactionDetail by the txHash
    * @param txHash
    */
-  getTransactionDetail: (txHash: string) => Promise<TransactionDetail>;
+  getTransactionDetail: (txHash: string) => Promise<Maybe<TransactionDetail>>;
   /**
    * generate a sending asset transaction
    * @param options

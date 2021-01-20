@@ -4,3 +4,4 @@ export * from './liquidity-pool';
 export * from './api';
 export * as utils from './utils';
 export * from './transaction';
+export * from './types';

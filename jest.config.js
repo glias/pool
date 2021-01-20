@@ -1,5 +1,3 @@
-const { join } = require('path');
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -8,6 +6,7 @@ module.exports = {
   setupFiles: ['regenerator-runtime/runtime'],
   globals: {
     'ts-jest': {
+      tsconfig: 'tsconfig.test.json',
       babelConfig: true,
     },
   },
