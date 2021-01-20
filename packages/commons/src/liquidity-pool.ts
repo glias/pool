@@ -1,20 +1,51 @@
-import { AssetWithBalance, TransactionStatus } from '.';
+import { Asset, AssetWithBalance, TransactionStatus } from '.';
 
-// the liquidity model
-export type LiquidityModel = 'UNISWAP';
+export type LiquidityAssetWithBalance = AssetWithBalance;
+export type LPTokenWithBalance = AssetWithBalance;
 
-export interface LiquidityInfo {
+// the pool model
+export type PoolModel = 'UNISWAP';
+
+export interface PoolInfo {
   poolId: string;
-  model: LiquidityModel;
-  // the liquidity provider token corresponding to the liquidity pool
-  lpToken: AssetWithBalance;
-  // the liquidity assets in the pool
-  assets: AssetWithBalance[];
+  assets: Asset[];
+  model: PoolModel;
 }
 
-export interface LiquidityOrderSummary {
-  poolId: string;
-  model: LiquidityModel;
-  assets: AssetWithBalance[];
+export interface LiquidityInfo extends PoolInfo {
+  // the liquidity provider token corresponding to the liquidity pool
+  lpToken: LPTokenWithBalance;
+  // the liquidity assets in the pool
+  assets: LiquidityAssetWithBalance[];
+}
+
+export interface LiquidityOrderSummary extends PoolInfo {
+  txHash: string;
+  // yyyy-MM-dd HH:mm:ss
+  time: string;
   status: TransactionStatus;
+  assets: LiquidityAssetWithBalance[];
+}
+
+export interface PoolShareInfo {
+  changedShare: number;
+  // fee for aggregator
+  requestFee: LiquidityAssetWithBalance;
+}
+
+export function calcAddPoolShareInfo(poolLiquidity: LiquidityInfo, added: LiquidityAssetWithBalance[]): PoolShareInfo {
+  if (poolLiquidity.model === 'UNISWAP') {
+    // TODO implement the liquidity fee
+    const [addedA, addedB] = added;
+    const [poolA, poolB] = poolLiquidity.assets;
+    console.log(addedA, addedB, poolA, poolB);
+
+    // return {};
+  }
+
+  const lpToken = poolLiquidity.lpToken;
+  return {
+    requestFee: { ...lpToken, balance: '0' },
+    changedShare: 0,
+  };
 }

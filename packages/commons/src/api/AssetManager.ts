@@ -1,5 +1,4 @@
-import { CkbAsset, Script } from '../assets';
-import { SerializedTransaction, TransactionStatus } from '../transaction';
+import { Maybe, CkbAsset, Script, SerializedTransaction, TransactionStatus } from '../';
 
 export interface TransactionSummary {
   // ckb capacity or sudt amount
@@ -47,7 +46,7 @@ export interface AssetManagerAPI {
    * get TransactionDetail by the txHash
    * @param txHash
    */
-  getTransactionDetail: (txHash: string) => Promise<TransactionDetail>;
+  getTransactionDetail: (txHash: string) => Promise<Maybe<TransactionDetail>>;
   /**
    * generate a sending asset transaction
    * @param options
