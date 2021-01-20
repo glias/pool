@@ -60,25 +60,25 @@ export class DexSwapService {
       type: type.toLumosScript(),
       order: 'desc',
     };
-    // const txs = await this.dexRepository.collectTransactions(queryOptions);
+    const txs = await this.dexRepository.collectTransactions(queryOptions);
 
-    const mock = MockRepositoryFactory.getDexRepositoryInstance();
-    mock
-      .mockCollectTransactions()
-      .resolves(mockDev)
-      .withArgs({
-        lock: {
-          script: orderLock.toLumosScript(),
-          argsLen: 'any',
-        },
-        type: {
-          codeHash: '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-          hashType: 'type',
-          args: '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
-        },
-        order: 'desc',
-      });
-    const txs = await mock.collectTransactions(queryOptions);
+    // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+    // mock
+    //   .mockCollectTransactions()
+    //   .resolves(mockDev)
+    //   .withArgs({
+    //     lock: {
+    //       script: orderLock.toLumosScript(),
+    //       argsLen: 'any',
+    //     },
+    //     type: {
+    //       codeHash: '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+    //       hashType: 'type',
+    //       args: '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+    //     },
+    //     order: 'desc',
+    //   });
+    // const txs = await mock.collectTransactions(queryOptions);
 
     const factory = new DexOrderChainFactory();
     const orders = factory.getOrderChains(orderLock, type, txs, bridgeInfoMatch);
