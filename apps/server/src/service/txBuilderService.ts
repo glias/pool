@@ -134,7 +134,7 @@ export class TxBuilderService {
     tx.raw.outputs.push(changeCell);
 
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
       lpToken,
     };
@@ -197,7 +197,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -262,7 +262,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -320,7 +320,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -383,7 +383,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -444,7 +444,7 @@ export class TxBuilderService {
     }
 
     return {
-      transaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }

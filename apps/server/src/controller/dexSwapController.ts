@@ -78,7 +78,7 @@ export default class DexSwapController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          transaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -116,7 +116,7 @@ export default class DexSwapController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          transaction: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },

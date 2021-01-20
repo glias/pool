@@ -7,7 +7,7 @@ export interface CreateLiquidityPoolRequest {
 }
 
 export interface CreateLiquidityPoolResponse {
-  transaction: Primitive.Transaction;
+  tx: Primitive.Transaction;
   fee: Primitive.U64;
   lpToken: Primitive.Token;
 }
@@ -48,7 +48,7 @@ export interface SwapOrderRequest {
 }
 
 export interface TransactionWithFee {
-  transaction: Primitive.Transaction;
+  tx: Primitive.Transaction;
   fee: Primitive.U64;
 }
 

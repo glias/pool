@@ -3,7 +3,7 @@ import { Server, Primitive } from '@gliaswap/types';
 
 export function serializeTransactionWithFee(txWithFee: Server.TransactionWithFee) {
   return {
-    transaction: commons.TransactionHelper.serializeTransaction(txWithFee.transaction),
+    tx: commons.TransactionHelper.serializeTransaction(txWithFee.tx),
     fee: txWithFee.fee,
   };
 }
@@ -19,7 +19,7 @@ export function serializeToken(token: Primitive.Token) {
 
 export function serializeCreateLiquidityPoolResponse(resp: Server.CreateLiquidityPoolResponse) {
   return {
-    transaction: commons.TransactionHelper.serializeTransaction(resp.transaction),
+    tx: commons.TransactionHelper.serializeTransaction(resp.tx),
     fee: resp.fee,
     lpToken: serializeToken(resp.lpToken),
   };
