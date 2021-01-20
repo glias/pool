@@ -22,6 +22,7 @@ export interface Transaction {
 export interface TxStatus {
   blockHash?: string;
   status: string;
+  timestamp?: string;
 }
 
 export interface Input {

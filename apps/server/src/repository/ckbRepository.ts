@@ -58,21 +58,45 @@ export class CkbRepository implements DexRepository {
 
   async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
-    return lumosTxs.map((x) => transactionConver.conver(x));
+    return await Promise.all(
+      lumosTxs.map(async (x) => {
+        const tx = transactionConver.conver(x);
+        const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+        tx.txStatus.timestamp = timestamp;
+        return tx;
+      }),
+    );
   }
 
   async getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]> {
     try {
       const ckbTxs = await this.ckbNode.rpc.createBatchRequest(ckbReqParams).exec();
-      return ckbTxs.map((x) => transactionConver.conver(x));
+      return await Promise.all(
+        ckbTxs.map(async (x) => {
+          const tx = transactionConver.conver(x);
+          const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+          tx.txStatus.timestamp = timestamp;
+          return tx;
+        }),
+      );
     } catch (error) {
       console.log(error);
     }
   }
 
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
-    const tx = await this.ckbNode.rpc.getTransaction(hash);
-    return transactionConver.conver(tx);
+    const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+    const tx = transactionConver.conver(ckbTx);
+    const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+    tx.txStatus.timestamp = timestamp;
+    return tx;
+  }
+
+  async getBlockTimestampByHash(blockHash: string): Promise<string> {
+    const req = [];
+    req.push(['getBlock', blockHash]);
+    const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
+    return block[0].header.timestamp;
   }
 
   /**

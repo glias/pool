@@ -51,4 +51,6 @@ export interface DexRepository extends ForceBridgeRepository {
   getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]>;
 
   getTransaction(hash: string): Promise<TransactionWithStatus>;
+
+  getBlockTimestampByHash(blockHash: string): Promise<string>;
 }
