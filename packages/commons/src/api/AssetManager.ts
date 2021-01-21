@@ -1,6 +1,6 @@
-import { Maybe, CkbAsset, Script, SerializedTransaction, TransactionStatus } from '../';
+import { CkbAsset, Maybe, Script, SerializedTransaction, TransactionStatus } from '../';
 
-export interface TransactionSummary {
+export interface TransferSummary {
   // ckb capacity or sudt amount
   amount: string;
   status: TransactionStatus;
@@ -9,29 +9,31 @@ export interface TransactionSummary {
   date: string;
 }
 
-export interface TransactionDetail extends TransactionSummary {
+export interface TransferDetail extends TransferSummary {
   fee: string;
   blockNumber: number;
 }
 
-export type TransactionDirection = 'in' | 'out' | 'all';
+export type TransferDirection = 'in' | 'out' | 'all';
 
-type TransactionSummaryDirectionFilter = {
-  lock: Script;
-  direction: TransactionDirection;
-};
-
-export interface TransactionSummaryFilter {
+export interface TransferSummaryFilter {
   asset: CkbAsset;
   // filter the transactions from the lock script
-  lock: TransactionSummaryDirectionFilter;
+  lock: Script;
+  direction: TransferDirection;
 }
 
-export interface GenerateSendTransactionOptions {
+export interface GenerateTransferTransactionOptions {
   asset: CkbAsset;
   fromLock: Script;
   toLock: Script;
   amount: string;
+}
+
+interface GetTransferDetailOptions {
+  txHash: string;
+  typeHash: string;
+  lock: Script;
 }
 
 export interface AssetManagerAPI {
@@ -39,15 +41,15 @@ export interface AssetManagerAPI {
    * get TransactionSummary by the filter
    * @param filter
    */
-  getTransactionSummaries: (filter: TransactionSummaryFilter) => Promise<TransactionSummary[]>;
+  getTransactionSummaries: (filter: TransferSummaryFilter) => Promise<TransferSummary[]>;
   /**
    * get TransactionDetail by the txHash
    * @param txHash
    */
-  getTransactionDetail: (txHash: string) => Promise<Maybe<TransactionDetail>>;
+  getTransactionDetail: (options: GetTransferDetailOptions) => Promise<Maybe<TransferDetail>>;
   /**
    * generate a sending asset transaction
    * @param options
    */
-  generateSendTransaction: (options: GenerateSendTransactionOptions) => Promise<SerializedTransaction>;
+  generateTransferTransaction: (options: GenerateTransferTransactionOptions) => Promise<SerializedTransaction>;
 }
