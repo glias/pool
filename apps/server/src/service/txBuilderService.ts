@@ -1,13 +1,13 @@
-import { Server, Primitive } from '@gliaswap/types';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import {Server, Primitive} from '@gliaswap/types';
+import {CKB_TYPE_HASH} from '@gliaswap/constants';
 import * as constants from '@gliaswap/constants';
-import { Transaction, RawTransaction, Builder, Amount, Cell, Script, HashType, OutPoint } from '@lay2/pw-core';
+import {Transaction, RawTransaction, Builder, Amount, Cell, Script, HashType, OutPoint} from '@lay2/pw-core';
 import * as pw from '@lay2/pw-core';
-import { Context } from 'koa';
+import {Context} from 'koa';
 
-import { ForgeCellService, DefaultForgeCellService } from '.';
-import { ckbRepository, DexRepository } from '../repository';
-import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
+import {ForgeCellService, DefaultForgeCellService} from '.';
+import {ckbRepository, DexRepository} from '../repository';
+import {TokenCellCollectorService, DefaultTokenCellCollectorService} from '../service';
 import * as model from '../model';
 import * as config from '../config';
 
@@ -55,13 +55,13 @@ export class TxBuilderService {
       }
     });
     if (inputCapacity.lt(minOutputCapacity)) {
-      ctx.throw('free ckb not enough', 400, { required: minOutputCapacity.toString() });
+      ctx.throw('free ckb not enough', 400, {required: minOutputCapacity.toString()});
     }
     if (!inputs[0].outPoint) {
       ctx.throw('create pool failed, first input donest have outpoint', 500);
     }
 
-    const { infoCell, lpToken } = (() => {
+    const {infoCell, lpToken} = (() => {
       const id = (() => {
         this.hasher.reset();
         this.hasher.update(inputs[0].outPoint.txHash);
@@ -82,9 +82,9 @@ export class TxBuilderService {
       const lockArgs = `${pairedHash}${typeHash20}`;
       const lock = new Script(config.INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
 
-      const ckbReserve = '0x0';
-      const tokenReserve = '0x0'.slice(2);
-      const totalLiquidity = '0x0'.slice(2);
+      const ckbReserve = '0x00';
+      const tokenReserve = '0x00'.slice(2);
+      const totalLiquidity = '0x00'.slice(2);
 
       const lpTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
       const lpTokenTypeHash20 = lpTokenTypeScript.toHash().slice(2, 42);
@@ -156,7 +156,7 @@ export class TxBuilderService {
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
       new Amount(ckbAmount.balance),
     );
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
+    const {inputs, forgedOutput, changeOutput} = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       tokenAmount,
@@ -220,7 +220,7 @@ export class TxBuilderService {
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
       new Amount(ckbDesiredAmount.balance),
     );
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
+    const {inputs, forgedOutput, changeOutput} = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       tokenDesiredAmount,
@@ -278,7 +278,7 @@ export class TxBuilderService {
 
     let outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString());
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
+    const {inputs, forgedOutput, changeOutput} = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       req.lpTokenAmount,
@@ -339,7 +339,7 @@ export class TxBuilderService {
 
     let outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(ckbAmount.balance).add(new Amount(constants.SWAP_ORDER_CAPACITY.toString()));
-    const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
+    const {inputs, forgedOutput, changeOutput} = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
       tokenAmount,
@@ -394,17 +394,17 @@ export class TxBuilderService {
     type: CancelOrderType,
     txFee: Amount = Builder.MIN_CHANGE,
   ): Promise<Server.TransactionWithFee> {
-    const { transaction } = await this.dexRepository.getTransaction(req.txHash);
+    const {transaction} = await this.dexRepository.getTransaction(req.txHash);
     const orderLockCodeHash =
       type == CancelOrderType.Liquidity ? config.LIQUIDITY_ORDER_LOCK_CODE_HASH : config.SWAP_ORDER_LOCK_CODE_HASH;
     const orderDep = type == CancelOrderType.Liquidity ? config.LIQUIDITY_ORDER_LOCK_DEP : config.SWAP_ORDER_LOCK_DEP;
 
     const idx = transaction.outputs.findIndex((value) => value.lock.codeHash == orderLockCodeHash);
     if (!idx) {
-      ctx.throw('transaction not found', 404, { txHash: req.txHash });
+      ctx.throw('transaction not found', 404, {txHash: req.txHash});
     }
     if (!transaction.outputs[idx].type) {
-      ctx.throw('order cell doesnt have type script', 400, { txHash: req.txHash });
+      ctx.throw('order cell doesnt have type script', 400, {txHash: req.txHash});
     }
 
     const orderInput = this.createOrderInput(transaction, idx);
