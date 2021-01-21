@@ -7,5 +7,10 @@
     "outDir": "lib",
     "typeRoots": ["../../node_modules/@types", "../../node_modules/@nervosnetwork/ckb-types"],
     "types": ["node", "jest", "@nervosnetwork/ckb-types"]
-  }
+  },
+  "references": [
+    {
+      "path": "../constants"
+    }
+  ]
 }

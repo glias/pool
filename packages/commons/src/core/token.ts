@@ -1,4 +1,5 @@
-import { HexString, IScript, Script } from './';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { HexString, IScript, Script, Cell, ICell } from './';
 
 export interface TokenInfo {
   name: string;
@@ -24,6 +25,17 @@ export class Token implements IToken {
 
   static fromJson(jsonToken: IToken): Token {
     return new Token(jsonToken.typeHash, jsonToken.balance, Script.fromJson(jsonToken.typeScript), jsonToken.info);
+  }
+
+  static fromCell(cell: Cell, info?: TokenInfo): Token {
+    const typeHash = cell.type ? cell.type.toHash() : CKB_TYPE_HASH;
+    const balance = cell.type ? cell.toPw().getSUDTAmount().toString() : cell.capacity;
+
+    return new Token(typeHash, balance, cell.type, info);
+  }
+
+  static fromICell(jsonCell: ICell, info?: TokenInfo): Token {
+    return Token.fromCell(Cell.fromJson(jsonCell), info);
   }
 
   toJson(): IToken {
