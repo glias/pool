@@ -10,6 +10,14 @@ export function getAddLiquidityPairedAssetPayAmount(
   return assetAmount.multipliedBy(pairedAssetReserve).div(assetReserve).plus(1);
 }
 
+export function getAddLiquidityReceiveLPAmount(
+  assetAmount: BigNumber,
+  assetReserve: BigNumber,
+  lpAssetReserve: BigNumber,
+): BigNumber {
+  return assetAmount.multipliedBy(lpAssetReserve).div(assetReserve);
+}
+
 export function getRemoveLiquidityReceiveAssetAmount(
   lpAssetAmount: BigNumber,
   receiveAssetReserve: BigNumber,
