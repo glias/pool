@@ -36,3 +36,13 @@ export class TokenSchema {
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
 }
+
+@swaggerClass()
+export class StepSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  transactionHash: string;
+  @swaggerProperty({ type: 'string', required: true })
+  index: string;
+  @swaggerProperty({ type: 'string', required: true })
+  errorMessage: string;
+}

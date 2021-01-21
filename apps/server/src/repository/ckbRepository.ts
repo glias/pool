@@ -1,9 +1,19 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
+import * as pw from '@lay2/pw-core';
 import { DexRepository } from '.';
-import { ckbConfig } from '../config';
-import { Cell, cellConver, OutPoint, scriptEquals, transactionConver, TransactionWithStatus } from '../model';
+import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
+import {
+  BridgeInfo,
+  Cell,
+  cellConver,
+  OutPoint,
+  Script,
+  scriptEquals,
+  transactionConver,
+  TransactionWithStatus,
+} from '../model';
 import { ckbMethods } from './dexRepository';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 
@@ -57,21 +67,85 @@ export class CkbRepository implements DexRepository {
 
   async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
-    return lumosTxs.map((x) => transactionConver.conver(x));
+    return await Promise.all(
+      lumosTxs.map(async (x) => {
+        const tx = transactionConver.conver(x);
+        const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+        tx.txStatus.timestamp = timestamp;
+        return tx;
+      }),
+    );
   }
 
   async getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]> {
     try {
       const ckbTxs = await this.ckbNode.rpc.createBatchRequest(ckbReqParams).exec();
-      return ckbTxs.map((x) => transactionConver.conver(x));
+      return await Promise.all(
+        ckbTxs.map(async (x) => {
+          const tx = transactionConver.conver(x);
+          const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+          tx.txStatus.timestamp = timestamp;
+          return tx;
+        }),
+      );
     } catch (error) {
       console.log(error);
     }
   }
 
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
-    const tx = await this.ckbNode.rpc.getTransaction(hash);
-    return transactionConver.conver(tx);
+    const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+    const tx = transactionConver.conver(ckbTx);
+    const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+    tx.txStatus.timestamp = timestamp;
+    return tx;
+  }
+
+  async getBlockTimestampByHash(blockHash: string): Promise<string> {
+    const req = [];
+    req.push(['getBlock', blockHash]);
+    const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
+    return block[0].header.timestamp;
+  }
+
+  /**
+   *
+   * @param lock  user lock
+   * @param pureCross  If pureCross = true, then it is a cross chain order, otherwise it is an cross chain order + place order
+   */
+  async getForceBridgeHistory(
+    lock: Script,
+    pureCross: boolean,
+  ): Promise<{
+    eth_to_ckb: BridgeInfo[];
+    ckb_to_eth: BridgeInfo[];
+  }> {
+    try {
+      const userLock = lock.toPwScript();
+      const orderLock = new Script(
+        SWAP_ORDER_LOCK_CODE_HASH,
+        SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+        userLock.toHash(),
+      ).toPwScript();
+
+      const QueryOptions = {
+        url: `${forceBridgeServerUrl}/get_crosschain_history`,
+        method: 'POST',
+        body: {
+          ckb_recipient_lockscript_addr: pureCross
+            ? userLock.toAddress().addressString
+            : orderLock.toAddress().addressString,
+          eth_recipient_addr: new pw.Address('', pw.AddressType.eth).addressString,
+        },
+        json: true,
+      };
+      const result = await rp(QueryOptions);
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new Error('query bridge server error');
+    }
   }
 
   private async getPoolTxs(): Promise<TransactionWithStatus[]> {

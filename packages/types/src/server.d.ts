@@ -57,3 +57,9 @@ export interface OrderStage {
   message: string;
   data: string;
 }
+
+export interface OrdersRequest {
+  lock: Primitive.Script;
+  limit: number;
+  skip: number;
+}
