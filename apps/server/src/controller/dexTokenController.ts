@@ -1,7 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { TokenTokenHolderFactory, Token, Script } from '../model';
 import { TokenCellCollectorService } from '../service';
-import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
+// import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
 
 import * as lumos from '@ckb-lumos/base';
 import * as pwCore from '@lay2/pw-core';
@@ -68,9 +68,10 @@ export default class DexTokenController {
       const cells = await this.service.collect(primitiveToken, new Script(lock.codeHash, lock.hashType, lock.args).toPwScript());
 
       const amount = new pwCore.Amount("0", token.info.decimal);
-
+      const occupiedCapacity = new pwCore.Amount("0", token.info.decimal);
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
+          occupiedCapacity.add(cell.occupiedCapacity());
           amount.add(cell.capacity);
         } else {
           amount.add(new pwCore.Amount(
@@ -81,12 +82,24 @@ export default class DexTokenController {
       }
 
       const ckbAsset = toCKBAsset(token);
-      listAssetBalance.push({
-        typeHash: token.typeHash,
-        balance: amount.toUInt128LE(),
-        locked: "0",
-        ...ckbAsset,
-      })
+      
+      if (token.typeHash === CKB_TYPE_HASH) {
+        listAssetBalance.push({
+          typeHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          balance: amount.toUInt128LE(),
+          locked: "0", // TODO(@zjh): fix it when implementing lp pool.
+          occupied: occupiedCapacity.toUInt128LE(),
+          ...ckbAsset,
+        });
+      } else {
+        listAssetBalance.push({
+          typeHash: token.typeHash,
+          balance: amount.toUInt128LE(),
+          locked: "0",
+          ...ckbAsset,
+        });
+      }
+     
     }
 
     ctx.body = listAssetBalance;
