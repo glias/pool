@@ -1,25 +1,8 @@
-import { Server } from '@gliaswap/types';
-import {
-  MIN_SUDT_CAPACITY,
-  LIQUIDITY_ORDER_CAPACITY,
-  CKB_TYPE_HASH,
-  SWAP_ORDER_CAPACITY,
-  ORDER_VERSION,
-  ORDER_TYPE,
-  INFO_CAPACITY,
-  MIN_POOL_CAPACITY,
-} from '@gliaswap/constants';
-import {
-  Transaction,
-  RawTransaction,
-  Builder,
-  Amount,
-  Cell,
-  Script,
-  HashType,
-  OutPoint,
-  Blake2bHasher,
-} from '@lay2/pw-core';
+import { Server, Primitive } from '@gliaswap/types';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import * as constants from '@gliaswap/constants';
+import { Transaction, RawTransaction, Builder, Amount, Cell, Script, HashType, OutPoint } from '@lay2/pw-core';
+import * as pw from '@lay2/pw-core';
 import { Context } from 'koa';
 
 import { ForgeCellService, DefaultForgeCellService } from '.';
@@ -40,13 +23,13 @@ export class TxBuilderService {
   private readonly forgeCellService: ForgeCellService;
   private readonly dexRepository: DexRepository;
   private readonly tokenCellCollectorService: TokenCellCollectorService;
-  private readonly hasher: Blake2bHasher;
+  private readonly hasher: pw.Blake2bHasher;
 
   constructor(service?: ForgeCellService, repository?: DexRepository, tokenCollector?: TokenCellCollectorService) {
     this.forgeCellService = service ? service : new DefaultForgeCellService();
     this.dexRepository = repository ? repository : ckbRepository;
     this.tokenCellCollectorService = tokenCollector ? tokenCollector : new DefaultTokenCellCollectorService();
-    this.hasher = new Blake2bHasher();
+    this.hasher = new pw.Blake2bHasher();
   }
 
   public async buildCreateLiquidityPool(
@@ -58,8 +41,8 @@ export class TxBuilderService {
       ctx.throw('token/token pool isnt support yet', 400);
     }
 
-    const minOutputCapacity = new Amount(INFO_CAPACITY.toString())
-      .add(new Amount(MIN_POOL_CAPACITY.toString()))
+    const minOutputCapacity = new Amount(constants.INFO_CAPACITY.toString())
+      .add(new Amount(constants.MIN_POOL_CAPACITY.toString()))
       .add(txFee);
 
     let inputCapacity = Amount.ZERO;
@@ -78,7 +61,7 @@ export class TxBuilderService {
       ctx.throw('create pool failed, first input donest have outpoint', 500);
     }
 
-    const { infoCell, liquidityTokenTypeScript } = (() => {
+    const { infoCell, lpToken } = (() => {
       const id = (() => {
         this.hasher.reset();
         this.hasher.update(inputs[0].outPoint.txHash);
@@ -95,22 +78,29 @@ export class TxBuilderService {
         this.hasher.update(tokenTypeHash);
         return this.hasher.digest().serializeJson();
       })();
-      const typeHash20 = type.toHash().slice(2).slice(20); // Strip first '0x' then our 20 bytes
+      const typeHash20 = type.toHash().slice(2, 42); // Strip first '0x' then our 20 bytes
       const lockArgs = `${pairedHash}${typeHash20}`;
       const lock = new Script(config.INFO_LOCK_CODE_HASH, lockArgs, HashType.type);
 
       const ckbReserve = '0x00';
       const tokenReserve = '0x00'.slice(2);
       const totalLiquidity = '0x00'.slice(2);
-      const liquidityTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
-      const liquidityTokenTypeHash20 = liquidityTokenTypeScript.toHash().slice(2).slice(20);
-      const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${liquidityTokenTypeHash20}`;
 
-      const infoCell = new Cell(new Amount(INFO_CAPACITY.toString()), lock, type, undefined, data);
+      const lpTokenTypeScript = new Script(config.SUDT_TYPE_CODE_HASH, lock.toHash(), HashType.type);
+      const lpTokenTypeHash20 = lpTokenTypeScript.toHash().slice(2, 42);
+      const data = `${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash20}`;
+
+      const infoCell = new Cell(new Amount(constants.INFO_CAPACITY.toString()), lock, type, undefined, data);
+      const lpToken: Primitive.Token = {
+        balance: '0',
+        typeHash: lpTokenTypeScript.toHash(),
+        typeScript: lpTokenTypeScript,
+        info: undefined,
+      };
 
       return {
         infoCell,
-        liquidityTokenTypeScript,
+        lpToken,
       };
     })();
 
@@ -118,7 +108,13 @@ export class TxBuilderService {
       const data = '0x00';
       const token = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA : req.tokenB;
 
-      return new Cell(new Amount(MIN_POOL_CAPACITY.toString()), infoCell.lock, token.typeScript, undefined, data);
+      return new Cell(
+        new Amount(constants.MIN_POOL_CAPACITY.toString()),
+        infoCell.lock,
+        token.typeScript,
+        undefined,
+        data,
+      );
     })();
 
     const changeCell = new Cell(inputCapacity.sub(infoCell.capacity).sub(poolCell.capacity), req.userLock);
@@ -138,9 +134,9 @@ export class TxBuilderService {
     tx.raw.outputs.push(changeCell);
 
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
-      liquidityTokenTypeScript,
+      lpToken,
     };
   }
 
@@ -157,7 +153,9 @@ export class TxBuilderService {
     const ckbAmount = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenAAmount : req.tokenBAmount;
 
     let outputs: Array<Cell> = [];
-    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(new Amount(ckbAmount.balance));
+    const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
+      new Amount(ckbAmount.balance),
+    );
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
@@ -167,9 +165,9 @@ export class TxBuilderService {
     );
 
     const userLockHash = req.userLock.toHash();
-    const version = ORDER_VERSION.slice(2);
+    const version = constants.ORDER_VERSION.slice(2);
     const amountPlaceHolder = new Amount('0').toUInt128LE().slice(2);
-    const infoTypeHash20 = req.poolId.slice(2, 40);
+    const infoTypeHash20 = req.poolId.slice(2, 42);
     const orderLockScript = new Script(
       config.LIQUIDITY_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${amountPlaceHolder}${amountPlaceHolder}${infoTypeHash20}`,
@@ -199,7 +197,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -219,7 +217,9 @@ export class TxBuilderService {
       req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenADesiredAmount : req.tokenBDesiredAmount;
 
     let outputs: Array<Cell> = [];
-    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString()).add(new Amount(ckbDesiredAmount.balance));
+    const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
+      new Amount(ckbDesiredAmount.balance),
+    );
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
@@ -229,7 +229,7 @@ export class TxBuilderService {
     );
 
     const userLockHash = req.userLock.toHash();
-    const version = ORDER_VERSION.slice(2);
+    const version = constants.ORDER_VERSION.slice(2);
     const tokenAMinAmount = new Amount(req.tokenAMinAmount.balance).toUInt128LE().slice(2);
     const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
@@ -262,7 +262,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -277,17 +277,17 @@ export class TxBuilderService {
     }
 
     let outputs: Array<Cell> = [];
-    const minOutputCapacity = new Amount(LIQUIDITY_ORDER_CAPACITY.toString());
+    const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString());
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
-      req.liquidityTokenAmount,
+      req.lpTokenAmount,
       req.userLock,
       txFee,
     );
 
     const userLockHash = req.userLock.toHash();
-    const version = ORDER_VERSION.slice(2);
+    const version = constants.ORDER_VERSION.slice(2);
     const tokenAMinAmount = new Amount(req.tokenAMinAmount.balance).toUInt128LE().slice(2);
     const tokenBMinAmount = new Amount(req.tokenBMinAmount.balance).toUInt128LE().slice(2);
     const infoTypeHash20 = req.poolId.slice(2, 40);
@@ -320,7 +320,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -338,7 +338,7 @@ export class TxBuilderService {
     const ckbAmount = req.tokenInAmount.typeHash == CKB_TYPE_HASH ? req.tokenInAmount : req.tokenOutMinAmount;
 
     let outputs: Array<Cell> = [];
-    const minOutputCapacity = new Amount(ckbAmount.balance).add(new Amount(SWAP_ORDER_CAPACITY.toString()));
+    const minOutputCapacity = new Amount(ckbAmount.balance).add(new Amount(constants.SWAP_ORDER_CAPACITY.toString()));
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
       minOutputCapacity,
@@ -348,11 +348,13 @@ export class TxBuilderService {
     );
 
     const userLockHash = req.userLock.toHash();
-    const version = ORDER_VERSION.slice(2);
+    const version = constants.ORDER_VERSION.slice(2);
     const tokenInAmount = new Amount(req.tokenInAmount.balance).toUInt128LE().slice(2);
     const tokenOutMinAmount = new Amount(req.tokenOutMinAmount.balance).toUInt128LE().slice(2);
     const orderType =
-      req.tokenInAmount.typeHash == CKB_TYPE_HASH ? ORDER_TYPE.SellCKB.slice(2) : ORDER_TYPE.BuyCKB.slice(2);
+      req.tokenInAmount.typeHash == CKB_TYPE_HASH
+        ? constants.ORDER_TYPE.SellCKB.slice(2)
+        : constants.ORDER_TYPE.BuyCKB.slice(2);
     const orderLockScript = new Script(
       config.SWAP_ORDER_LOCK_CODE_HASH,
       `${userLockHash}${version}${tokenInAmount}${tokenOutMinAmount}${orderType}`,
@@ -381,7 +383,7 @@ export class TxBuilderService {
     tx.raw.outputs.pop();
     tx.raw.outputs.push(changeOutput);
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -442,7 +444,7 @@ export class TxBuilderService {
     }
 
     return {
-      pwTransaction: tx,
+      tx,
       fee: estimatedTxFee.toString(),
     };
   }
@@ -461,7 +463,8 @@ export class TxBuilderService {
     // If no type script, ensure we have a change cell, so that
     // txFee won't be changed.
     return (
-      (changeCell.type != undefined && changeCell.capacity.gte(new Amount(MIN_SUDT_CAPACITY.toString()).add(txFee))) ||
+      (changeCell.type != undefined &&
+        changeCell.capacity.gte(new Amount(constants.MIN_SUDT_CAPACITY.toString()).add(txFee))) ||
       (changeCell.type == undefined && changeCell.capacity.gt(txFee))
     );
   }

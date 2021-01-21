@@ -1,8 +1,9 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { Server } from '@gliaswap/types';
 
+import * as utils from '../utils';
 import { dexSwapService, DexSwapService } from '../service';
-import { ScriptSchema, StepSchema, TokenSchema } from './swaggerSchema';
+import { ScriptSchema, StepSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 import { cellConver } from '../model';
 
 const swapTag = tags(['Swap']);
@@ -76,9 +77,8 @@ export default class DexSwapController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -93,11 +93,16 @@ export default class DexSwapController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createSwapOrderTx(ctx: Context): Promise<void> {
-    const req = <Server.SwapOrderRequest>ctx.request.body;
+    const reqBody = <Server.SwapOrderRequest>ctx.request.body;
+    const req = {
+      tokenInAmount: utils.deserializeToken(reqBody.tokenInAmount),
+      tokenOutMinAmount: utils.deserializeToken(reqBody.tokenOutMinAmount),
+      userLock: utils.deserializeScript(reqBody.userLock),
+    };
     const txWithFee = await this.service.buildSwapOrderTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = txWithFee;
+    ctx.body = utils.serializeTransactionWithFee(txWithFee);
   }
 
   @request('post', '/v1/swap/orders/cancel')
@@ -110,9 +115,8 @@ export default class DexSwapController {
       schema: {
         type: 'object',
         properties: {
-          // FIXME: real pw transaction
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          pwTransaction: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -124,7 +128,11 @@ export default class DexSwapController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
-    const req = <Server.CancelOrderRequest>ctx.request.body;
+    const reqBody = <Server.CancelOrderRequest>ctx.request.body;
+    const req = {
+      txHash: reqBody.txHash,
+      userLock: utils.deserializeScript(reqBody.userLock),
+    };
     const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
 
     ctx.status = 200;

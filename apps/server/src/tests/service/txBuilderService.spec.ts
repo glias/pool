@@ -6,7 +6,7 @@ import { Context } from 'koa';
 import chai from 'chai';
 chai.should();
 
-import { ForgeCellService, ForgedCell, TxBuilderService } from './';
+import { ForgeCellService, ForgedCell, TxBuilderService } from '../../service';
 
 class MockForgeCellService implements ForgeCellService {
   forgedCell: ForgedCell;
@@ -48,7 +48,12 @@ describe('TxBuilderService', () => {
   let txBuilderService: TxBuilderService;
   let mockForgedCell: ForgedCell;
 
-  const generateForged = (capacity: number, tokenAmount: number, changeCapacity: number, changeTokenAmount: number) => {
+  const generateForgedCell = (
+    capacity: number,
+    tokenAmount: number,
+    changeCapacity: number,
+    changeTokenAmount: number,
+  ) => {
     const generateCell = (capacity: number, tokenAmount: number) => {
       const data = new Amount(tokenAmount.toString()).toUInt128LE();
       return new Cell(new Amount(capacity.toString()), TEST_USER_LOCK, TEST_TOKEN_TYPE_SCRIPT, undefined, data);
@@ -83,9 +88,9 @@ describe('TxBuilderService', () => {
   };
 
   describe('buildGenesisLiquidity()', () => {
-    describe('with enough free ckb and free sudt', () => {
+    describe('with enough free ckb and free token', () => {
       beforeEach(async () => {
-        mockForgedCell = generateForged(1000, 200, 1000, 200);
+        mockForgedCell = generateForgedCell(1000, 200, 1000, 200);
         txBuilderService = new TxBuilderService(new MockForgeCellService(mockForgedCell));
       });
 
@@ -99,7 +104,6 @@ describe('TxBuilderService', () => {
         };
 
         const result = await txBuilderService.buildGenesisLiquidity(ctx, req);
-        console.log(result);
       });
     });
   });

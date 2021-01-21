@@ -1,4 +1,4 @@
-import { TokenCellCollectorService, DefaultForgeCellService } from './';
+import { TokenCellCollectorService, DefaultForgeCellService } from '../../service';
 import { Primitive } from '@gliaswap/types';
 import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import { Script, Cell, Amount, HashType } from '@lay2/pw-core';
