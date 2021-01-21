@@ -1,7 +1,7 @@
 import * as lumos from '@ckb-lumos/base';
 import * as pw from '@lay2/pw-core';
 
-import { Script, JsonScript, HexString } from './';
+import { Script, IScript, HexString } from './';
 
 export interface OutPoint {
   txHash: HexString;
@@ -13,20 +13,15 @@ export interface CellDep {
   outPoint: OutPoint;
 }
 
-export interface JsonCell {
+export interface ICell {
   capacity: string;
-  lock: JsonScript;
-  type?: JsonScript | null | undefined;
+  lock: IScript;
+  type?: IScript | null | undefined;
   data?: HexString | null | undefined;
 }
 
-export class Cell {
-  capacity: string;
-  lock: Script;
-  type?: Script | null | undefined;
-  data?: HexString | null | undefined;
-
-  constructor(capacity: string, lock: Script, type?: Script, data?: HexString) {
+export class Cell implements ICell {
+  constructor(public capacity: string, public lock: Script, public type?: Script, public data?: HexString) {
     this.capacity = capacity;
     this.lock = lock;
     this.type = type;
@@ -41,7 +36,7 @@ export class Cell {
     return new Cell(capacity.toString(), Script.fromPw(lock), type, data);
   }
 
-  static fromJson(jsonCell: JsonCell): Cell {
+  static fromJson(jsonCell: ICell): Cell {
     const { capacity, lock, data } = jsonCell;
     const type = jsonCell.type ? Script.fromJson(jsonCell.type) : undefined;
 
@@ -70,34 +65,28 @@ export class Cell {
     );
   }
 
-  toJson(): JsonCell {
+  toJson(): ICell {
     return {
       ...this,
     };
   }
 }
 
-export interface JsonCellInput {
-  cell: JsonCell;
+export interface ICellInput {
+  cell: ICell;
   previousOutPoint?: OutPoint;
   since?: HexString;
   blockHash?: HexString;
   blockNumber?: HexString;
 }
 
-export class CellInput {
-  cell: Cell;
-  previousOutput?: OutPoint;
-  since?: HexString;
-  blockHash?: HexString;
-  blockNumber?: HexString;
-
+export class CellInput implements ICellInput {
   constructor(
-    cell: Cell,
-    previousOutput?: OutPoint,
-    since?: HexString,
-    blockHash?: HexString,
-    blockNumber?: HexString,
+    public cell: Cell,
+    public previousOutput?: OutPoint,
+    public since?: HexString,
+    public blockHash?: HexString,
+    public blockNumber?: HexString,
   ) {
     this.cell = cell;
     this.previousOutput = previousOutput;
@@ -113,7 +102,7 @@ export class CellInput {
     return new CellInput(cell, outPoint);
   }
 
-  static fromJson(jsonCellInput: JsonCellInput): CellInput {
+  static fromJson(jsonCellInput: ICellInput): CellInput {
     return new CellInput(
       Cell.fromJson(jsonCellInput.cell),
       jsonCellInput.previousOutPoint,
@@ -140,7 +129,7 @@ export class CellInput {
     return new pw.Cell(new pw.Amount(capacity), lock.toPw(), type ? type.toPw() : undefined, outPoint, data);
   }
 
-  toJson(): JsonCellInput {
+  toJson(): ICellInput {
     return {
       ...this,
     };
@@ -153,36 +142,27 @@ export interface WitnessArgs {
   outputType?: HexString | null | undefined;
 }
 
-export interface JsonTransaction {
+export interface ITransaction {
   cellDeps: CellDep[] | null | undefined;
   headerDeps: HexString[] | null | undefined;
-  inputs: JsonCellInput[];
-  outputs: JsonCell[];
+  inputs: ICellInput[];
+  outputs: ICell[];
   witnesses: HexString[];
   version: HexString;
   hash?: HexString | null | undefined;
   witnessArgs?: WitnessArgs[] | null | undefined;
 }
 
-export default class Transaction {
-  cellDeps: CellDep[];
-  headerDeps: HexString[];
-  inputs: CellInput[];
-  outputs: Cell[];
-  hash?: HexString | null | undefined;
-  version: HexString;
-  witnessArgs?: WitnessArgs[] | null | undefined;
-  witnesses: HexString[];
-
+export default class Transaction implements ITransaction {
   constructor(
-    inputs: CellInput[],
-    outputs: Cell[],
-    witnesses: HexString[],
-    cellDeps: CellDep[],
-    headerDeps: HexString[],
-    version: HexString,
-    hash?: HexString,
-    witnessArgs?: WitnessArgs[],
+    public inputs: CellInput[],
+    public outputs: Cell[],
+    public witnesses: HexString[],
+    public cellDeps: CellDep[],
+    public headerDeps: HexString[],
+    public version: HexString,
+    public hash?: HexString,
+    public witnessArgs?: WitnessArgs[],
   ) {
     this.cellDeps = cellDeps;
     this.headerDeps = headerDeps;
@@ -194,7 +174,7 @@ export default class Transaction {
     this.hash = hash;
   }
 
-  static fromJson(jsonTx: JsonTransaction): Transaction {
+  static fromJson(jsonTx: ITransaction): Transaction {
     const inputs = jsonTx.inputs.map(CellInput.fromJson);
     const outputs = jsonTx.outputs.map(Cell.fromJson);
 
@@ -256,7 +236,7 @@ export default class Transaction {
     );
   }
 
-  toJson(): JsonTransaction {
+  toJson(): ITransaction {
     return {
       ...this,
     };

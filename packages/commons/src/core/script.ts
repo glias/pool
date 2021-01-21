@@ -8,24 +8,20 @@ export enum HashType {
   type = 'type',
 }
 
-export interface JsonScript {
+export interface IScript {
   codeHash: HexString;
   hashType: string;
   args: HexString;
 }
 
-export class Script {
-  codeHash: HexString;
-  hashType: string;
-  args: HexString;
-
-  constructor(codeHash: HexString, hashType: HashType, args: HexString) {
+export class Script implements IScript {
+  constructor(public codeHash: HexString, public hashType: HashType, public args: HexString) {
     this.codeHash = codeHash;
     this.hashType = hashType == HashType.data ? HashType.data : HashType.type;
     this.args = args;
   }
 
-  static fromJson(jsonScript: JsonScript): Script {
+  static fromJson(jsonScript: IScript): Script {
     const hashType = jsonScript.hashType == 'type' ? HashType.type : HashType.data;
     return new Script(jsonScript.codeHash, hashType, jsonScript.args);
   }
@@ -43,7 +39,7 @@ export class Script {
     return new pw.Script(this.codeHash, this.args, this.hashType == 'type' ? pw.HashType.type : pw.HashType.data);
   }
 
-  toJson(): JsonScript {
+  toJson(): IScript {
     return {
       ...this,
     };
