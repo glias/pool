@@ -15,8 +15,8 @@ export interface CellDep {
 
 export interface ICellInput {
   cell: ICell;
-  previousOutPoint?: OutPoint;
-  since?: HexString;
+  previousOutPoint: OutPoint;
+  since: HexString;
   blockHash?: HexString;
   blockNumber?: HexString;
 }
@@ -24,23 +24,23 @@ export interface ICellInput {
 export class CellInput implements ICellInput {
   constructor(
     public cell: Cell,
-    public previousOutput?: OutPoint,
-    public since?: HexString,
+    public previousOutPoint: OutPoint,
+    public since: HexString,
     public blockHash?: HexString,
     public blockNumber?: HexString,
   ) {
     this.cell = cell;
-    this.previousOutput = previousOutput;
+    this.previousOutPoint = previousOutPoint;
     this.since = since;
     this.blockHash = blockHash;
     this.blockNumber = blockNumber;
   }
 
-  static fromPw(pwCell: pw.Cell): CellInput {
+  static fromPw(pwCell: pw.Cell, pwCellInput: pw.CellInput): CellInput {
     const cell = Cell.fromPw(pwCell);
     const outPoint = pwCell.outPoint ? FromPw.OutPoint(pwCell.outPoint) : undefined;
 
-    return new CellInput(cell, outPoint);
+    return new CellInput(cell, outPoint, pwCellInput.since);
   }
 
   static fromJson(jsonCellInput: ICellInput): CellInput {
@@ -63,11 +63,9 @@ export class CellInput implements ICellInput {
     return new CellInput(cell, outPoint, since, blockHash, blockNumber);
   }
 
-  toPw(): pw.Cell {
-    const { capacity, lock, type, data } = this.cell;
-    const outPoint = ToPw.outPoint(this.previousOutput);
-
-    return new pw.Cell(new pw.Amount(capacity), lock.toPw(), type ? type.toPw() : undefined, outPoint, data);
+  toPw(): pw.CellInput {
+    const outPoint = ToPw.outPoint(this.previousOutPoint);
+    return new pw.CellInput(outPoint, this.since);
   }
 
   toJson(): ICellInput {
@@ -158,9 +156,7 @@ export default class Transaction implements ITransaction {
     const { inputCells, cellDeps, headerDeps, version } = pwTx.raw;
 
     const inputs = pwTx.raw.inputs.map((input, idx) => {
-      const cell = CellInput.fromPw(inputCells[idx]);
-      cell.since = input.since;
-      return cell;
+      return CellInput.fromPw(inputCells[idx], input);
     });
     const outputs = pwTx.raw.outputs.map(Cell.fromPw);
     const witnessArgs = pwTx.witnessArgs.map(FromPw.witnessArgs);
@@ -184,7 +180,7 @@ export default class Transaction implements ITransaction {
   }
 
   toPw(): pw.Transaction {
-    const inputs = this.inputs.map((input) => input.toPw());
+    const inputs = this.inputs.map((input) => input.cell.toPw());
     const outputs = this.outputs.map((output) => output.toPw());
     const cellDeps = this.cellDeps.map(ToPw.cellDep);
     const rawTx = new pw.RawTransaction(inputs, outputs, cellDeps, this.headerDeps, this.version);
