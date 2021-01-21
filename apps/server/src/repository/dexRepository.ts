@@ -1,5 +1,6 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, TransactionWithStatus } from '../model';
+import { ForceBridgeRepository } from './forceBridgeRepository';
 
 export type ckbMethods =
   | 'getTipBlockNumber'
@@ -42,7 +43,7 @@ export type ckbMethods =
   | 'getRawTxPool'
   | 'getBlockchainInfo'
   | 'rpcProperties';
-export interface DexRepository {
+export interface DexRepository extends ForceBridgeRepository {
   collectCells: (queryOptions: QueryOptions) => Promise<Cell[]>;
 
   collectTransactions: (queryOptions: QueryOptions) => Promise<TransactionWithStatus[]>;
@@ -50,4 +51,6 @@ export interface DexRepository {
   getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]>;
 
   getTransaction(hash: string): Promise<TransactionWithStatus>;
+
+  getBlockTimestampByHash(blockHash: string): Promise<string>;
 }

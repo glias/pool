@@ -7,9 +7,9 @@ export interface CreateLiquidityPoolRequest {
 }
 
 export interface CreateLiquidityPoolResponse {
-  pwTransaction: Primitive.Transaction;
+  tx: Primitive.Transaction;
   fee: Primitive.U64;
-  liquidityTokenTypeScript: Primitive.Script;
+  lpToken: Primitive.Token;
 }
 
 export interface GenesisLiquidityRequest {
@@ -29,7 +29,7 @@ export interface AddLiquidityRequest {
 }
 
 export interface RemoveLiquidityRequest {
-  liquidityTokenAmount: Primitive.Token;
+  lpTokenAmount: Primitive.Token;
   tokenAMinAmount: Primitive.Token;
   tokenBMinAmount: Primitive.Token;
   poolId: Primitive.Hash;
@@ -48,7 +48,7 @@ export interface SwapOrderRequest {
 }
 
 export interface TransactionWithFee {
-  pwTransaction: Primitive.Transaction;
+  tx: Primitive.Transaction;
   fee: Primitive.U64;
 }
 
@@ -56,4 +56,10 @@ export interface OrderStage {
   step: string;
   message: string;
   data: string;
+}
+
+export interface OrdersRequest {
+  lock: Primitive.Script;
+  limit: number;
+  skip: number;
 }
