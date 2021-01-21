@@ -13,14 +13,14 @@ export interface CellDep {
   outPoint: OutPoint;
 }
 
-export interface JsonCellOutput {
+export interface JsonCell {
   capacity: string;
   lock: JsonScript;
   type?: JsonScript | null | undefined;
   data?: string | null | undefined;
 }
 
-export class CellOutput {
+export class Cell {
   capacity: string;
   lock: Script;
   type?: Script | null | undefined;
@@ -33,101 +33,108 @@ export class CellOutput {
     this.data = data;
   }
 
-  static fromPw(pwCell: pw.Cell): CellOutput {
-    const { capacity, lock, type } = pwCell;
+  static fromPw(pwCell: pw.Cell): Cell {
+    const { capacity, lock } = pwCell;
     const data = pwCell.getHexData();
-    return new CellOutput(capacity.toString(), Script.fromPw(lock), type ? Script.fromPw(type) : undefined, data);
+    const type = pwCell.type ? Script.fromPw(pwCell.type) : undefined;
+
+    return new Cell(capacity.toString(), Script.fromPw(lock), type, data);
   }
 
-  static fromJson(jsonCell: JsonCellOutput): CellOutput {
-    const { capacity, lock, type, data } = jsonCell;
-    return new CellOutput(capacity, Script.fromJson(lock), type ? Script.fromJson(type) : undefined, data);
+  static fromJson(jsonCell: JsonCell): Cell {
+    const { capacity, lock, data } = jsonCell;
+    const type = jsonCell.type ? Script.fromJson(jsonCell.type) : undefined;
+
+    return new Cell(capacity, Script.fromJson(lock), type, data);
   }
 
-  static fromLumos(lumosOutput: lumos.Output, data: string): CellOutput {
-    const { capacity, lock, type } = lumosOutput;
-    return new CellOutput(
-      capacity,
-      Script.fromLumos(lock),
-      lumosOutput.type ? Script.fromLumos(type) : undefined,
-      data,
+  static fromLumos(lumosCell: any): Cell {
+    const capacity = 'cellOutput' in lumosCell ? lumosCell.cellOutput.capacity : lumosCell.cell_output.capacity;
+    const lock = Script.fromLumos('cellOutput' in lumosCell ? lumosCell.cellOutput.lock : lumosCell.cell_output.lock);
+    const type = (() => {
+      const t = 'cellOutput' in lumosCell ? lumosCell.cellOutput.type : lumosCell.cell_output.type;
+      return t ? Script.fromLumos(t) : undefined;
+    })();
+    const data = lumosCell.data;
+
+    return new Cell(capacity, lock, type, data);
+  }
+
+  toPw(): pw.Cell {
+    return new pw.Cell(
+      new pw.Amount(this.capacity),
+      this.lock.toPw(),
+      this.type ? this.type.toPw() : undefined,
+      undefined,
+      this.data,
     );
   }
 
-  toJson(): JsonCellOutput {
+  toJson(): JsonCell {
     return {
       ...this,
     };
   }
 }
 
-export interface JsonCell {
-  cellOutput: JsonCellOutput;
+export interface JsonCellInput {
+  cell: JsonCell;
   previousOutPoint?: OutPoint;
   since?: string;
   blockHash?: string;
   blockNumber?: string;
 }
 
-export class Cell {
-  cellOutput: CellOutput;
+export class CellInput {
+  cell: Cell;
   previousOutput?: OutPoint;
   since?: string;
   blockHash?: string;
   blockNumber?: string;
 
-  constructor(
-    cellOutput: CellOutput,
-    previousOutput?: OutPoint,
-    since?: string,
-    blockHash?: string,
-    blockNumber?: string,
-  ) {
+  constructor(cell: Cell, previousOutput?: OutPoint, since?: string, blockHash?: string, blockNumber?: string) {
+    this.cell = cell;
     this.previousOutput = previousOutput;
     this.since = since;
-    this.cellOutput = cellOutput;
     this.blockHash = blockHash;
     this.blockNumber = blockNumber;
   }
 
-  static fromPw(pwCell: pw.Cell): Cell {
+  static fromPw(pwCell: pw.Cell): CellInput {
+    const cell = Cell.fromPw(pwCell);
     const outPoint = pwCell.outPoint ? FromPw.OutPoint(pwCell.outPoint) : undefined;
-    const cellOutput = CellOutput.fromPw(pwCell);
 
-    return new Cell(cellOutput, outPoint);
+    return new CellInput(cell, outPoint);
   }
 
-  static fromJson(jsonCell: JsonCell): Cell {
-    return new Cell(
-      CellOutput.fromJson(jsonCell.cellOutput),
-      jsonCell.previousOutPoint,
-      jsonCell.since,
-      jsonCell.blockHash,
-      jsonCell.blockNumber,
+  static fromJson(jsonCellInput: JsonCellInput): CellInput {
+    return new CellInput(
+      Cell.fromJson(jsonCellInput.cell),
+      jsonCellInput.previousOutPoint,
+      jsonCellInput.since,
+      jsonCellInput.blockHash,
+      jsonCellInput.blockNumber,
     );
   }
 
-  static fromLumos(lumosCell: any): Cell {
-    const capacity = 'cellOutput' in lumosCell ? lumosCell.cellOutput.capacity : lumosCell.cell_output.capacity;
-    const lock = Script.fromLumos('cellOutput' in lumosCell ? lumosCell.cellOutput.lock : lumosCell.cell_output.lock);
-    const type = Script.fromLumos('cellOutput' in lumosCell ? lumosCell.cellOutput.type : lumosCell.cell_output.type);
+  static fromLumos(lumosCell: any, lumosInput?: lumos.Input): CellInput {
+    const cell = Cell.fromLumos(lumosCell);
     const outPoint = FromLumos.outPoint('outPoint' in lumosCell ? lumosCell.outPoint : lumosCell.out_point);
     const blockHash = 'blockHash' in lumosCell ? lumosCell.blockHash : lumosCell.block_hash;
     const blockNumber = 'blockNumber' in lumosCell ? lumosCell.blockNumber : lumosCell.block_number;
-    const data = lumosCell.data;
+    const since = lumosInput ? lumosInput.since : undefined;
 
-    const cellOutput = new CellOutput(capacity, lock, type, data);
-    return new Cell(cellOutput, outPoint, undefined, blockHash, blockNumber);
+    return new CellInput(cell, outPoint, since, blockHash, blockNumber);
   }
 
   toPw(): pw.Cell {
-    const { capacity, lock, type, data } = this.cellOutput;
+    const { capacity, lock, type, data } = this.cell;
     const outPoint = ToPw.outPoint(this.previousOutput);
 
     return new pw.Cell(new pw.Amount(capacity), lock.toPw(), type ? type.toPw() : undefined, outPoint, data);
   }
 
-  toJson(): JsonCell {
+  toJson(): JsonCellInput {
     return {
       ...this,
     };
@@ -143,7 +150,7 @@ export interface WitnessArgs {
 export interface JsonTransaction {
   cellDeps: CellDep[] | null | undefined;
   headerDeps: string[] | null | undefined;
-  inputs: JsonCell[];
+  inputs: JsonCellInput[];
   outputs: JsonCell[];
   witnesses: string[];
   version: string;
@@ -154,7 +161,7 @@ export interface JsonTransaction {
 export default class Transaction {
   cellDeps: CellDep[];
   headerDeps: string[];
-  inputs: Cell[];
+  inputs: CellInput[];
   outputs: Cell[];
   hash?: string | null | undefined;
   version: string;
@@ -162,7 +169,7 @@ export default class Transaction {
   witnesses: string[];
 
   constructor(
-    inputs: Cell[],
+    inputs: CellInput[],
     outputs: Cell[],
     witnesses: string[],
     cellDeps: CellDep[],
@@ -182,7 +189,7 @@ export default class Transaction {
   }
 
   static fromJson(jsonTx: JsonTransaction): Transaction {
-    const inputs = jsonTx.inputs.map(Cell.fromJson);
+    const inputs = jsonTx.inputs.map(CellInput.fromJson);
     const outputs = jsonTx.outputs.map(Cell.fromJson);
 
     return new Transaction(
@@ -199,13 +206,13 @@ export default class Transaction {
 
   static fromLumos(lumosTx: lumos.Transaction, inputCells: lumos.Cell): Transaction {
     const inputs = lumosTx.inputs.map((input, idx) => {
-      const cell = Cell.fromLumos(inputCells[idx]);
-      cell.since = input.since;
-      return cell;
+      return CellInput.fromLumos(inputCells[idx], input);
     });
     const outputs = lumosTx.outputs.map((output, idx) => {
-      const cellOutput = CellOutput.fromLumos(output, lumosTx.outputs_data[idx]);
-      return new Cell(cellOutput);
+      return Cell.fromLumos({
+        ...output,
+        data: lumosTx.outputs_data[idx],
+      });
     });
     const cellDeps = lumosTx.cell_deps.map(FromLumos.cellDep);
 
@@ -224,8 +231,7 @@ export default class Transaction {
     const { inputCells, cellDeps, headerDeps, version } = pwTx.raw;
 
     const inputs = pwTx.raw.inputs.map((input, idx) => {
-      const cell = Cell.fromPw(inputCells[idx]);
-      cell.previousOutput = FromPw.OutPoint(input.previousOutput);
+      const cell = CellInput.fromPw(inputCells[idx]);
       cell.since = input.since;
       return cell;
     });
