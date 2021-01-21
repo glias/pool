@@ -1,5 +1,4 @@
 import { swaggerClass, swaggerProperty } from 'koa-swagger-decorator';
-import { Script } from '@ckb-lumos/base';
 
 @swaggerClass()
 export class ScriptSchema {
