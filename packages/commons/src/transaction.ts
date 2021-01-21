@@ -1,11 +1,22 @@
-import { Amount, Cell, CellDep, DepType, HashType, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
+import {
+  Amount,
+  Cell as PWCell,
+  CellDep,
+  DepType,
+  HashType,
+  OutPoint,
+  RawTransaction as PWRawTransaction,
+  Script as PWScript,
+  Transaction as PWTransaction,
+} from '@lay2/pw-core';
+import { Script } from '.';
 
 export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
 export type CellLike = {
   capacity: CKBComponents.Capacity;
   lock: Script;
-  type?: Script | null;
+  type?: Script;
   data?: CKBComponents.Bytes;
 };
 
@@ -26,31 +37,36 @@ export type SerializedTransaction = {
   witnessArgs: CKBComponents.WitnessArgs[];
 };
 
-function deserializeScript(script: CKBComponents.Script): Script {
+export type SerializedTransactionWithFee = {
+  transaction: SerializedTransaction;
+  fee: string;
+};
+
+function deserializeScript(script: Script): PWScript {
   const hashType = script.hashType === 'type' ? HashType.type : HashType.data;
-  return new Script(script.codeHash, script.args, hashType);
+  return new PWScript(script.codeHash, script.args, hashType);
 }
 
-function serializeScript(script: Script): CKBComponents.Script {
+function serializeScript(script: PWScript): CKBComponents.Script {
   return script.serializeJson() as CKBComponents.Script;
 }
 
-function deserializeInputCell(cell: InputCell): Cell {
-  return new Cell(
+function deserializeInputCell(cell: InputCell): PWCell {
+  return new PWCell(
     new Amount(cell.capacity),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
-    cell.txHash && cell.index && new OutPoint(cell.txHash, cell.index),
+    cell.txHash && cell.index ? new OutPoint(cell.txHash, cell.index) : undefined,
     cell.data,
   );
 }
 
-function serializeInputCell(cell: Cell): InputCell {
+function serializeInputCell(cell: PWCell): InputCell {
   return cell.serializeJson() as InputCell;
 }
 
-function deserializeOutputCell(cell: OutputCell): Cell {
-  return new Cell(
+function deserializeOutputCell(cell: OutputCell): PWCell {
+  return new PWCell(
     new Amount(cell.capacity, 0),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
@@ -59,14 +75,14 @@ function deserializeOutputCell(cell: OutputCell): Cell {
   );
 }
 
-function serializeOutputCell(cell: Cell): OutputCell {
+function serializeOutputCell(cell: PWCell): OutputCell {
   return cell.serializeJson() as OutputCell;
 }
 
 function deserializeCellDeps(dep: CKBComponents.CellDep): CellDep {
   return new CellDep(
     dep.depType === 'depGroup' ? DepType.depGroup : DepType.code,
-    new OutPoint(dep.outPoint.txHash, dep.outPoint.txHash),
+    new OutPoint(dep.outPoint!.txHash, dep.outPoint!.txHash),
   );
 }
 
@@ -74,23 +90,24 @@ function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
   return dep.serializeJson() as CKBComponents.CellDep;
 }
 
-function deserializeTransaction(serialized: SerializedTransaction): Transaction {
-  const inputCells: Cell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
-  const outputCells: Cell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
+function deserializeTransaction(serialized: SerializedTransaction): PWTransaction {
+  const inputCells: PWCell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
+  const outputCells: PWCell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
   const cellDeps: CellDep[] = serialized.cellDeps.map(deserializeCellDeps);
 
-  const raw = new RawTransaction(inputCells, outputCells, cellDeps, serialized.headerDeps, serialized.version);
-  return new Transaction(
+  const raw = new PWRawTransaction(inputCells, outputCells, cellDeps, serialized.headerDeps, serialized.version);
+
+  return new PWTransaction(
     raw,
     serialized.witnessArgs.map((arg) => ({
-      input_type: arg.inputType,
-      lock: arg.lock,
-      output_type: arg.outputType,
+      input_type: arg.inputType!,
+      lock: arg.lock!,
+      output_type: arg.outputType!,
     })),
   );
 }
 
-function serializeTransaction(transaction: Transaction): SerializedTransaction {
+function serializeTransaction(transaction: PWTransaction): SerializedTransaction {
   return transaction.serializeJson() as SerializedTransaction;
 }
 

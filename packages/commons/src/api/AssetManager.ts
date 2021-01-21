@@ -1,4 +1,4 @@
-import { CkbAsset, Maybe, Script, SerializedTransaction, TransactionStatus } from '../';
+import { CkbAsset, Maybe, Script, SerializedTransactionWithFee, TransactionStatus } from '../';
 
 export interface TransferSummary {
   // ckb capacity or sudt amount
@@ -31,9 +31,9 @@ export interface GenerateTransferTransactionOptions {
 }
 
 interface GetTransferDetailOptions {
-  txHash: string;
-  typeHash: string;
+  asset: CkbAsset;
   lock: Script;
+  txHash: string;
 }
 
 export interface AssetManagerAPI {
@@ -51,5 +51,5 @@ export interface AssetManagerAPI {
    * generate a sending asset transaction
    * @param options
    */
-  generateTransferTransaction: (options: GenerateTransferTransactionOptions) => Promise<SerializedTransaction>;
+  generateTransferTransaction: (options: GenerateTransferTransactionOptions) => Promise<SerializedTransactionWithFee>;
 }
