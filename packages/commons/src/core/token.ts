@@ -1,5 +1,9 @@
+import * as pw from '@lay2/pw-core';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
+
 import { HexString, IScript, Script, Cell, ICell } from './';
+
+export type Amount = pw.Amount;
 
 export interface TokenInfo {
   name: string;
@@ -42,5 +46,24 @@ export class Token implements IToken {
     return {
       ...this,
     };
+  }
+
+  toCell(lock: Script, capacity?: string): Cell {
+    if (!this.isCkb()) {
+      throw 'need capacity for token cell';
+    }
+
+    const cellCapacity = this.isCkb() ? this.balance : capacity;
+    const cellData = this.isCkb() ? undefined : new pw.Amount(this.balance).toUInt128LE();
+
+    return new Cell(cellCapacity, lock, this.typeScript, cellData);
+  }
+
+  isCkb(): boolean {
+    return this.typeHash == CKB_TYPE_HASH;
+  }
+
+  amount(): Amount {
+    return new pw.Amount(this.balance);
   }
 }
