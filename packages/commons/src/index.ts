@@ -5,3 +5,4 @@ export * from './api';
 export * as utils from './utils';
 export * from './transaction';
 export * from './types';
+export * as price from './price';
