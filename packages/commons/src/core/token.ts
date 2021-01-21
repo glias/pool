@@ -1,4 +1,4 @@
-import { JsonScript, Script } from './script';
+import { HexString, JsonScript, Script } from './';
 
 export interface TokenInfo {
   name: string;
@@ -8,19 +8,19 @@ export interface TokenInfo {
 }
 
 export interface JsonToken {
-  typeHash: string;
+  typeHash: HexString;
   typeScript?: JsonScript | null | undefined;
   info?: TokenInfo | null | undefined;
   balance: string;
 }
 
 export class Token {
-  typeHash: string;
+  typeHash: HexString;
   typeScript?: Script | null | undefined;
   info?: TokenInfo | null | undefined;
   balance: string;
 
-  constructor(typeHash: string, balance: string, typeScript?: Script, info?: TokenInfo) {
+  constructor(typeHash: HexString, balance: string, typeScript?: Script, info?: TokenInfo) {
     this.typeHash = typeHash;
     this.typeScript = typeScript;
     this.info = info;

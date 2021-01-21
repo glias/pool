@@ -1,11 +1,11 @@
 import * as lumos from '@ckb-lumos/base';
 import * as pw from '@lay2/pw-core';
 
-import { Script, JsonScript } from './script';
+import { Script, JsonScript, HexString } from './';
 
 export interface OutPoint {
-  txHash: string;
-  index: string;
+  txHash: HexString;
+  index: HexString;
 }
 
 export interface CellDep {
@@ -17,16 +17,16 @@ export interface JsonCell {
   capacity: string;
   lock: JsonScript;
   type?: JsonScript | null | undefined;
-  data?: string | null | undefined;
+  data?: HexString | null | undefined;
 }
 
 export class Cell {
   capacity: string;
   lock: Script;
   type?: Script | null | undefined;
-  data?: string | null | undefined;
+  data?: HexString | null | undefined;
 
-  constructor(capacity: string, lock: Script, type?: Script, data?: string) {
+  constructor(capacity: string, lock: Script, type?: Script, data?: HexString) {
     this.capacity = capacity;
     this.lock = lock;
     this.type = type;
@@ -80,19 +80,25 @@ export class Cell {
 export interface JsonCellInput {
   cell: JsonCell;
   previousOutPoint?: OutPoint;
-  since?: string;
-  blockHash?: string;
-  blockNumber?: string;
+  since?: HexString;
+  blockHash?: HexString;
+  blockNumber?: HexString;
 }
 
 export class CellInput {
   cell: Cell;
   previousOutput?: OutPoint;
-  since?: string;
-  blockHash?: string;
-  blockNumber?: string;
+  since?: HexString;
+  blockHash?: HexString;
+  blockNumber?: HexString;
 
-  constructor(cell: Cell, previousOutput?: OutPoint, since?: string, blockHash?: string, blockNumber?: string) {
+  constructor(
+    cell: Cell,
+    previousOutput?: OutPoint,
+    since?: HexString,
+    blockHash?: HexString,
+    blockNumber?: HexString,
+  ) {
     this.cell = cell;
     this.previousOutput = previousOutput;
     this.since = since;
@@ -142,40 +148,40 @@ export class CellInput {
 }
 
 export interface WitnessArgs {
-  inputType?: string | null | undefined;
-  lock?: string | null | undefined;
-  outputType?: string | null | undefined;
+  inputType?: HexString | null | undefined;
+  lock?: HexString | null | undefined;
+  outputType?: HexString | null | undefined;
 }
 
 export interface JsonTransaction {
   cellDeps: CellDep[] | null | undefined;
-  headerDeps: string[] | null | undefined;
+  headerDeps: HexString[] | null | undefined;
   inputs: JsonCellInput[];
   outputs: JsonCell[];
-  witnesses: string[];
-  version: string;
-  hash?: string | null | undefined;
+  witnesses: HexString[];
+  version: HexString;
+  hash?: HexString | null | undefined;
   witnessArgs?: WitnessArgs[] | null | undefined;
 }
 
 export default class Transaction {
   cellDeps: CellDep[];
-  headerDeps: string[];
+  headerDeps: HexString[];
   inputs: CellInput[];
   outputs: Cell[];
-  hash?: string | null | undefined;
-  version: string;
+  hash?: HexString | null | undefined;
+  version: HexString;
   witnessArgs?: WitnessArgs[] | null | undefined;
-  witnesses: string[];
+  witnesses: HexString[];
 
   constructor(
     inputs: CellInput[],
     outputs: Cell[],
-    witnesses: string[],
+    witnesses: HexString[],
     cellDeps: CellDep[],
-    headerDeps: string[],
-    version: string,
-    hash?: string,
+    headerDeps: HexString[],
+    version: HexString,
+    hash?: HexString,
     witnessArgs?: WitnessArgs[],
   ) {
     this.cellDeps = cellDeps;

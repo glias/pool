@@ -1,23 +1,25 @@
 import * as pw from '@lay2/pw-core';
 import * as lumos from '@ckb-lumos/base';
 
+import { HexString } from './';
+
 export enum HashType {
   data = 'data',
   type = 'type',
 }
 
 export interface JsonScript {
-  codeHash: string;
+  codeHash: HexString;
   hashType: string;
-  args: string;
+  args: HexString;
 }
 
 export class Script {
-  codeHash: string;
+  codeHash: HexString;
   hashType: string;
-  args: string;
+  args: HexString;
 
-  constructor(codeHash: string, hashType: HashType, args: string) {
+  constructor(codeHash: HexString, hashType: HashType, args: HexString) {
     this.codeHash = codeHash;
     this.hashType = hashType == HashType.data ? HashType.data : HashType.type;
     this.args = args;
@@ -45,5 +47,9 @@ export class Script {
     return {
       ...this,
     };
+  }
+
+  toHash(): HexString {
+    return this.toPw().toHash();
   }
 }
