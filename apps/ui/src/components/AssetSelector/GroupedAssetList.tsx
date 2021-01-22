@@ -1,32 +1,32 @@
-import { Tabs } from 'antd';
 import { Asset } from '@gliaswap/commons';
-import React, { useMemo } from 'react';
+import { Tabs } from 'antd';
+import React, { Key, useMemo } from 'react';
 import { AssetList, AssetListProps } from './AssetList';
 
-type Group = (asset: Asset) => string;
+type Group<T> = (asset: T) => string;
 
-export interface GroupedAssetListProps extends AssetListProps {
-  group: Group;
+export interface GroupedAssetListProps<A extends Asset, K extends Key> extends AssetListProps<A, K> {
+  group: Group<A>;
 }
 
-type GroupedAsset = Record<string, Asset[]>;
+type GroupedAsset<A> = Record<string, A[]>;
 
-function groupBy(group: Group, assets: Asset[]) {
-  return assets.reduce<GroupedAsset>((result, item) => {
+function groupBy<A>(group: Group<A>, assets: A[]): GroupedAsset<A> {
+  return assets.reduce<GroupedAsset<A>>((result, item) => {
     const groupKey = group(item);
     result[groupKey] = groupKey in result ? result[groupKey].concat(item) : [item];
     return result;
   }, {});
 }
 
-export const GroupedAssetList: React.FC<GroupedAssetListProps> = (props) => {
+export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedAssetListProps<A, K>) {
   const { group, assets, onSelected } = props;
 
   const grouped = useMemo(() => groupBy(group, assets), [assets, group]);
 
   return (
     <Tabs>
-      {Object.entries(grouped).map(([groupKey, groupedAssets]) => {
+      {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
         return (
           <Tabs.TabPane key={groupKey} tab={groupKey}>
             <AssetList
@@ -40,4 +40,4 @@ export const GroupedAssetList: React.FC<GroupedAssetListProps> = (props) => {
       })}
     </Tabs>
   );
-};
+}

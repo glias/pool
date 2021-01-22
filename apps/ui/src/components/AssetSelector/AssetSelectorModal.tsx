@@ -2,7 +2,7 @@ import { Asset } from '@gliaswap/commons';
 import { Modal } from 'antd';
 import { ModalFuncProps } from 'antd/es/modal';
 import i18n from 'i18n';
-import React, { useMemo } from 'react';
+import React, { Key, useMemo } from 'react';
 import styled from 'styled-components';
 import { AssetList, AssetListProps } from './AssetList';
 import { GroupedAssetList } from './GroupedAssetList';
@@ -15,13 +15,13 @@ const AssetSelectorModalWrapper = styled.div`
   }
 `;
 
-interface AssetSelectorModalProps extends AssetListProps, ModalFuncProps {
+interface AssetSelectorModalProps<A extends Asset, K extends Key> extends AssetListProps<A, K>, ModalFuncProps {
   visible?: boolean;
 
-  group?: (asset: Asset) => string;
+  group?: (asset: A) => string;
 }
 
-export const AssetSelectorModal: React.FC<AssetSelectorModalProps> = (props) => {
+export function AssetSelectorModal<A extends Asset, K extends Key>(props: AssetSelectorModalProps<A, K>) {
   const { assets, group, onSelected, disabledKeys, renderKey, ...modalProps } = props;
 
   const listElem = useMemo(() => {
@@ -39,4 +39,4 @@ export const AssetSelectorModal: React.FC<AssetSelectorModalProps> = (props) => 
       </AssetSelectorModalWrapper>
     </Modal>
   );
-};
+}

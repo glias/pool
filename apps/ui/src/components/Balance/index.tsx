@@ -1,5 +1,4 @@
 import { BigNumber } from 'bignumber.js';
-import { Asset } from '@gliaswap/commons';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -19,7 +18,7 @@ const BalanceWrapper = styled.span`
 `;
 
 export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
-  asset: Asset;
+  asset: { decimals: number; symbol: string };
 
   value: BigNumber.Value;
   /**
