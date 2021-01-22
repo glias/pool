@@ -28,6 +28,7 @@ class PWSigner implements Signer {
 export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
   readonly modal: Web3Modal;
   provider: any;
+  web3: Web3 | undefined;
 
   readonly pw: PWCore;
 
@@ -46,7 +47,9 @@ export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
   async connect(): Promise<Signer> {
     const provider = await this.modal.connect();
     this.provider = provider;
-    const pwWeb3ModalProvider = new PWWeb3ModalProvider(new Web3(provider));
+    const web3 = new Web3(provider);
+    this.web3 = web3;
+    const pwWeb3ModalProvider = new PWWeb3ModalProvider(web3);
 
     provider.on('accountsChanged', (accounts: string[] | undefined) => {
       if (!accounts?.length) {
