@@ -1,9 +1,9 @@
 import { Asset } from '@gliaswap/commons';
+import { AssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import React, { Key } from 'react';
 import styled from 'styled-components';
 import { calcTotalBalance } from 'suite';
-import { AssetSymbol } from '../AssetSymbol';
 
 const AssetListWrapper = styled.ul`
   padding-inline-start: 0;
@@ -28,15 +28,15 @@ const AssetListWrapper = styled.ul`
   }
 `;
 
-export interface AssetListProps<T extends Asset = Asset> {
-  renderKey: (asset: T, index: number, data: Asset[]) => Key;
-  assets: T[];
-  disabledKeys?: Key[];
-  onSelected?: (key: Key, asset: T) => void;
+export interface AssetListProps<A extends Asset, K extends Key> {
+  renderKey: (asset: A, index: number, data: A[]) => K;
+  assets: A[];
+  disabledKeys?: K[];
+  onSelected?: (key: K, asset: A) => void;
 }
 
-export function AssetList<T extends Asset>(
-  props: React.PropsWithChildren<AssetListProps<T>> & React.HTMLAttributes<HTMLUListElement>,
+export function AssetList<A extends Asset, K extends Key>(
+  props: React.PropsWithChildren<AssetListProps<A, K>> & React.HTMLAttributes<HTMLUListElement>,
 ) {
   const { assets, onSelected, disabledKeys, ...wrapperProps } = props;
 

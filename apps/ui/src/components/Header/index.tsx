@@ -1,10 +1,10 @@
 import { Menu } from 'antd';
-import i18n from 'i18next';
+import i18n from 'i18n';
 import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { WalletConnectButton } from '../WalletConnectButton';
-import { SettingButton } from './SettingButton';
+import { GlobalSetting } from './GlobalSetting';
 
 const HeaderWrapper = styled.header`
   height: 60px;
@@ -26,7 +26,6 @@ export const NavMenu: React.FC = () => {
   const [, key] = location.pathname.split('/');
 
   function onClick(selectedKey: string) {
-    if (key === selectedKey) return;
     history.push(`/${selectedKey}`);
   }
 
@@ -47,7 +46,7 @@ export const AppHeader: React.FC = () => {
       </div>
       <div>
         <WalletConnectButton />
-        <SettingButton />
+        <GlobalSetting />
       </div>
     </HeaderWrapper>
   );

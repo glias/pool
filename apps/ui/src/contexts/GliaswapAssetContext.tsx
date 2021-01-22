@@ -53,7 +53,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   );
 };
 
-export function useAsset(): AssetManagerState {
+export function useGliaswapContext(): AssetManagerState {
   const context = useContext(AssetManagerContext);
   if (!context) throw new Error('The GliaswapContext.Provider is not found');
 

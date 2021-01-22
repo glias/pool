@@ -1,8 +1,8 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Asset } from '@gliaswap/commons';
+import { AssetSymbol } from 'components/Asset';
 import React, { Key, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { AssetSymbol } from '../AssetSymbol';
 import { AssetListProps } from './AssetList';
 import { AssetSelectorModal } from './AssetSelectorModal';
 
@@ -27,16 +27,16 @@ const TokenSelectorWrapper = styled.span<WrapperProps>`
   }
 `;
 
-export interface TokenSelectorProps extends AssetListProps {
+export interface TokenSelectorProps<T extends Asset, K extends Key> extends AssetListProps<T, K> {
   /**
    * the current selected asset
    */
-  selectedKey?: Key;
+  selectedKey?: K;
 
-  group?: (asset: Asset) => string;
+  group?: (asset: T) => string;
 }
 
-export const AssetSelector: React.FC<TokenSelectorProps> = (props) => {
+export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
   const { selectedKey, onSelected, assets, renderKey, disabledKeys, group, ...otherProps } = props;
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -52,7 +52,7 @@ export const AssetSelector: React.FC<TokenSelectorProps> = (props) => {
   );
 
   const onSelect = useCallback(
-    (key: Key) => {
+    (key: K) => {
       onSelected?.(key, selectedAsset!);
       setModalVisible(false);
     },
@@ -84,7 +84,7 @@ export const AssetSelector: React.FC<TokenSelectorProps> = (props) => {
         onSelected={onSelect}
         renderKey={renderKey}
         group={group}
-        disabledKeys={selectedAsset ? ([selectedKey] as Key[]) : undefined}
+        disabledKeys={selectedAsset ? ([selectedKey] as K[]) : undefined}
       />
     );
   }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey]);
@@ -102,4 +102,4 @@ export const AssetSelector: React.FC<TokenSelectorProps> = (props) => {
       </TokenSelectorWrapper>
     </>
   );
-};
+}

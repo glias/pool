@@ -1,6 +1,7 @@
-import { Asset } from '@gliaswap/commons';
-import { Provider as AdapterProvider, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
-import { Provider as AssetProvider, useAsset } from 'contexts/GliaswapContext';
+import { Asset, GliaswapAPI, GliaswapAssetWithBalance, Script } from '@gliaswap/commons';
+import { ConnectStatus, Provider as AdapterProvider, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { AdapterContextState } from 'commons/WalletAdapter/Provider';
+import { Provider as AssetProvider, RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { useGlobalConfig } from './config';
@@ -31,9 +32,40 @@ export const GliaswapProvider: React.FC = (props) => {
   );
 };
 
-export function useGliaswap() {
-  const adapter = useWalletAdapter<Web3ModalAdapter>();
-  const { assets } = useAsset();
+interface GliaswapState {
+  /**
+   * the WalletConnectAdapter
+   * @see {AdapterContextState}
+   */
+  adapter: AdapterContextState<Web3ModalAdapter>;
+  // global assets info with balance
+  realtimeAssets: RealtimeInfo<GliaswapAssetWithBalance[]>;
+  /**
+   * an implement of GliaswapAPI
+   * @see {GliaswapAPI}
+   */
+  api: GliaswapAPI;
+  // wallet connect status
+  walletConnectStatus: ConnectStatus;
+  // when a wallet was connected, the user lock would be filled
+  currentUserLock?: Script;
+}
 
-  return { adapter, assets };
+export function useGliaswap(): GliaswapState {
+  const adapter = useWalletAdapter<Web3ModalAdapter>();
+  const { assets, api } = useGliaswapContext();
+
+  const currentUserLock = useMemo(() => {
+    if (adapter.status === 'connected') return adapter.signer.address.toLockScript();
+    return undefined;
+  }, [adapter.signer.address, adapter.status]);
+  const walletConnectStatus = adapter.status;
+
+  return {
+    adapter,
+    realtimeAssets: assets,
+    walletConnectStatus,
+    api,
+    currentUserLock,
+  };
 }

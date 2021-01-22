@@ -7,8 +7,10 @@ interface WrapperProps {
   iconBackground?: string;
 }
 
-export interface TokenProps extends WrapperProps, React.HTMLAttributes<HTMLSpanElement> {
+export interface TokenProps {
   asset: Asset;
+  hideSymbolText?: boolean;
+  hideSymbolIcon?: boolean;
 }
 
 const AssetSymbolWrapper = styled.span<WrapperProps>`
@@ -22,7 +24,7 @@ const AssetSymbolWrapper = styled.span<WrapperProps>`
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 8px;
+    margin-right: 4px;
     padding: 4px;
 
     img {
@@ -31,21 +33,21 @@ const AssetSymbolWrapper = styled.span<WrapperProps>`
     }
   }
 
-  .asset-name {
-    font-weight: bold;
-    color: #000000;
+  .symbol-text {
   }
 `;
 
-export const AssetSymbol = (props: TokenProps) => {
-  const { asset, ...others } = props;
+export const AssetSymbol = (props: TokenProps & WrapperProps & React.HTMLAttributes<HTMLSpanElement>) => {
+  const { asset, hideSymbolText, hideSymbolIcon, ...others } = props;
 
   return (
     <AssetSymbolWrapper iconBackground={getIconBackgroundColor(asset)} {...others}>
-      <span className="icon">
-        <img alt={asset.symbol} src={asset.logoURI} />
-      </span>
-      <span className="asset-name">{asset.symbol}</span>
+      {!hideSymbolIcon && (
+        <span className="icon">
+          <img alt={asset.symbol} src={asset.logoURI} />
+        </span>
+      )}
+      {!hideSymbolText && <span className="symbol-text">{asset.symbol}</span>}
     </AssetSymbolWrapper>
   );
 };
