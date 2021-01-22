@@ -26,7 +26,7 @@ export interface AssetWithBalance extends Balanced, Asset {}
 export type CkbAsset = Asset & { chainType: 'Nervos'; typeHash: string };
 export type GliaswapLockedBalance = Balanced & LockedBalance;
 // prettier-ignore
-export type CkbNativeAsset = CkbAsset & { typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000'; };
+export type CkbNativeAsset = CkbAsset & { typeHash: string; };
 export type CkbSudtAsset = CkbAsset;
 export type CkbNativeAssetWithBalance = CkbNativeAsset & GliaswapLockedBalance & OccupiedBalance;
 export type CkbSudtAssetWithBalance = CkbSudtAsset & GliaswapLockedBalance;
