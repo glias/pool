@@ -16,5 +16,3 @@ jobs:
           yarn build:types
       - name: Build UI
         run: yarn build:server
-      - name: Test
-        run: yarn test

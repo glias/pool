@@ -21,7 +21,7 @@ export const TokenTabs: React.FC = () => {
     if (!activatedTab) replace(`${match.url}#assets`);
   }, [activatedTab, match.url, replace]);
 
-  const tabContent = activatedTab === 'assets' ? <AssetList /> : <TransactionList />
+  const tabContent = activatedTab === 'assets' ? <AssetList /> : <TransactionList />;
   // const tabContent = <AssetList />;
 
   return (

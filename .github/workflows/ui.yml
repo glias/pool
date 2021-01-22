@@ -1,4 +1,4 @@
-name: Server
+name: UI
 
 on: [push, pull_request]
 
@@ -16,5 +16,3 @@ jobs:
           yarn build:types
       - name: Build server
         run: yarn build:server
-      - name: Test
-        run: yarn test
