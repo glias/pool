@@ -99,17 +99,14 @@ export const TransactionList = () => {
 
   const tokenName = currentAsset.typeHash;
 
-  const { data: txs, isLoading } = useQuery<TransferSummary[]>(
-    ['transactions', tokenName, transferDirection],
-    () => {
-      if (!currentUserLock) throw new Error('Not yet connected to a wallet');
-      return assetAPI.getTransactionSummaries({
-        asset: currentAsset,
-        lock: currentUserLock,
-        direction: transferDirection,
-      });
-    },
-  );
+  const { data: txs, isLoading } = useQuery<TransferSummary[]>(['transactions', tokenName, transferDirection], () => {
+    if (!currentUserLock) throw new Error('Not yet connected to a wallet');
+    return assetAPI.getTransactionSummaries({
+      asset: currentAsset,
+      lock: currentUserLock,
+      direction: transferDirection,
+    });
+  });
 
   function onDirectionChange(direction: string) {
     setTransferDirectionFilter(direction as 'all' | TransactionDirection);

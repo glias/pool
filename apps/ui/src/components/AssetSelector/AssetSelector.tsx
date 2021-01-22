@@ -16,10 +16,10 @@ const TokenSelectorWrapper = styled.span<WrapperProps>`
 
   ${(props) =>
     props.selectable &&
-    `cursor: pointer; 
-    border-radius: 10px; 
+    `cursor: pointer;
+    border-radius: 10px;
     padding: 6px;
-    :hover { 
+    :hover {
       background: ${props.theme.primary || '#eee'};
     }`}
   .action {
@@ -37,7 +37,7 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
-  const { selectedKey, onSelected, assets, renderKey, disabledKeys, group, ...otherProps } = props;
+  const { selectedKey, onSelected, assets, renderKey, group, ...otherProps } = props;
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectable = !!onSelected;

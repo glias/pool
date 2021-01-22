@@ -32,7 +32,7 @@ describe('DefaultForgeCellService', () => {
   const generateCell = (capacity: number, tokenAmount: number) => {
     const cellCapacaity = new Amount(MIN_SUDT_CAPACITY.toString()).add(new Amount(capacity.toString()));
 
-    let cell = new Cell(cellCapacaity, mockUserLock, mockTokenTypeScript);
+    const cell = new Cell(cellCapacaity, mockUserLock, mockTokenTypeScript);
     cell.setHexData(new Amount(tokenAmount.toString()).toUInt128LE());
 
     return cell;

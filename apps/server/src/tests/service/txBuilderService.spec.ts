@@ -62,7 +62,7 @@ describe('TxBuilderService', () => {
     const forgedOutput = generateCell(capacity, tokenAmount);
     const changeOutput = generateCell(changeCapacity, changeTokenAmount);
     const inputs = (() => {
-      let cells = [forgedOutput.clone(), changeOutput.clone()];
+      const cells = [forgedOutput.clone(), changeOutput.clone()];
       return cells.map((cell) => {
         cell.outPoint = new OutPoint(TEST_TX_HASH, '0x0');
         return cell;
@@ -103,7 +103,7 @@ describe('TxBuilderService', () => {
           userLock: TEST_USER_LOCK,
         };
 
-        const result = await txBuilderService.buildGenesisLiquidity(ctx, req);
+        await txBuilderService.buildGenesisLiquidity(ctx, req);
       });
     });
   });

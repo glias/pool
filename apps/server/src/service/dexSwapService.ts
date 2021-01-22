@@ -6,9 +6,7 @@ import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
-import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
-import { mockDev } from '../tests/mock_data';
 
 export class DexSwapService {
   private readonly txBuilderService: TxBuilderService;
@@ -27,7 +25,7 @@ export class DexSwapService {
     return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Swap);
   }
 
-  async orders(lock: Script, limit: number, skip: number): Promise<OrderHistory[]> {
+  async orders(lock: Script, _limit: number, _skip: number): Promise<OrderHistory[]> {
     const types = TokenTokenHolderFactory.getInstance().getTypeScripts();
     const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock);

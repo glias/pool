@@ -1,4 +1,3 @@
-import { errorMonitor } from 'koa';
 import { Script, Output, TransactionWithStatus } from '..';
 import { SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';

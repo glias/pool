@@ -44,11 +44,11 @@ export class MockRepository implements DexRepository {
     throw new Error('Method not implemented.');
   }
 
-  mockCollectCells(): sinon.SinonStub<any[], any> | sinon.SinonStub<unknown[], unknown> {
+  mockCollectCells(): sinon.SinonStub<unknown[], unknown> | sinon.SinonStub<unknown[], unknown> {
     return sinon.stub(this, 'collectCells');
   }
 
-  mockCollectTransactions(): sinon.SinonStub<any[], any> | sinon.SinonStub<unknown[], unknown> {
+  mockCollectTransactions(): sinon.SinonStub<unknown[], unknown> | sinon.SinonStub<unknown[], unknown> {
     return sinon.stub(this, 'collectTransactions');
   }
 }

@@ -34,7 +34,7 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     ];
   }
 
-  async getLiquidityPools(filter?: LiquidityPoolFilter): Promise<LiquidityInfo[]> {
+  async getLiquidityPools(_filter?: LiquidityPoolFilter): Promise<LiquidityInfo[]> {
     return [
       {
         poolId: '0x1',
