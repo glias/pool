@@ -1,5 +1,24 @@
-import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
-import { Script, SwapOrderCellInfoSerialization } from '../model';
+import {
+  CKB_STR_TO_HASH,
+  INFO_LOCK_CODE_HASH,
+  POOL_INFO_TYPE_SCRIPT,
+  SWAP_ORDER_LOCK_CODE_HASH,
+  SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+} from '../config';
+import {
+  InfoCellInfoSerialization,
+  PoolCellInfoSerialization,
+  Script,
+  SwapOrderCellInfoSerialization,
+  TokenTokenHolderFactory,
+} from '../model';
+
+const userLockScript = new Script(
+  '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
+  'type',
+  '0x988485609e16d5d5c62be0a4ae12b665fefcb448',
+);
+
 export const mockDev = [
   {
     transaction: {
@@ -119,5 +138,110 @@ export const mockDev = [
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4e',
       status: 'committed',
     },
+  },
+];
+
+export const mockGliaPoolInfo = [
+  {
+    cellOutput: {
+      capacity: `0x${1000n.toString(16)}`,
+      lock: new Script(
+        INFO_LOCK_CODE_HASH,
+        'type',
+        InfoCellInfoSerialization.encodeArgs(
+          CKB_STR_TO_HASH,
+          TokenTokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash,
+        ),
+      ),
+      type: POOL_INFO_TYPE_SCRIPT[0],
+    },
+    outPoint: {
+      txHash: 'txHash',
+      index: '0x0',
+    },
+    blockHash: 'blockHash',
+    blockNumber: `0x${1001n.toString(16)}`,
+    data: InfoCellInfoSerialization.encodeData(
+      1500n,
+      1500n,
+      1500n,
+      '0x0000000000000000000000000000000000000000000000000000000000000011',
+    ),
+  },
+];
+
+export const mockCkEthPoolInfo = [
+  {
+    cellOutput: {
+      capacity: `0x${1000n.toString(16)}`,
+      lock: new Script(
+        INFO_LOCK_CODE_HASH,
+        'type',
+        InfoCellInfoSerialization.encodeArgs(
+          CKB_STR_TO_HASH,
+          TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+        ),
+      ),
+
+      type: POOL_INFO_TYPE_SCRIPT[1],
+    },
+    outPoint: {
+      txHash: 'txHash',
+      index: '0x0',
+    },
+    blockHash: 'blockHash',
+    blockNumber: `0x${1001n.toString(16)}`,
+    data: InfoCellInfoSerialization.encodeData(
+      2000n,
+      2000n,
+      2000n,
+      '0x0000000000000000000000000000000000000000000000000000000000000012',
+    ),
+  },
+];
+const infoTypeScript = new Script(
+  INFO_LOCK_CODE_HASH,
+  'type',
+  InfoCellInfoSerialization.encodeArgs(
+    CKB_STR_TO_HASH,
+    TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+  ),
+);
+export const mockUserLiquidityCells = [
+  {
+    cellOutput: {
+      capacity: `0x${1000n.toString(16)}`,
+      lock: userLockScript,
+      type: new Script(
+        TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+        'type',
+        infoTypeScript.toHash(),
+      ).toLumosScript(),
+    },
+    outPoint: {
+      txHash: 'txHash',
+      index: '0x0',
+    },
+    blockHash: 'blockHash',
+    blockNumber: `0x${1001n.toString(16)}`,
+    data: PoolCellInfoSerialization.encodeData(1000n),
+  },
+  {
+    cellOutput: {
+      capacity: `0x${1000n.toString(16)}`,
+      lock: userLockScript,
+      type: new Script(
+        TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+        'type',
+        infoTypeScript.toHash(),
+      ).toLumosScript(),
+    },
+    outPoint: {
+      txHash: 'txHash',
+      index: '0x1',
+    },
+    blockHash: 'blockHash',
+    blockNumber: `0x${1001n.toString(16)}`,
+    data: PoolCellInfoSerialization.encodeData(1000n),
   },
 ];
