@@ -15,6 +15,6 @@ jobs:
           yarn build:lib
           yarn build:types
       - name: Build UI
-        run: yarn build:ui
+        run: yarn build:server
       - name: Test
         run: yarn test

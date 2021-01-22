@@ -62,7 +62,7 @@ function serializeInputCell(cell: Cell): InputCell {
 
 function deserializeOutputCell(cell: OutputCell): Cell {
   return new Cell(
-    new Amount(cell.capacity.amount.toString(), 0),
+    new Amount(cell.capacity.toString(), 0),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
     undefined,
