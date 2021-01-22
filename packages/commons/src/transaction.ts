@@ -32,6 +32,11 @@ export type SerializedTransaction = {
   witnessArgs: WitnessArgs[];
 };
 
+export type SerializedTransactionWithFee = {
+  transaction: SerializedTransaction;
+  fee: string;
+};
+
 function deserializeScript(script: CKBComponents.Script): Script {
   const hashType = script.hashType === 'type' ? HashType.type : HashType.data;
   return new Script(script.codeHash, script.args, hashType);
