@@ -48,7 +48,7 @@ function serializeScript(script: Script): CKBComponents.Script {
 
 function deserializeInputCell(cell: InputCell): Cell {
   return new Cell(
-    new Amount(cell.capacity.amount.toString()),
+    new Amount(cell.capacity.toString()),
     deserializeScript(cell.lock),
     cell.type && deserializeScript(cell.type),
     cell.txHash && cell.index && new OutPoint(cell.txHash, cell.index),

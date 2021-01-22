@@ -1,4 +1,4 @@
-import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
+import { body, Context, request, summary, tags, description } from 'koa-swagger-decorator';
 import { TokenTokenHolderFactory, Token, Script } from '../model';
 import { TokenCellCollectorService } from '../service';
 // import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
@@ -34,7 +34,7 @@ export default class DexTokenController {
 
     const tokens = TokenTokenHolderFactory.getInstance()
       .getTokens()
-      .filter(token => token.info.name === name)
+      .filter((token) => token.info.name === name)
       .map(toCKBAsset);
 
     ctx.body = body;
@@ -46,7 +46,7 @@ export default class DexTokenController {
 
     let tokens = TokenTokenHolderFactory.getInstance().getTokens();
     if (assets) {
-      tokens = assets.map(asset => {
+      tokens = assets.map((asset) => {
         return TokenTokenHolderFactory.getInstance().getTokenByTypeHash(asset.typeHash);
       });
     }
@@ -55,7 +55,7 @@ export default class DexTokenController {
 
     for (const token of tokens) {
       const primitiveToken: Primitive.Token = {
-        balance: "0",
+        balance: '0',
         typeHash: token.typeHash,
         typeScript: token.typeScript.toPwScript(),
         info: {
@@ -63,31 +63,31 @@ export default class DexTokenController {
           symbol: token.info.symbol,
           decimals: token.info.decimal,
           logo_uri: token.info.logoUri,
-        }
+        },
       };
-      const cells = await this.service.collect(primitiveToken, new Script(lock.codeHash, lock.hashType, lock.args).toPwScript());
+      const cells = await this.service.collect(
+        primitiveToken,
+        new Script(lock.codeHash, lock.hashType, lock.args).toPwScript(),
+      );
 
-      const amount = new pwCore.Amount("0", token.info.decimal);
-      const occupiedCapacity = new pwCore.Amount("0", token.info.decimal);
+      const amount = new pwCore.Amount('0', token.info.decimal);
+      const occupiedCapacity = new pwCore.Amount('0', token.info.decimal);
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
           occupiedCapacity.add(cell.occupiedCapacity());
           amount.add(cell.capacity);
         } else {
-          amount.add(new pwCore.Amount(
-            lumos.utils
-              .readBigUInt128LE(cell.getHexData()).toString())
-          );
+          amount.add(new pwCore.Amount(lumos.utils.readBigUInt128LE(cell.getHexData()).toString()));
         }
       }
 
       const ckbAsset = toCKBAsset(token);
-      
+
       if (token.typeHash === CKB_TYPE_HASH) {
         listAssetBalance.push({
-          typeHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
           balance: amount.toUInt128LE(),
-          locked: "0", // TODO(@zjh): fix it when implementing lp pool.
+          locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedCapacity.toUInt128LE(),
           ...ckbAsset,
         });
@@ -95,25 +95,23 @@ export default class DexTokenController {
         listAssetBalance.push({
           typeHash: token.typeHash,
           balance: amount.toUInt128LE(),
-          locked: "0",
+          locked: '0',
           ...ckbAsset,
         });
       }
-     
     }
 
     ctx.body = listAssetBalance;
   }
 }
 
-
 function toCKBAsset(token: Token): commons.CkbAsset {
   return {
-    chainType: "Nervos",
+    chainType: 'Nervos',
     name: token.info.name,
     decimals: token.info.decimal,
     symbol: token.info.symbol,
     logoURI: token.info.logoUri,
     typeHash: token.typeHash,
-  }
+  };
 }

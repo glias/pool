@@ -46,7 +46,7 @@ export class TxBuilderService {
       .add(txFee);
 
     let inputCapacity = Amount.ZERO;
-    let inputs: Array<Cell> = [];
+    const inputs: Array<Cell> = [];
     const cells = await this.tokenCellCollectorService.collectFreeCkb(req.userLock);
     cells.forEach((cell) => {
       if (inputCapacity.lt(minOutputCapacity)) {
@@ -152,7 +152,7 @@ export class TxBuilderService {
     const tokenAmount = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenBAmount : req.tokenAAmount;
     const ckbAmount = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenAAmount : req.tokenBAmount;
 
-    let outputs: Array<Cell> = [];
+    const outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
       new Amount(ckbAmount.balance),
     );
@@ -216,7 +216,7 @@ export class TxBuilderService {
     const ckbDesiredAmount =
       req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenADesiredAmount : req.tokenBDesiredAmount;
 
-    let outputs: Array<Cell> = [];
+    const outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString()).add(
       new Amount(ckbDesiredAmount.balance),
     );
@@ -276,7 +276,7 @@ export class TxBuilderService {
       ctx.throw('token/token pool isnt support yet', 400);
     }
 
-    let outputs: Array<Cell> = [];
+    const outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(constants.LIQUIDITY_ORDER_CAPACITY.toString());
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
@@ -337,7 +337,7 @@ export class TxBuilderService {
     const tokenAmount = req.tokenInAmount.typeHash == CKB_TYPE_HASH ? req.tokenOutMinAmount : req.tokenInAmount;
     const ckbAmount = req.tokenInAmount.typeHash == CKB_TYPE_HASH ? req.tokenInAmount : req.tokenOutMinAmount;
 
-    let outputs: Array<Cell> = [];
+    const outputs: Array<Cell> = [];
     const minOutputCapacity = new Amount(ckbAmount.balance).add(new Amount(constants.SWAP_ORDER_CAPACITY.toString()));
     const { inputs, forgedOutput, changeOutput } = await this.forgeCellService.forgeToken(
       ctx,
@@ -410,7 +410,7 @@ export class TxBuilderService {
     const orderInput = this.createOrderInput(transaction, idx);
 
     let inputCapacity = Amount.ZERO;
-    let inputs: Array<Cell> = [];
+    const inputs: Array<Cell> = [];
     const cells = await this.tokenCellCollectorService.collectFreeCkb(req.userLock);
     cells.forEach((cell) => {
       if (inputCapacity.lt(txFee)) {

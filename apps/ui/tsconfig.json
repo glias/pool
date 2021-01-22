@@ -3,7 +3,11 @@
   "compilerOptions": {
     "baseUrl": "src",
     "target": "ES2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -16,11 +20,20 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react",
-    "types": ["node", "../../node_modules/@types/jest"],
-    "typeRoots": ["src/react-app-env.d.ts", "node_modules/@types"]
+    "jsx": "react-jsx",
+    "types": [
+      "node",
+      "../../node_modules/@types/jest"
+    ],
+    "typeRoots": [
+      "src/react-app-env.d.ts",
+      "node_modules/@types"
+    ]
   },
-  "include": ["src", "src/**/*.json"],
+  "include": [
+    "src",
+    "src/**/*.json"
+  ],
   "references": [
     {
       "path": "../../packages/commons"

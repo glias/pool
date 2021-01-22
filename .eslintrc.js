@@ -4,6 +4,6 @@ module.exports = {
   plugins: ['prettier'],
   ignorePatterns: ['packages/*/lib', '*.js'],
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': 'error'
   },
 };
