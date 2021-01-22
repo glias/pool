@@ -32,7 +32,7 @@ export default class DexTokenController {
   public async getAssetList(ctx: Context): Promise<void> {
     const name = ctx.request.body.name;
 
-    const tokens = TokenTokenHolderFactory.getInstance()
+    const _tokens = TokenTokenHolderFactory.getInstance()
       .getTokens()
       .filter((token) => token.info.name === name)
       .map(toCKBAsset);

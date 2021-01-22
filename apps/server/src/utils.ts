@@ -1,6 +1,7 @@
 import * as commons from '@gliaswap/commons';
 import { Server, Primitive } from '@gliaswap/types';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function serializeTransactionWithFee(txWithFee: Server.TransactionWithFee) {
   return {
     tx: commons.TransactionHelper.serializeTransaction(txWithFee.tx),
@@ -8,6 +9,7 @@ export function serializeTransactionWithFee(txWithFee: Server.TransactionWithFee
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function serializeToken(token: Primitive.Token) {
   return {
     balance: token.balance,
@@ -17,6 +19,7 @@ export function serializeToken(token: Primitive.Token) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function serializeCreateLiquidityPoolResponse(resp: Server.CreateLiquidityPoolResponse) {
   return {
     tx: commons.TransactionHelper.serializeTransaction(resp.tx),
@@ -25,6 +28,7 @@ export function serializeCreateLiquidityPoolResponse(resp: Server.CreateLiquidit
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function deserializeToken(token: Primitive.Token) {
   return {
     balance: token.balance,
@@ -34,6 +38,7 @@ export function deserializeToken(token: Primitive.Token) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function deserializeScript(script: Primitive.Script) {
   return commons.TransactionHelper.deserializeScript(script);
 }
