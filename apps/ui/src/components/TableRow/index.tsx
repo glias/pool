@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import styled from 'styled-components';
 import { Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
@@ -11,7 +11,7 @@ const Row = styled.div`
     font-weight: bold;
     font-size: 12px;
     line-height: 14px;
-    color: #7E7E7E;
+    color: #7e7e7e;
     align-items: flex-start;
     flex: 1;
     svg {
@@ -29,12 +29,12 @@ const Row = styled.div`
   &:last-child {
     margin-bottom: 0;
   }
-`
+`;
 
 export interface TableRowProps {
-  label: React.ReactNode
-  labelTooltip?: string
-  value: React.ReactNode
+  label: React.ReactNode;
+  labelTooltip?: string;
+  value: React.ReactNode;
 }
 
 export const TableRow = ({ label, labelTooltip, value }: TableRowProps) => {
@@ -46,7 +46,7 @@ export const TableRow = ({ label, labelTooltip, value }: TableRowProps) => {
           <Tooltip title={labelTooltip}>
             <QuestionCircleOutlined />
           </Tooltip>
-        ): null}
+        ) : null}
       </span>
       <span className="value">{value}</span>
     </Row>
