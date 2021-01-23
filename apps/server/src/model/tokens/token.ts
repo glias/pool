@@ -21,20 +21,31 @@ export class Token {
     return BigInt(this.balance);
   }
 
-  serialize(): object {
+  serialize(): Record<string, unknown> {
     return {
-      ...this,
+      typeHash: this.typeHash,
+      typeScript: {
+        ...this.typeScript,
+      },
+      info: {
+        ...this.info,
+      },
+      balance: this.balance,
     };
   }
 
   // FIXME: token info and balance deserialize
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
   static deserialize(value: any): Token {
     if (!value.typeHash) {
       throw new Error('Token: typeHash not found');
     }
 
     if (value.typeScript) {
-      const typeScript = Script.deserialize(value.typeScript);
+      const typeScript = Script.deserialize({
+        ...value.typeScript,
+      });
       return new Token(value.typeHash, typeScript, value.info, value.balance);
     }
 

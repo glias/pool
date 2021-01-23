@@ -26,7 +26,7 @@ export class CreateLiquidityPoolResponse {
     this.lpToken = lpToken;
   }
 
-  serialize(): object {
+  serialize(): Record<string, unknown> {
     return {
       tx: this.tx.serialize(),
       fee: this.fee.toString(),
@@ -80,7 +80,7 @@ export class TransactionWithFee {
     this.fee = fee;
   }
 
-  serialize(): object {
+  serialize(): Record<string, unknown> {
     return {
       tx: this.tx.serialize(),
       fee: this.fee,
@@ -115,7 +115,7 @@ export class TxBuilderService {
   public async buildCreateLiquidityPool(
     ctx: Context,
     req: CreateLiquidityPoolRequest,
-    txFee: bigint = 0n,
+    txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
     if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
       ctx.throw('token/token pool isnt support yet', 400);
@@ -219,7 +219,7 @@ export class TxBuilderService {
   public async buildGenesisLiquidity(
     ctx: Context,
     req: GenesisLiquidityRequest,
-    txFee: bigint = 0n,
+    txFee = 0n,
   ): Promise<TransactionWithFee> {
     if (req.tokenAAmount.typeHash != CKB_TYPE_HASH && req.tokenBAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw('token/token pool isnt support yet', 400);
@@ -260,8 +260,8 @@ export class TxBuilderService {
     const reqData = SudtAmountSerialization.encodeData(token.getBalance());
 
     // Generate outputs and change cells
-    let outputs: Output[] = [reqOutput];
-    let outputsData: string[] = [reqData];
+    const outputs: Output[] = [reqOutput];
+    const outputsData: string[] = [reqData];
 
     if (collectedCells.inputToken > token.getBalance()) {
       // We have free token change cell and free ckb change cell
@@ -317,11 +317,7 @@ export class TxBuilderService {
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
-  public async buildAddLiquidity(
-    ctx: Context,
-    req: AddLiquidityRequest,
-    txFee: bigint = 0n,
-  ): Promise<TransactionWithFee> {
+  public async buildAddLiquidity(ctx: Context, req: AddLiquidityRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenADesiredAmount.typeHash != CKB_TYPE_HASH && req.tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw('token/token pool isnt support yet', 400);
     }
@@ -372,8 +368,8 @@ export class TxBuilderService {
     const reqData = SudtAmountSerialization.encodeData(tokenDesired.getBalance());
 
     // Generate outputs and change cells
-    let outputs: Output[] = [reqOutput];
-    let outputsData: string[] = [reqData];
+    const outputs: Output[] = [reqOutput];
+    const outputsData: string[] = [reqData];
 
     if (collectedCells.inputToken > tokenDesired.getBalance()) {
       // We have free token change cell and free ckb change cell
@@ -432,7 +428,7 @@ export class TxBuilderService {
   public async buildRemoveLiquidity(
     ctx: Context,
     req: RemoveLiquidityRequest,
-    txFee: bigint = 0n,
+    txFee = 0n,
   ): Promise<TransactionWithFee> {
     if (req.tokenAMinAmount.typeHash != CKB_TYPE_HASH && req.tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw('token/token pool isnt support yet', 400);
@@ -473,8 +469,8 @@ export class TxBuilderService {
     const reqData = SudtAmountSerialization.encodeData(req.lpTokenAmount.getBalance());
 
     // Generate outputs and change cells
-    let outputs: Output[] = [reqOutput];
-    let outputsData: string[] = [reqData];
+    const outputs: Output[] = [reqOutput];
+    const outputsData: string[] = [reqData];
 
     if (collectedCells.inputToken > req.lpTokenAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
@@ -532,7 +528,7 @@ export class TxBuilderService {
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
-  public async buildSwap(ctx: Context, req: SwapOrderRequest, txFee: bigint = 0n): Promise<TransactionWithFee> {
+  public async buildSwap(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenInAmount.typeHash != CKB_TYPE_HASH && req.tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw('token/token pool isnt support yet', 400);
     }
@@ -554,7 +550,7 @@ export class TxBuilderService {
   }
 
   // Token => CKB
-  private async buildSwapCkb(ctx: Context, req: SwapOrderRequest, txFee: bigint = 0n): Promise<TransactionWithFee> {
+  private async buildSwapCkb(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, req.tokenInAmount.typeScript);
@@ -587,8 +583,8 @@ export class TxBuilderService {
     const reqData = SudtAmountSerialization.encodeData(req.tokenInAmount.getBalance());
 
     // Generate outputs and change cells
-    let outputs: Output[] = [reqOutput];
-    let outputsData: string[] = [reqData];
+    const outputs: Output[] = [reqOutput];
+    const outputsData: string[] = [reqData];
 
     if (collectedCells.inputToken > req.tokenInAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
@@ -647,7 +643,7 @@ export class TxBuilderService {
   }
 
   // CKB => Token
-  private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee: bigint = 0n): Promise<TransactionWithFee> {
+  private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = req.tokenInAmount.getBalance() + constants.SWAP_ORDER_CAPACITY + minCKBChangeCapacity + txFee;
@@ -675,10 +671,10 @@ export class TxBuilderService {
     const reqData = '0x';
 
     // Generate outputs and change cells
-    let outputs: Output[] = [reqOutput];
-    let outputsData: string[] = [reqData];
+    const outputs: Output[] = [reqOutput];
+    const outputsData: string[] = [reqData];
 
-    let ckbChangeCapacity =
+    const ckbChangeCapacity =
       collectedCells.inputCapacity - constants.SWAP_ORDER_CAPACITY - req.tokenInAmount.getBalance();
     let ckbChangeOutput = {
       capacity: ckbChangeCapacity.toString(),
@@ -769,18 +765,25 @@ export class TxBuilderService {
     }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
-    let outputs: Output[] = [];
-    let outputsData: string[] = [];
+    const outputs: Output[] = [];
+    const outputsData: string[] = [];
 
-    let inputCapacity = Amount.ZERO;
-    const inputs: Array<Cell> = [];
-    const cells = await this.tokenCellCollectorService.collectFreeCkb(req.userLock);
-    cells.forEach((cell) => {
-      if (inputCapacity.lt(txFee)) {
-        inputs.push(cell);
-        inputCapacity = inputCapacity.add(cell.capacity);
-      }
-    });
+    const tokenChangeOutput = {
+      capacity: minTokenChangeCapacity.toString(),
+      lock: userLock,
+      type: requestCell.cellOutput.type,
+    };
+    const tokenChangeData = requestCell.data;
+    outputs.push(tokenChangeOutput);
+    outputsData.push(tokenChangeData);
+
+    const ckbChangeCapacity = inputCapacity - minTokenChangeCapacity;
+    let ckbChangeOutput = {
+      capacity: ckbChangeCapacity.toString(),
+      lock: userLock,
+    };
+    outputs.push(ckbChangeOutput);
+    outputsData.push('0x');
 
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
@@ -836,8 +839,8 @@ export class TxBuilderService {
     }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
-    let outputs: Output[] = [];
-    let outputsData: string[] = [];
+    const outputs: Output[] = [];
+    const outputsData: string[] = [];
 
     if (swapArgs.orderType == 1) {
       const tokenChangeOutput = {
@@ -850,7 +853,7 @@ export class TxBuilderService {
       outputsData.push(tokenChangeData);
     }
 
-    let ckbChangeCapacity = swapArgs.orderType == 1 ? inputCapacity - minTokenChangeCapacity : inputCapacity;
+    const ckbChangeCapacity = swapArgs.orderType == 1 ? inputCapacity - minTokenChangeCapacity : inputCapacity;
     let ckbChangeOutput = {
       capacity: ckbChangeCapacity.toString(),
       lock: userLock,
@@ -862,7 +865,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
 
-    let cellDeps = [config.SWAP_ORDER_LOCK_DEP];
+    const cellDeps = [config.SWAP_ORDER_LOCK_DEP];
     if (swapArgs.orderType == 1) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
@@ -922,7 +925,7 @@ class TxBuilderCellCollector implements CellCollector {
       };
 
       const cells = await this.ckbRepository.collectCells(queryOptions);
-      for (let cell of cells) {
+      for (const cell of cells) {
         if (inputTokenAmount >= token.getBalance()) {
           break;
         }
@@ -944,7 +947,7 @@ class TxBuilderCellCollector implements CellCollector {
     const cells = await this.ckbRepository.collectCells(queryOptions);
     // Filter non-free ckb cells
     const freeCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
-    for (let cell of freeCells) {
+    for (const cell of freeCells) {
       if (inputCapacity >= neededCapacity) {
         break;
       }

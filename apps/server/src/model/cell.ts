@@ -53,7 +53,7 @@ export class Script {
     return lumos.core.SerializeScript(ckbToolkit.normalizers.NormalizeScript(this.toLumosScript())).byteLength;
   }
 
-  static deserialize(value: object): Script {
+  static deserialize(value: any): Script {
     // TransformScript already verify script for us
     const script = <any>ckbToolkit.transformers.TransformScript(value, { validation: true });
     return new Script(script.code_hash, script.hash_type, script.args);
@@ -101,7 +101,7 @@ class CellConver {
     return new Script(lumosScript.code_hash, lumosScript.hash_type, lumosScript.args);
   }
 
-  converToInput(cell: Cell, since: string = '0x0'): Input {
+  converToInput(cell: Cell, since = '0x0'): Input {
     return {
       previousOutput: cell.outPoint,
       since,

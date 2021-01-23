@@ -75,7 +75,7 @@ export class TransactionToSign {
     return fee * constants.CKB_DECIMAL;
   }
 
-  serialize(): object {
+  serialize(): Record<string, unknown> {
     const inputCells = this.inputCells.map(this.serializeInputCell);
     const outputs = this.raw.outputs.map((output, idx) => {
       return {
@@ -95,7 +95,7 @@ export class TransactionToSign {
     };
   }
 
-  private serializeInputCell(cell: Cell): object {
+  private serializeInputCell(cell: Cell): Record<string, unknown> {
     return {
       ...cell.cellOutput,
       ...cell.outPoint,
