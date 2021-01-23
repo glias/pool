@@ -10,7 +10,7 @@ export const Block = styled.section`
   min-width: 360px;
   max-width: 500px;
   width: 500px;
-  transition: height .8s linear;
+  transition: height 0.8s linear;
   &:first-child {
     margin-top: 16px;
   }

@@ -1,15 +1,15 @@
-import React from 'react'
-import { Button } from 'antd'
-import { ButtonContainer } from './styled'
+import React from 'react';
+import { Button } from 'antd';
+import { ButtonContainer } from './styled';
 
 export interface ConfirmButtonProps {
-  bgColor?: string
-  text: string
-  disabled?: boolean
+  bgColor?: string;
+  text: string;
+  disabled?: boolean;
   // eslint-disable-next-line
   onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
-  loading?: boolean
-  htmlType?: 'button' | 'submit' | 'reset'
+  loading?: boolean;
+  htmlType?: 'button' | 'submit' | 'reset';
 }
 
 export function ConfirmButton({
@@ -26,5 +26,5 @@ export function ConfirmButton({
         {text}
       </Button>
     </ButtonContainer>
-  )
+  );
 }

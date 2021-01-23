@@ -2,13 +2,22 @@
   "extends": "../../tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
+    "composite": false,
+    "emitDeclarationOnly": false,
     "experimentalDecorators": true,
     "rootDir": "src",
-    "outDir": "lib"
+    "outDir": "lib",
+    "declarationDir": "output-types"
   },
   "references": [
     {
+      "path": "../../packages/types"
+    },
+    {
       "path": "../../packages/constants"
+    },
+    {
+      "path": "../../packages/commons"
     }
   ]
 }

@@ -9,4 +9,4 @@ export const ViewContainer = styled.main`
   align-items: center;
   flex: 1;
   font-size: 14px;
-`
+`;

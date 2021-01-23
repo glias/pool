@@ -1,0 +1,7 @@
+.wallet-overlay .ant-popover-arrow {
+  visibility: hidden;
+}
+
+.wallet-overlay .ant-popover-inner-content {
+  padding: 0;
+}

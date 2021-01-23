@@ -1,4 +1,4 @@
-import { GliaswapProvider } from 'hooks/use-gliaswap';
+import { GliaswapProvider } from 'contexts';
 import React from 'react';
 import Routers from 'routes';
 import './App.less';

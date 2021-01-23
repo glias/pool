@@ -1,8 +1,8 @@
-import React, { Suspense } from 'react'
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
-import { AppHeader } from 'components/Header'
-import Pool from 'views/Pool'
-import Swap from 'views/Swap'
+import React, { Suspense } from 'react';
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { AppHeader } from 'components/Header';
+import Pool from 'views/Pool';
+import Swap from 'views/Swap';
 
 export enum RoutePath {
   Launch = '/',
@@ -23,7 +23,7 @@ const Containers = [
     exact: true,
     component: Pool,
   },
-]
+];
 
 const Routers = () => {
   return (
@@ -31,14 +31,14 @@ const Routers = () => {
       <Suspense fallback={<div />}>
         <AppHeader />
         <Switch>
-          {Containers.map(container => {
-            return <Route {...container} key={container.name} path={container.path} />
+          {Containers.map((container) => {
+            return <Route {...container} key={container.name} path={container.path} />;
           })}
-          <Redirect from={RoutePath.Launch} to={RoutePath.Swap} />
+          <Redirect from={RoutePath.Launch} exact to={RoutePath.Swap} />
         </Switch>
       </Suspense>
     </BrowserRouter>
-  )
-}
+  );
+};
 
-export default Routers
+export default Routers;

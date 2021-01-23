@@ -1,12 +1,15 @@
 import { QuestionOutlined } from '@ant-design/icons';
 import Icon from '@ant-design/icons/es/components/Icon';
-import { Button } from 'antd';
-import { useAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { Button, Popover } from 'antd';
+import { ButtonProps } from 'antd/lib/button';
+import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { AssetManager } from 'components/AssetManager';
 import i18n from 'i18n';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { providers } from 'web3modal';
+import './index.css';
 
 const ConnectButtonWrapper = styled.span`
   .logo {
@@ -18,7 +21,7 @@ const ConnectButtonWrapper = styled.span`
 
 export const WalletConnectButton: React.FC = (props) => {
   const { ...buttonProps } = props;
-  const adapter = useAdapter<Web3ModalAdapter>();
+  const adapter = useWalletAdapter<Web3ModalAdapter>();
 
   const connectStatus = adapter.status;
 
@@ -35,7 +38,7 @@ export const WalletConnectButton: React.FC = (props) => {
     return i18n.t('Connecting');
   }, [connectStatus, adapter]);
 
-  const onClick = useCallback(async () => {
+  const onClick: ButtonProps['onClick'] = useCallback(async () => {
     if (connectStatus !== 'disconnected') return;
     adapter.connect();
   }, [connectStatus, adapter]);
@@ -58,15 +61,17 @@ export const WalletConnectButton: React.FC = (props) => {
 
   return (
     <ConnectButtonWrapper>
-      <Button
-        {...buttonProps}
-        onClick={onClick}
-        loading={connecting}
-        disabled={connecting}
-        icon={logo && <Icon component={logo} />}
-      >
-        {buttonText}
-      </Button>
+      <Popover overlayClassName="wallet-overlay" placement="bottomLeft" trigger="click" content={<AssetManager />}>
+        <Button
+          {...buttonProps}
+          onClick={onClick}
+          loading={connecting}
+          disabled={connecting}
+          icon={logo && <Icon component={logo} />}
+        >
+          {buttonText}
+        </Button>
+      </Popover>
     </ConnectButtonWrapper>
   );
 };

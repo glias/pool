@@ -19,5 +19,5 @@
       "@gliaswap/*": ["./*/src"]
     }
   },
-  "references": [{ "path": "packages/constants" }, { "path": "packages/types" }]
+  "references": [{ "path": "packages/constants" }, { "path": "packages/types" }, { "path": "packages/commons" }]
 }

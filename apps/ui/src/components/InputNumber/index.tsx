@@ -6,7 +6,7 @@ import { FormItemProps } from 'antd/lib/form';
 import { InputProps } from 'antd/lib/input';
 import { AssetSelector } from 'components/AssetSelector';
 import { Asset } from 'commons/MultiAsset';
-import { AssetListProps } from 'components/AssetSelector/AssetList'
+import { AssetListProps } from 'components/AssetSelector/AssetList';
 import { TokenSelectorProps } from 'components/AssetSelector/AssetSelector';
 
 const ItemContainer = styled(Form.Item)`
@@ -66,21 +66,21 @@ const ItemContainer = styled(Form.Item)`
     }
   }
   .ant-form-item-control-input {
+    border: none;
+    outline: none;
+    outline-color: transparent;
+    font-size: 18px;
+    line-height: 22px;
+    padding: 1px;
+    &:focus {
       border: none;
       outline: none;
       outline-color: transparent;
-      font-size: 18px;
-      line-height: 22px;
-      padding: 1px;
-      &:focus {
-        border: none;
-        outline: none;
-        outline-color: transparent;
-        box-shadow: none;
-      }
+      box-shadow: none;
     }
-  background: #FFFFFF;
-  border: 1px solid #E1E1E1;
+  }
+  background: #ffffff;
+  border: 1px solid #e1e1e1;
   border-radius: 16px;
   padding: 16px;
   .right {
@@ -88,10 +88,10 @@ const ItemContainer = styled(Form.Item)`
       font-size: 12px;
       line-height: 14px;
       text-align: right;
-      color: #7E7E7E;
+      color: #7e7e7e;
     }
   }
-`
+`;
 
 const MaxContainer = styled.div`
   position: absolute;
@@ -100,7 +100,7 @@ const MaxContainer = styled.div`
   button {
     font-size: 12px;
     line-height: 14px;
-    color: #7E7E7E;
+    color: #7e7e7e;
     border: none;
     background-color: white;
     cursor: pointer;
@@ -111,23 +111,31 @@ const MaxContainer = styled.div`
       box-shadow: none;
     }
   }
-`
+`;
 
 export interface InputItemProps {
-  max?: string
-  setMaxPay?: (max: string) => void
-  label: string
-  name: string
-  asserts: Asset[]
-  renderKeys: AssetListProps['renderKey']
-  formItemProps?: Omit<FormItemProps, 'name'>
-  inputProps?: Omit<InputProps, 'bordered' | 'type' | 'placeholder' | 'suffix'>
-  selectorProps?: Omit<TokenSelectorProps, 'assets' | 'renderKey'>
+  max?: string;
+  setMaxPay?: (max: string) => void;
+  label: string;
+  name: string;
+  asserts: Asset[];
+  renderKeys: AssetListProps['renderKey'];
+  formItemProps?: Omit<FormItemProps, 'name'>;
+  inputProps?: Omit<InputProps, 'bordered' | 'type' | 'placeholder' | 'suffix'>;
+  selectorProps?: Omit<TokenSelectorProps, 'assets' | 'renderKey'>;
 }
 
-export const InputNumber = (
-  { max, setMaxPay, label, name, formItemProps, inputProps, asserts, renderKeys, selectorProps }: InputItemProps
-) => {
+export const InputNumber = ({
+  max,
+  setMaxPay,
+  label,
+  name,
+  formItemProps,
+  inputProps,
+  asserts,
+  renderKeys,
+  selectorProps,
+}: InputItemProps) => {
   return (
     <ItemContainer label={label}>
       {max ? (
@@ -136,7 +144,7 @@ export const InputNumber = (
             {`${i18n.t('common.max')}: ${max}`}
           </button>
         </MaxContainer>
-      ): null}
+      ) : null}
       <Form.Item name={name} noStyle {...formItemProps}>
         <Input
           bordered={false}
@@ -147,5 +155,5 @@ export const InputNumber = (
         />
       </Form.Item>
     </ItemContainer>
-  )
-}
+  );
+};
