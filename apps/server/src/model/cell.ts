@@ -107,6 +107,10 @@ class CellConver {
       since,
     };
   }
+
+  converToPWScript(script: Script): pw.Script {
+    return new pw.Script(script.codeHash, script.args, script.hashType == 'type' ? pw.HashType.type : pw.HashType.data);
+  }
 }
 
 export const cellConver = new CellConver();
