@@ -140,7 +140,7 @@ export class DexLiquidityPoolService {
         .sudtReserve.toString();
 
       // Prevent modification to the same tokenA
-      const tokenA = { ...TokenTokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH) };
+      const tokenA = TokenTokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
       tokenA.balance = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
         .decodeData(poolCell[0].data)
