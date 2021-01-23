@@ -14,5 +14,5 @@ jobs:
         run: |
           yarn build:lib
           yarn build:types
-      - name: Build UI
+      - name: Build Server
         run: yarn build:server
