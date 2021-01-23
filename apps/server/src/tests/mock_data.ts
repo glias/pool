@@ -5,13 +5,7 @@ import {
   SWAP_ORDER_LOCK_CODE_HASH,
   SWAP_ORDER_LOCK_CODE_TYPE_HASH,
 } from '../config';
-import {
-  InfoCellInfoSerialization,
-  PoolCellInfoSerialization,
-  Script,
-  SwapOrderCellInfoSerialization,
-  TokenTokenHolderFactory,
-} from '../model';
+import { CellInfoSerializationHolderFactory, Script, TokenTokenHolderFactory } from '../model';
 
 const userLockScript = new Script(
   '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
@@ -70,13 +64,9 @@ export const mockDev = [
         {
           capacity: '0x15bfab7c80',
           lock: {
-            args: SwapOrderCellInfoSerialization.encodeArgs(
-              '0x9eb946551d1eed6aad1b186af975af8ddb2d5043a30d28b6228e6b66d4f3521a',
-              1,
-              1000n,
-              1000n,
-              1,
-            ),
+            args: CellInfoSerializationHolderFactory.getInstance()
+              .getSwapCellSerialization()
+              .encodeArgs('0x9eb946551d1eed6aad1b186af975af8ddb2d5043a30d28b6228e6b66d4f3521a', 1, 1000n, 1000n, 1),
             codeHash: SWAP_ORDER_LOCK_CODE_HASH,
             hashType: SWAP_ORDER_LOCK_CODE_TYPE_HASH,
           },
@@ -91,7 +81,7 @@ export const mockDev = [
         '0x5843aff4a55a90060000000000000000',
         '0x',
         // '0x0040d20853d74600000000000000000001c164f175c714d80000000000000000003930000000000000f600',
-        SwapOrderCellInfoSerialization.encodeData(0n),
+        CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().encodeData(0n),
       ],
       version: '0x0',
       witnesses: [],
@@ -130,7 +120,7 @@ export const mockDev = [
           ),
         },
       ],
-      outputsData: [SwapOrderCellInfoSerialization.encodeData(100n)],
+      outputsData: [CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().encodeData(100n)],
       version: '0x0',
       witnesses: [],
     },
@@ -148,10 +138,9 @@ export const mockGliaPoolInfo = [
       lock: new Script(
         INFO_LOCK_CODE_HASH,
         'type',
-        InfoCellInfoSerialization.encodeArgs(
-          CKB_STR_TO_HASH,
-          TokenTokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash,
-        ),
+        CellInfoSerializationHolderFactory.getInstance()
+          .getInfoCellSerialization()
+          .encodeArgs(CKB_STR_TO_HASH, TokenTokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash),
       ),
       type: POOL_INFO_TYPE_SCRIPT[0],
     },
@@ -161,12 +150,9 @@ export const mockGliaPoolInfo = [
     },
     blockHash: 'blockHash',
     blockNumber: `0x${1001n.toString(16)}`,
-    data: InfoCellInfoSerialization.encodeData(
-      1500n,
-      1500n,
-      1500n,
-      '0x0000000000000000000000000000000000000000000000000000000000000011',
-    ),
+    data: CellInfoSerializationHolderFactory.getInstance()
+      .getInfoCellSerialization()
+      .encodeData(1500n, 1500n, 1500n, '0x0000000000000000000000000000000000000000000000000000000000000011'),
   },
 ];
 
@@ -177,10 +163,9 @@ export const mockCkEthPoolInfo = [
       lock: new Script(
         INFO_LOCK_CODE_HASH,
         'type',
-        InfoCellInfoSerialization.encodeArgs(
-          CKB_STR_TO_HASH,
-          TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-        ),
+        CellInfoSerializationHolderFactory.getInstance()
+          .getInfoCellSerialization()
+          .encodeArgs(CKB_STR_TO_HASH, TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
       ),
 
       type: POOL_INFO_TYPE_SCRIPT[1],
@@ -191,21 +176,17 @@ export const mockCkEthPoolInfo = [
     },
     blockHash: 'blockHash',
     blockNumber: `0x${1001n.toString(16)}`,
-    data: InfoCellInfoSerialization.encodeData(
-      2000n,
-      2000n,
-      2000n,
-      '0x0000000000000000000000000000000000000000000000000000000000000012',
-    ),
+    data: CellInfoSerializationHolderFactory.getInstance()
+      .getInfoCellSerialization()
+      .encodeData(2000n, 2000n, 2000n, '0x0000000000000000000000000000000000000000000000000000000000000012'),
   },
 ];
 const infoTypeScript = new Script(
   INFO_LOCK_CODE_HASH,
   'type',
-  InfoCellInfoSerialization.encodeArgs(
-    CKB_STR_TO_HASH,
-    TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-  ),
+  CellInfoSerializationHolderFactory.getInstance()
+    .getInfoCellSerialization()
+    .encodeArgs(CKB_STR_TO_HASH, TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
 );
 export const mockUserLiquidityCells = [
   {
@@ -224,7 +205,7 @@ export const mockUserLiquidityCells = [
     },
     blockHash: 'blockHash',
     blockNumber: `0x${1001n.toString(16)}`,
-    data: PoolCellInfoSerialization.encodeData(1000n),
+    data: CellInfoSerializationHolderFactory.getInstance().getPoolCellSerialization().encodeData(1000n),
   },
   {
     cellOutput: {
@@ -242,6 +223,6 @@ export const mockUserLiquidityCells = [
     },
     blockHash: 'blockHash',
     blockNumber: `0x${1001n.toString(16)}`,
-    data: PoolCellInfoSerialization.encodeData(1000n),
+    data: CellInfoSerializationHolderFactory.getInstance().getPoolCellSerialization().encodeData(1000n),
   },
 ];

@@ -1,5 +1,5 @@
-import { InfoCellInfoSerialization } from '../../../model';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
+import { CellInfoSerializationHolderFactory } from '../../../model';
 
 test('serialized encoding and decoding args', () => {
   const typeHash1: CKBComponents.Script = {
@@ -10,12 +10,11 @@ test('serialized encoding and decoding args', () => {
 
   const typeHash2 = typeHash1;
 
-  const argsHex = InfoCellInfoSerialization.encodeArgs(
-    ckbUtils.scriptToHash(typeHash1),
-    ckbUtils.scriptToHash(typeHash2),
-  );
+  const argsHex = CellInfoSerializationHolderFactory.getInstance()
+    .getInfoCellSerialization()
+    .encodeArgs(ckbUtils.scriptToHash(typeHash1), ckbUtils.scriptToHash(typeHash2));
 
-  expect(InfoCellInfoSerialization.decodeArgs(argsHex)).toEqual({
+  expect(CellInfoSerializationHolderFactory.getInstance().getInfoCellSerialization().decodeArgs(argsHex)).toEqual({
     hash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 42)}`,
     infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 42)}`,
   });
@@ -34,14 +33,11 @@ test('serialized encoding and decoding data', () => {
     totalLiquidity: 2000n,
   };
 
-  const dataHex = InfoCellInfoSerialization.encodeData(
-    data.ckbReserve,
-    data.sudtReserve,
-    data.totalLiquidity,
-    ckbUtils.scriptToHash(typeHash),
-  );
+  const dataHex = CellInfoSerializationHolderFactory.getInstance()
+    .getInfoCellSerialization()
+    .encodeData(data.ckbReserve, data.sudtReserve, data.totalLiquidity, ckbUtils.scriptToHash(typeHash));
 
-  expect(InfoCellInfoSerialization.decodeData(dataHex)).toEqual({
+  expect(CellInfoSerializationHolderFactory.getInstance().getInfoCellSerialization().decodeData(dataHex)).toEqual({
     ...data,
     liquiditySudtTypeHash20: ckbUtils.scriptToHash(typeHash).slice(0, 42),
   });

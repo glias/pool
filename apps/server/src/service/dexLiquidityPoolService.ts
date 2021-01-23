@@ -1,12 +1,6 @@
 import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
-import {
-  InfoCellInfoSerialization,
-  PoolCellInfoSerialization,
-  PoolInfo,
-  Script,
-  TokenTokenHolderFactory,
-} from '../model';
+import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenTokenHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
 import { TxBuilderService, CancelOrderType } from '.';
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
@@ -44,7 +38,9 @@ export class DexLiquidityPoolService {
       const script = new Script(
         INFO_LOCK_CODE_HASH,
         'type',
-        InfoCellInfoSerialization.encodeArgs(CKB_STR_TO_HASH, poolInfo.tokenB.typeHash),
+        CellInfoSerializationHolderFactory.getInstance()
+          .getInfoCellSerialization()
+          .encodeArgs(CKB_STR_TO_HASH, poolInfo.tokenB.typeHash),
       );
 
       const queryOptions = {
@@ -65,10 +61,9 @@ export class DexLiquidityPoolService {
             new Script(
               INFO_LOCK_CODE_HASH,
               'type',
-              InfoCellInfoSerialization.encodeArgs(
-                CKB_STR_TO_HASH,
-                TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-              ),
+              CellInfoSerializationHolderFactory.getInstance()
+                .getInfoCellSerialization()
+                .encodeArgs(CKB_STR_TO_HASH, TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
             ).toHash(),
           ).toLumosScript(),
         })
@@ -85,7 +80,11 @@ export class DexLiquidityPoolService {
         .toString();
 
       poolInfo.tokenB.balance = userLiquidityCells
-        .reduce((total, cell) => total + PoolCellInfoSerialization.decodeData(cell.data), BigInt(0))
+        .reduce(
+          (total, cell) =>
+            total + CellInfoSerializationHolderFactory.getInstance().getPoolCellSerialization().decodeData(cell.data),
+          BigInt(0),
+        )
         .toString();
 
       userLiquiditys.push(poolInfo);
@@ -132,13 +131,21 @@ export class DexLiquidityPoolService {
         continue;
       }
 
-      const infoTypeHash = InfoCellInfoSerialization.decodeArgs(poolCell[0].cellOutput.lock.args).infoTypeHash;
+      const infoTypeHash = CellInfoSerializationHolderFactory.getInstance()
+        .getInfoCellSerialization()
+        .decodeArgs(poolCell[0].cellOutput.lock.args).infoTypeHash;
       const tokenB = tokens.find((x) => x.typeHash.slice(0, 42) === infoTypeHash);
-      tokenB.balance = InfoCellInfoSerialization.decodeData(poolCell[0].data).sudtReserve.toString();
+      tokenB.balance = CellInfoSerializationHolderFactory.getInstance()
+        .getInfoCellSerialization()
+        .decodeData(poolCell[0].data)
+        .sudtReserve.toString();
 
       // Prevent modification to the same tokenA
       const tokenA = { ...TokenTokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH) };
-      tokenA.balance = InfoCellInfoSerialization.decodeData(poolCell[0].data).ckbReserve.toString();
+      tokenA.balance = CellInfoSerializationHolderFactory.getInstance()
+        .getInfoCellSerialization()
+        .decodeData(poolCell[0].data)
+        .ckbReserve.toString();
 
       poolInfos.push({
         poolId: tokenB.typeScript.toHash(),
