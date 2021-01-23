@@ -66,10 +66,7 @@ export class TokenHolder {
   constructor(private toknes: Token[]) {}
 
   getTokens(): Token[] {
-    return this.toknes.map((x) => {
-      const token = { ...x };
-      return token;
-    });
+    return this.toknes;
   }
 
   getTokenByTypeHash(typeHash: string): Token {
@@ -77,7 +74,8 @@ export class TokenHolder {
     if (!token) {
       return null;
     }
-    return { ...token };
+
+    return token;
   }
 
   getTokenBySymbol(symbol: string): Token {
@@ -85,7 +83,8 @@ export class TokenHolder {
     if (!token) {
       return null;
     }
-    return { ...token };
+
+    return token;
   }
 
   getTypeScripts(): Script[] {
