@@ -1,23 +1,12 @@
 import { createFixedStruct, U128LE } from 'easy-byte';
+import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 
-export interface InfoCellArgs {
-  hash: string;
-  infoTypeHash: string;
-}
-
-export interface InfoCellData {
-  ckbReserve: bigint;
-  sudtReserve: bigint;
-  totalLiquidity: bigint;
-  liquiditySudtTypeHash20: string;
-}
-
-export class InfoCellInfoSerialization {
-  static encodeArgs(hash: string, infoTypeHash: string): string {
+export class DefaultInfoCellSerialization implements InfoCellSerialization {
+  encodeArgs(hash: string, infoTypeHash: string): string {
     return `${hash.slice(0, 42)}${infoTypeHash.slice(2, 42)}`;
   }
 
-  static decodeArgs(argsHex: string): InfoCellArgs {
+  decodeArgs(argsHex: string): InfoCellArgs {
     const infoCellData: InfoCellArgs = {
       hash: argsHex.slice(0, 42),
       infoTypeHash: `0x${argsHex.slice(42, argsHex.length)}`,
@@ -25,13 +14,8 @@ export class InfoCellInfoSerialization {
     return infoCellData;
   }
 
-  static encodeData(
-    ckbReserve: bigint,
-    sudtReserve: bigint,
-    totalLiquidity: bigint,
-    liquiditySudtTypeHash20: string,
-  ): string {
-    const data = InfoCellInfoSerialization.getStructDefine();
+  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash20: string): string {
+    const data = this.getStructDefine();
     return `0x${data
       .encode({
         ckbReserve,
@@ -41,8 +25,8 @@ export class InfoCellInfoSerialization {
       .toString('hex')}${liquiditySudtTypeHash20.slice(2, 42)}`;
   }
 
-  static decodeData(dataHex: string): InfoCellData {
-    const data = InfoCellInfoSerialization.getStructDefine();
+  decodeData(dataHex: string): InfoCellData {
+    const data = this.getStructDefine();
     const structObj = data.decode(Buffer.from(dataHex.slice(2, 98), 'hex'));
 
     const infoCellData: InfoCellData = {
@@ -53,7 +37,7 @@ export class InfoCellInfoSerialization {
     return infoCellData;
   }
 
-  private static getStructDefine() {
+  private getStructDefine() {
     return createFixedStruct().field('ckbReserve', U128LE).field('sudtReserve', U128LE).field('totalLiquidity', U128LE);
   }
 }

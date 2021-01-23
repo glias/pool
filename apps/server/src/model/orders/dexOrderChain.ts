@@ -1,7 +1,6 @@
-import { Script, Output, TransactionWithStatus } from '..';
+import { Script, Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
 import { SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
-import { SwapOrderCellArgs, SwapOrderCellInfoSerialization } from '../data';
 import { Token, TokenTokenHolderFactory } from '../tokens';
 
 const LIQUIDITY_ORDER_CELL_ARGS_LENGHT = 172;
@@ -121,12 +120,14 @@ export class DexOrderChain {
 
   getArgsData(): SwapOrderCellArgs {
     if (PLACE_ORDER_TYPE.SWAP === this.getPlaceOrderType()) {
-      return SwapOrderCellInfoSerialization.decodeArgs(this.cell.lock.args);
+      return CellInfoSerializationHolderFactory.getInstance()
+        .getSwapCellSerialization()
+        .decodeArgs(this.cell.lock.args);
     }
   }
 
   getData(): bigint {
-    return SwapOrderCellInfoSerialization.decodeData(this.data);
+    return CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(this.data);
   }
 
   getType(): string {
