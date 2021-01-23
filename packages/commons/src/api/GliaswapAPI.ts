@@ -1,4 +1,7 @@
+import { Transaction } from '@lay2/pw-core';
+import { TransactionConfig } from 'web3-core';
 import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, Script } from '../';
+import { SwapOrder } from '../swap';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
@@ -41,6 +44,27 @@ export interface GliaswapAPI {
   getAddLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
   getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
+
+  getSwapOrders: (lock: Script) => Promise<SwapOrder[]>;
+
+  cancelSwapOrders: (txHash: string, lock: Script) => Promise<Transaction>;
+
+  swapNormalOrder: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<Transaction>;
+
+  swapCrossChainOrder: (
+    tokenA: GliaswapAssetWithBalance,
+    tokenB: GliaswapAssetWithBalance,
+  ) => Promise<TransactionConfig>;
+
+  /**
+   * eg. ETH -> ckETH
+   */
+  swapCrossIn: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<TransactionConfig>;
+
+  /**
+   * eg. ckETH -> ETH
+   */
+  swapCrossOut: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<Transaction>;
 
   // TODO generate transaction and the other data API
 }

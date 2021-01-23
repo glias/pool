@@ -6,3 +6,4 @@ export * as utils from './utils';
 export * from './transaction';
 export * from './types';
 export * as price from './price';
+export * from './swap';

@@ -1,12 +1,21 @@
 {
   "translation": {
     "swap": {
-      "order-list": {
-        "title": "My Pending Requests",
+      "order-table": {
         "you-pay": "You Pay",
         "you-receive": "You Receive",
         "swap": "Swap"
+      },
+      "order-list": {
+        "title": "My Pending Requests",
+        "time": "Time",
+        "route": "Route",
+        "pay": "Pay",
+        "receive": "Receive"
       }
+    },
+    "actions": {
+      "cancel": "Cancel"
     },
     "common": {
       "max": "Max"

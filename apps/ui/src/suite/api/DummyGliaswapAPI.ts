@@ -1,4 +1,13 @@
-import { Asset, GliaswapAPI, LiquidityInfo, LiquidityOrderSummary, LiquidityPoolFilter } from '@gliaswap/commons';
+import {
+  Asset,
+  GliaswapAPI,
+  LiquidityInfo,
+  LiquidityOrderSummary,
+  LiquidityPoolFilter,
+  SwapOrder,
+} from '@gliaswap/commons';
+import { Transaction } from '@lay2/pw-core';
+import { TransactionConfig } from 'web3-core';
 
 import {
   ckbNativeAsset,
@@ -10,6 +19,8 @@ import {
   ethNativeAsset,
   ethNativeWithBalance,
 } from '../placeholder/assets';
+
+import { swapIrders } from 'mock/order-list';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
   getDefaultAssetList() {
@@ -90,5 +101,29 @@ export class DummyGliaswapAPI implements GliaswapAPI {
         status: 'pending',
       },
     ]);
+  }
+
+  getSwapOrders(): Promise<SwapOrder[]> {
+    return Promise.resolve(swapIrders);
+  }
+
+  swapCrossChainOrder(): Promise<TransactionConfig> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapCrossIn(): Promise<TransactionConfig> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapCrossOut(): Promise<Transaction> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  cancelSwapOrders(): Promise<Transaction> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapNormalOrder(): Promise<Transaction> {
+    return Promise.resolve(Object.create(null));
   }
 }

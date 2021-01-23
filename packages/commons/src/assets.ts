@@ -20,6 +20,12 @@ export type LockedBalance = { locked: BalanceValue };
 // the balance occupied(CKB only)
 export type OccupiedBalance = { occupied: BalanceValue };
 
+export type Shadow = { shadowFrom: EthAsset };
+
+export type ShadowAsset = CkbAsset & Shadow;
+
+export type ShadowAssetWithBalance = ShadowAsset & CkbSudtAssetWithBalance;
+
 // the asset with the balance
 export interface AssetWithBalance extends Balanced, Asset {}
 
@@ -41,6 +47,7 @@ export type EthErc20AssetWithBalance = EthErc20Asset & Balanced;
 export type GliaswapAssetWithBalance =
   | CkbNativeAssetWithBalance
   | CkbSudtAssetWithBalance
+  | ShadowAssetWithBalance
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
