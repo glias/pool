@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as lumos from '@ckb-lumos/base';
 import * as ckbToolkit from 'ckb-js-toolkit';
+import * as pw from '@lay2/pw-core';
 
 import { Input } from '.';
 
@@ -36,6 +37,10 @@ export class Script {
       hash_type: <lumos.HashType>this.hashType,
       args: this.args,
     };
+  }
+
+  toPwScript(): pw.Script {
+    return new pw.Script(this.codeHash, this.args, <pw.HashType>this.hashType);
   }
 
   toHash(): string {
