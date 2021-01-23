@@ -20,14 +20,31 @@ export class TokenHolder {
   constructor(private toknes: Token[]) {}
 
   getTokens(): Token[] {
-    return this.toknes;
+    return this.toknes.map((x) => {
+      const token = { ...x };
+      return token;
+    });
   }
 
   getTokenByTypeHash(typeHash: string): Token {
-    return this.toknes.find((x) => x.typeHash === typeHash);
+    const token = this.toknes.find((x) => x.typeHash === typeHash);
+    if (!token) {
+      return null;
+    }
+    return { ...token };
+  }
+
+  getTokenBySymbol(symbol: string): Token {
+    const token = this.toknes.find((x) => x.info.symbol === symbol);
+    if (!token) {
+      return null;
+    }
+    return { ...token };
   }
 
   getTypeScripts(): Script[] {
-    return this.toknes.filter((x) => x.typeScript !== undefined).map((x) => x.typeScript);
+    return this.toknes
+      .filter((x) => x.typeScript !== undefined)
+      .map((x) => new Script(x.typeScript.codeHash, x.typeScript.hashType, x.typeScript.args));
   }
 }

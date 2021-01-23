@@ -4,3 +4,4 @@ export { scriptEquals } from './scriptEquals';
 export * from './data';
 export { TokenTokenHolderFactory, Token, TokenInfo, TokenHolder } from './tokens';
 export * from './bridge';
+export * from './pool';

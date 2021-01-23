@@ -1,4 +1,5 @@
-import { CellDep, OutPoint, DepType, Script, HashType } from '@lay2/pw-core';
+import { CellDep, OutPoint, DepType, HashType, Script } from '@lay2/pw-core';
+import * as dex from './model';
 import dotenv from 'dotenv';
 import { MySqlConnectionConfig } from 'knex';
 dotenv.config();
@@ -20,10 +21,31 @@ export const env = process.env.NODE_ENV || 'development';
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_CODE_TYPE_HASH = process.env.SWAP_ORDER_LOCK_CODE_TYPE_HASH;
-export const INFO_TYPE_CODE_HASH = process.env.INFO_TYPE_CODE_HASH;
-export const INFO_LOCK_CODE_HASH = process.env.INFO_LOCK_CODE_HASH;
+export const INFO_TYPE_CODE_HASH =
+  process.env.INFO_TYPE_CODE_HASH || '0x0000000000000000000000000000000000000000000000000000000000000011';
+export const INFO_LOCK_CODE_HASH =
+  process.env.INFO_LOCK_CODE_HASH || '0x0000000000000000000000000000000000000000000000000000000000000004';
 export const SUDT_TYPE_CODE_HASH =
   process.env.SUDT_TYPE_CODE_HASH || '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4';
+
+export const CKB_STR_TO_HASH =
+  process.env.CKB_STR_TO_HASH ||
+  '0x636b6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+export const CKB_TOKEN_TYPE_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
+  new dex.Script(
+    INFO_TYPE_CODE_HASH,
+    'type',
+    process.env.GLIA_ID || '0x0000000000000000000000000000000000000000000000000000000000000011',
+  ),
+  new dex.Script(
+    INFO_TYPE_CODE_HASH,
+    'type',
+    process.env.CKETH_ID || '0x0000000000000000000000000000000000000000000000000000000000000012',
+  ),
+];
 
 export const LIQUIDITY_ORDER_LOCK_DEP = (() => {
   const outPoint = new OutPoint(process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH, '0x0');

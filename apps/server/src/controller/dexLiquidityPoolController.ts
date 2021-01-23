@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 import { Server } from '@gliaswap/types';
 
 import * as utils from '../utils';
-import { Script } from '../model';
+import { cellConver, Script } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
 import { ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 
@@ -39,13 +39,46 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: false },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })
   public async getLiquidityPools(ctx: Context): Promise<void> {
     const req = <{ lock: Script; limit: number; skip: number }>ctx.request.body;
-    await this.service.getLiquidityPools(req.lock, req.limit, req.skip);
+    const result = await this.service.getLiquidityPools(cellConver.converScript(req.lock));
+    ctx.status = 200;
+    ctx.body = result;
+  }
+
+  @request('post', '/v1/liquidity-pool/pool-id')
+  @summary('Get LP info of user')
+  @description('Get LP info of user')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          poolId: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: false },
+    poolId: { type: 'string', required: true },
+  })
+  public async getLiquidityPoolByTypeHash(ctx: Context): Promise<void> {
+    const req = <{ lock: Script; poolId: string }>ctx.request.body;
+    const result = await this.service.getLiquidityPoolByPoolId(req.poolId, cellConver.converScript(req.lock));
+    ctx.status = 200;
+    ctx.body = result;
   }
 
   @request('post', '/v1/liquidity-pool/create')
@@ -86,34 +119,6 @@ export default class DexLiquidityPoolController {
 
     ctx.status = 200;
     ctx.body = utils.serializeCreateLiquidityPoolResponse(resp);
-  }
-
-  @request('post', '/v1/liquidity-pool/pool-id')
-  @summary('Get LP info of user')
-  @description('Get LP info of user')
-  @liquidityTag
-  @responses({
-    200: {
-      description: 'success',
-      schema: {
-        type: 'object',
-        properties: {
-          poolId: { type: 'string', required: true },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-        },
-      },
-    },
-  })
-  @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    poolId: { type: 'string', required: true },
-  })
-  public async getLiquidityPoolByTypeHash(ctx: Context): Promise<void> {
-    console.log(ctx);
   }
 
   @request('post', '/v1/liquidity-pool/orders')
