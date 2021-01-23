@@ -1,20 +1,19 @@
-import { Server } from '@gliaswap/types';
+import { QueryOptions } from '@ckb-lumos/base';
 import { Context } from 'koa';
+import { txBuilder } from '.';
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenTokenHolderFactory } from '../model';
-import { ckbRepository, DexRepository } from '../repository';
-import { TxBuilderService, CancelOrderType } from '.';
-import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
+// import { ckbRepository, DexRepository } from '../repository';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
 import { mockCkEthPoolInfo, mockGliaPoolInfo, mockUserLiquidityCells } from '../tests/mock_data';
-import { QueryOptions } from '@ckb-lumos/base';
+import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
 
 export class DexLiquidityPoolService {
-  private readonly dexRepository: DexRepository;
-  private readonly txBuilderService: TxBuilderService;
+  // private readonly dexRepository: DexRepository;
+  private readonly txBuilderService: txBuilder.TxBuilderService;
 
   constructor() {
-    this.dexRepository = ckbRepository;
-    this.txBuilderService = new TxBuilderService();
+    // this.dexRepository = ckbRepository;
+    this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {
@@ -159,35 +158,38 @@ export class DexLiquidityPoolService {
 
   public async buildCreateLiquidityPoolTx(
     ctx: Context,
-    req: Server.CreateLiquidityPoolRequest,
-  ): Promise<Server.CreateLiquidityPoolResponse> {
+    req: txBuilder.CreateLiquidityPoolRequest,
+  ): Promise<txBuilder.CreateLiquidityPoolResponse> {
     return await this.txBuilderService.buildCreateLiquidityPool(ctx, req);
   }
 
   // FIXME: ensure req token type script exists
   public async buildGenesisLiquidityOrderTx(
     ctx: Context,
-    req: Server.GenesisLiquidityRequest,
-  ): Promise<Server.TransactionWithFee> {
+    req: txBuilder.GenesisLiquidityRequest,
+  ): Promise<txBuilder.TransactionWithFee> {
     return await this.txBuilderService.buildGenesisLiquidity(ctx, req);
   }
 
   public async buildAddLiquidityOrderTx(
     ctx: Context,
-    req: Server.AddLiquidityRequest,
-  ): Promise<Server.TransactionWithFee> {
+    req: txBuilder.AddLiquidityRequest,
+  ): Promise<txBuilder.TransactionWithFee> {
     return await this.txBuilderService.buildAddLiquidity(ctx, req);
   }
 
   public async buildRemoveLiquidityOrderTx(
     ctx: Context,
-    req: Server.RemoveLiquidityRequest,
-  ): Promise<Server.TransactionWithFee> {
+    req: txBuilder.RemoveLiquidityRequest,
+  ): Promise<txBuilder.TransactionWithFee> {
     return await this.txBuilderService.buildRemoveLiquidity(ctx, req);
   }
 
-  public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Liquidity);
+  public async buildCancelOrderTx(
+    ctx: Context,
+    req: txBuilder.CancelOrderRequest,
+  ): Promise<txBuilder.TransactionWithFee> {
+    return await this.txBuilderService.buildCancelOrder(ctx, req);
   }
 }
 

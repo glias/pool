@@ -2,9 +2,44 @@ import { Script } from '..';
 
 export class Token {
   typeHash: string;
-  typeScript: Script;
-  info: TokenInfo;
+  typeScript?: Script;
+  info?: TokenInfo | null;
   balance?: string;
+
+  constructor(typeHash: string, typeScript?: Script, info?: TokenInfo, balance?: string) {
+    this.typeHash = typeHash;
+    this.typeScript = typeScript;
+    this.info = info;
+    this.balance = balance;
+  }
+
+  getBalance(): bigint {
+    if (!this.balance) {
+      return 0n;
+    }
+
+    return BigInt(this.balance);
+  }
+
+  serialize(): object {
+    return {
+      ...this,
+    };
+  }
+
+  // FIXME: token info and balance deserialize
+  static deserialize(value: any): Token {
+    if (!value.typeHash) {
+      throw new Error('Token: typeHash not found');
+    }
+
+    if (value.typeScript) {
+      const typeScript = Script.deserialize(value.typeScript);
+      return new Token(value.typeHash, typeScript, value.info, value.balance);
+    }
+
+    return new Token(value.typeHash);
+  }
 }
 
 export class TokenInfo {
