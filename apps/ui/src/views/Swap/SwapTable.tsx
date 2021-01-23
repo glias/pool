@@ -29,7 +29,7 @@ export const SwapTable: React.FC = () => {
           label={i18n.t('swap.order-list.you-pay')}
           name="pay"
           max="0.1"
-          asserts={[]}
+          assets={[]}
           renderKeys={(_, i) => i}
           formItemProps={{
             rules: [
@@ -50,7 +50,7 @@ export const SwapTable: React.FC = () => {
           label={i18n.t('swap.order-list.you-receive')}
           name="receive"
           max="0.1"
-          asserts={[]}
+          assets={[]}
           renderKeys={(_, i) => i}
         />
         <Form.Item className="submit">

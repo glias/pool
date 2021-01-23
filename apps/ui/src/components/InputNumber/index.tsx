@@ -5,7 +5,7 @@ import i18n from 'i18n';
 import { FormItemProps } from 'antd/lib/form';
 import { InputProps } from 'antd/lib/input';
 import { AssetSelector } from 'components/AssetSelector';
-import { Asset } from 'commons/MultiAsset';
+import { Asset } from '@gliaswap/commons';
 import { AssetListProps } from 'components/AssetSelector/AssetList';
 import { TokenSelectorProps } from 'components/AssetSelector/AssetSelector';
 
@@ -113,34 +113,35 @@ const MaxContainer = styled.div`
   }
 `;
 
-export interface InputItemProps {
+export type Key = string | number;
+export interface InputItemProps<T extends Asset, K extends Key> {
   max?: string;
-  setMaxPay?: (max: string) => void;
+  setMax?: (max: string) => void;
   label: string;
   name: string;
-  asserts: Asset[];
-  renderKeys: AssetListProps['renderKey'];
+  assets: T[];
+  renderKeys: AssetListProps<T, K>['renderKey'];
   formItemProps?: Omit<FormItemProps, 'name'>;
   inputProps?: Omit<InputProps, 'bordered' | 'type' | 'placeholder' | 'suffix'>;
-  selectorProps?: Omit<TokenSelectorProps, 'assets' | 'renderKey'>;
+  selectorProps?: Omit<TokenSelectorProps<T, K>, 'assets' | 'renderKey'>;
 }
 
-export const InputNumber = ({
+export function InputNumber<T extends Asset, K extends Key>({
   max,
-  setMaxPay,
+  setMax,
   label,
   name,
   formItemProps,
   inputProps,
-  asserts,
+  assets,
   renderKeys,
   selectorProps,
-}: InputItemProps) => {
+}: InputItemProps<T, K>) {
   return (
     <ItemContainer label={label}>
       {max ? (
         <MaxContainer>
-          <button type="button" onClick={() => setMaxPay?.(max)}>
+          <button type="button" onClick={() => setMax?.(max)}>
             {`${i18n.t('common.max')}: ${max}`}
           </button>
         </MaxContainer>
@@ -150,10 +151,10 @@ export const InputNumber = ({
           bordered={false}
           type="number"
           placeholder="0.0"
-          suffix={<AssetSelector assets={asserts} renderKey={renderKeys} {...selectorProps} />}
+          suffix={<AssetSelector assets={assets} renderKey={renderKeys} {...selectorProps} />}
           {...inputProps}
         />
       </Form.Item>
     </ItemContainer>
   );
-};
+}
