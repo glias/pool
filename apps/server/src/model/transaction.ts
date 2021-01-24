@@ -77,7 +77,7 @@ export class TransactionToSign {
 
   serialize(): Record<string, unknown> {
     const inputCells = this.inputCells.map(this.serializeInputCell);
-    const outputs = this.raw.outputs.map((output, idx) => {
+    const outputCells = this.raw.outputs.map((output, idx) => {
       return {
         ...output,
         data: this.raw.outputsData[idx],
@@ -86,7 +86,7 @@ export class TransactionToSign {
 
     return {
       inputCells,
-      outputs,
+      outputCells,
       cellDeps: this.raw.cellDeps,
       headerDeps: this.raw.headerDeps,
       version: this.raw.version,

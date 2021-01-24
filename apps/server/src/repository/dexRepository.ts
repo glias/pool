@@ -2,6 +2,8 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, TransactionWithStatus } from '../model';
 import { ForceBridgeRepository } from './forceBridgeRepository';
 
+export type txHash = string;
+
 export type ckbMethods =
   | 'getTipBlockNumber'
   | 'getTipHeader'
@@ -53,4 +55,6 @@ export interface DexRepository extends ForceBridgeRepository {
   getTransaction(hash: string): Promise<TransactionWithStatus>;
 
   getBlockTimestampByHash(blockHash: string): Promise<string>;
+
+  sendTransaction(tx: CKBComponents.RawTransaction): Promise<txHash>;
 }

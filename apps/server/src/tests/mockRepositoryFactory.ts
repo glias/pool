@@ -44,6 +44,10 @@ export class MockRepository implements DexRepository {
     throw new Error('Method not implemented.');
   }
 
+  sendTransaction(tx: CKBComponents.RawTransaction): Promise<string> {
+    throw new Error('Method not implemented.');
+  }
+
   mockCollectCells(): sinon.SinonStub<unknown[], unknown> | sinon.SinonStub<unknown[], unknown> {
     return sinon.stub(this, 'collectCells');
   }

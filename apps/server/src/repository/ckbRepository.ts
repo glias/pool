@@ -2,7 +2,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import * as pw from '@lay2/pw-core';
-import { DexRepository } from '.';
+import { DexRepository, txHash } from '.';
 import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import {
   BridgeInfo,
@@ -106,6 +106,33 @@ export class CkbRepository implements DexRepository {
     req.push(['getBlock', blockHash]);
     const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
     return block[0].header.timestamp;
+  }
+
+  async sendTransaction(tx: CKBComponents.RawTransaction): Promise<txHash> {
+    const timeout = (ms: number) => {
+      return new Promise((resolve, _reject) => {
+        setTimeout(function () {
+          resolve(null);
+        }, ms);
+      });
+    };
+
+    const txHash = await this.ckbNode.rpc.sendTransaction(tx);
+
+    let count = 5;
+    while (count >= 0) {
+      const txsInPool = await this.getPoolTxs();
+      for (let i = 0; i < txsInPool.length; i++) {
+        const status = txsInPool[i].txStatus.status;
+        if (status == 'pending' || status == 'proposed') {
+          return txHash;
+        }
+      }
+      count -= 1;
+      await timeout(5000);
+    }
+
+    throw new Error('send transaction timeout');
   }
 
   /**
