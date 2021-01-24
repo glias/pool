@@ -20,7 +20,7 @@ export class TokenInfoSchema {
   @swaggerProperty({ type: 'number', required: true })
   decimal: number;
   @swaggerProperty({ type: 'string', required: true })
-  logoUri: string;
+  logoURI: string;
   @swaggerProperty({ type: 'string', required: true })
   address: string;
   @swaggerProperty({ type: 'string', required: true })
@@ -168,13 +168,13 @@ export class AssetSchema {
   @swaggerProperty({ type: 'number', required: true })
   decimal: number;
   @swaggerProperty({ type: 'string', required: true })
-  logoUri: string;
+  logoURI: string;
   @swaggerProperty({ type: 'string', required: true })
   chainType: string;
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
   @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
-  shadowFrom: TokenInfoSchema;
+  shadowFrom?: TokenInfoSchema;
 
   constructor(
     typeHash: string,
@@ -182,19 +182,26 @@ export class AssetSchema {
     name: string,
     symbol: string,
     decimal: number,
-    logoUri: string,
+    logoURI: string,
     chainType: string,
     balance: string,
-    shadowFrom: TokenInfoSchema,
+    shadowFrom?: TokenInfoSchema,
   ) {
-    this.typeHash = typeHash;
-    this.typeScript = typeScript;
+    if (typeHash) {
+      this.typeHash = typeHash;
+    }
+    if (typeScript) {
+      this.typeScript = typeScript;
+    }
+
     this.name = name;
     this.symbol = symbol;
     this.decimal = decimal;
-    this.logoUri = logoUri;
+    this.logoURI = logoURI;
     this.chainType = chainType;
     this.balance = balance;
-    this.shadowFrom = shadowFrom;
+    if (shadowFrom) {
+      this.shadowFrom = shadowFrom;
+    }
   }
 }

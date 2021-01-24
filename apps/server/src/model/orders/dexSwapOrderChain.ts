@@ -1,7 +1,7 @@
 import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
-import { TokenHolderFactory } from '../tokens';
+import { Token, TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
 import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
@@ -44,22 +44,42 @@ export class DexSwapOrderChain extends DexOrderChain {
 
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
-    const amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
-    const amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
 
-    if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
-      // sudt => ckb
-      amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
+    let amountIn;
+    let amountOut;
+    if (!this._isOrder && this._bridgeInfo) {
+      if (this._isIn) {
+        amountIn = new Token(null, null, sudtToken.shadowFrom, null, null);
+        amountOut = sudtToken;
+        amountIn.balance = this._bridgeInfo.amount;
+        amountOut.balance = this._bridgeInfo.amount;
+      } else {
+        amountIn = sudtToken;
+        amountOut = new Token(null, null, sudtToken.shadowFrom, null, null);
+        amountIn.balance = this._bridgeInfo.amount;
+        amountOut.balance = this._bridgeInfo.amount;
+      }
     } else {
-      // ckb => sudt
-      amountIn.balance =
-        this._isOrder === false ? this._bridgeInfo.amount : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+      amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
+      amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
+      if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
+        // sudt => ckb
+        amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
+      } else {
+        // ckb => sudt
+        amountIn.balance =
+          this._isOrder === false
+            ? this._bridgeInfo.amount
+            : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+      }
+      amountOut.balance = argsData.amountOutMin.toString();
     }
 
-    amountOut.balance = argsData.amountOutMin.toString();
     const steps = this.buildStep();
     const status = this.getStatus();
     const timestamp = this.tx.txStatus.timestamp;
+    const type = this.getType();
+
     const orderHistory: OrderHistory = {
       transactionHash: transactionHash,
       timestamp: timestamp,
@@ -69,13 +89,16 @@ export class DexSwapOrderChain extends DexOrderChain {
         status: status,
         steps: steps,
       },
-      type: this.getType(),
+      type: type,
     };
 
     return orderHistory;
   }
 
   getArgsData(): SwapOrderCellArgs {
+    if (!this._isOrder && this._bridgeInfo) {
+      return null;
+    }
     return CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeArgs(this.cell.lock.args);
   }
 
@@ -89,7 +112,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     }
 
     if (this._bridgeInfo) {
-      OrderType.CrossChain;
+      return OrderType.CrossChain;
     }
 
     return OrderType.Order;
@@ -107,6 +130,8 @@ export class DexSwapOrderChain extends DexOrderChain {
 
       return ORDER_STATUS.COMPLETED;
     }
+
+    return ORDER_STATUS.COMPLETED;
   }
 
   buildStep(): Step[] {

@@ -1,4 +1,5 @@
 import { Script } from '..';
+import BigNumber from 'bignumber.js';
 import { AssetSchema } from '../../controller/swaggerSchema';
 
 export class Token {
@@ -58,13 +59,13 @@ export class Token {
   toAsset(): AssetSchema {
     return new AssetSchema(
       this.typeHash,
-      { ...this.typeScript },
+      this.typeScript ? { ...this.typeScript } : null,
       this.info.name,
       this.info.symbol,
       this.info.decimal,
-      this.info.logoUri,
+      this.info.logoURI,
       this.info.chainType,
-      this.balance,
+      new BigNumber(this.balance).toString(),
       this.shadowFrom,
     );
   }
@@ -74,14 +75,14 @@ export class TokenInfo {
   name: string;
   symbol: string;
   decimal: number;
-  logoUri: string;
+  logoURI: string;
   address: string;
   chainType: string;
-  constructor(name: string, symbol: string, decimal: number, logoUri: string, address: string, chainType: string) {
+  constructor(name: string, symbol: string, decimal: number, logoURI: string, address: string, chainType: string) {
     this.name = name;
     this.symbol = symbol;
     this.decimal = decimal;
-    this.logoUri = logoUri;
+    this.logoURI = logoURI;
     this.address = address;
     this.chainType = chainType;
   }
@@ -91,7 +92,7 @@ export class TokenHolder {
   constructor(private toknes: Token[]) {}
 
   getTokens(): Token[] {
-    return this.toknes;
+    return this.toknes.map((x) => new Token(x.typeHash, x.typeScript, x.info, x.shadowFrom, null));
   }
 
   getTokenByTypeHash(typeHash: string): Token {
@@ -100,7 +101,7 @@ export class TokenHolder {
       return null;
     }
 
-    return token;
+    return new Token(token.typeHash, token.typeScript, token.info, token.shadowFrom, null);
   }
 
   getTokenBySymbol(symbol: string): Token {
@@ -109,7 +110,7 @@ export class TokenHolder {
       return null;
     }
 
-    return token;
+    return new Token(token.typeHash, token.typeScript, token.info, token.shadowFrom, null);
   }
 
   getTypeScripts(): Script[] {

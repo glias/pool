@@ -55,14 +55,18 @@ export default class DexSwapController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    ethAddress: { type: 'string', required: true },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
     const req = ctx.request.body;
-    const { lock, limit, skip } = req;
-    const result = await this.service.orders(cellConver.converScript(lock), limit, skip);
+    const { lock, ethAddress, limit, skip } = req;
+    const result = await this.service.orders(cellConver.converScript(lock), ethAddress, limit, skip);
     ctx.status = 200;
+
+    // console.log(result);
+
     ctx.body = result.map((x) => {
       return {
         transactionHash: x.transactionHash,

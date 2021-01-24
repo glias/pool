@@ -62,7 +62,7 @@ export default class DexTokenController {
           name: token.info.name,
           symbol: token.info.symbol,
           decimals: token.info.decimal,
-          logo_uri: token.info.logoUri,
+          logo_uri: token.info.logoURI,
         },
       };
       const cells = await this.service.collect(
@@ -111,7 +111,7 @@ function toCKBAsset(token: Token): commons.CkbAsset {
     name: token.info.name,
     decimals: token.info.decimal,
     symbol: token.info.symbol,
-    logoURI: token.info.logoUri,
+    logoURI: token.info.logoURI,
     typeHash: token.typeHash,
   };
 }

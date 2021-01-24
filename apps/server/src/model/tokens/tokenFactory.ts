@@ -16,7 +16,7 @@ export class TokenHolderFactory {
           data.info.name,
           data.info.symbol,
           data.info.decimal,
-          data.info.logoUri,
+          data.info.logoURI,
           data.info.address,
           data.info.chainType,
         );
@@ -43,7 +43,7 @@ export class TokenHolderFactory {
         data.info.name,
         data.info.symbol,
         data.info.decimal,
-        data.info.logoUri,
+        data.info.logoURI,
         data.info.address,
         data.info.chainType,
       );
