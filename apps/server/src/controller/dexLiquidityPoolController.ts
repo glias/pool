@@ -1,5 +1,4 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
@@ -27,9 +26,15 @@ export default class DexLiquidityPoolController {
           properties: {
             poolId: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenA: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenB: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+            assets: {
+              type: 'array',
+              items: {
+                type: 'object',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                properties: (AssetSchema as any).swaggerDocument,
+              },
+            },
+            model: { type: 'string', required: true },
           },
         },
       },
@@ -48,8 +53,8 @@ export default class DexLiquidityPoolController {
     ctx.body = result.map((x) => {
       return {
         poolId: x.poolId,
-        tokenA: x.tokenA.toAsset(),
-        tokenB: x.tokenB.toAsset(),
+        assets: [x.tokenA.toAsset(), x.tokenB.toAsset()],
+        model: 'UNISWAP',
       };
     });
   }
@@ -66,9 +71,15 @@ export default class DexLiquidityPoolController {
         properties: {
           poolId: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          assets: {
+            type: 'array',
+            items: {
+              type: 'object',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              properties: (AssetSchema as any).swaggerDocument,
+            },
+          },
+          model: { type: 'string', required: true },
         },
       },
     },
@@ -84,8 +95,8 @@ export default class DexLiquidityPoolController {
     ctx.status = 200;
     ctx.body = {
       poolId: result.poolId,
-      tokenA: result.tokenA.toAsset(),
-      tokenB: result.tokenB.toAsset(),
+      assets: [result.tokenA.toAsset(), result.tokenB.toAsset()],
+      model: 'UNISWAP',
     };
   }
 

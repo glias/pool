@@ -3,7 +3,7 @@ import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 
 export class DefaultInfoCellSerialization implements InfoCellSerialization {
   encodeArgs(hash: string, infoTypeHash: string): string {
-    return `0x${hash.slice(2)}${infoTypeHash.slice(2)}`;
+    return `0x${hash.slice(2, 66)}${infoTypeHash.slice(2, 66)}`;
   }
 
   decodeArgs(argsHex: string): InfoCellArgs {

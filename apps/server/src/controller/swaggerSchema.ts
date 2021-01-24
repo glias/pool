@@ -125,6 +125,7 @@ export class TransactionSchema {
   witnesses: Array<string>;
 }
 
+@swaggerClass()
 export class AssetSchema {
   @swaggerProperty({ type: 'string', required: true })
   typeHash: string;
