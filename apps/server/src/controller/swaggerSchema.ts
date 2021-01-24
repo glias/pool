@@ -21,6 +21,10 @@ export class TokenInfoSchema {
   decimal: number;
   @swaggerProperty({ type: 'string', required: true })
   logoUri: string;
+  @swaggerProperty({ type: 'string', required: true })
+  address: string;
+  @swaggerProperty({ type: 'string', required: true })
+  chainType: string;
 }
 
 @swaggerClass()
@@ -169,6 +173,8 @@ export class AssetSchema {
   chainType: string;
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
+  @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
+  shadowFrom: TokenInfoSchema;
 
   constructor(
     typeHash: string,
@@ -179,6 +185,7 @@ export class AssetSchema {
     logoUri: string,
     chainType: string,
     balance: string,
+    shadowFrom: TokenInfoSchema,
   ) {
     this.typeHash = typeHash;
     this.typeScript = typeScript;
@@ -188,5 +195,6 @@ export class AssetSchema {
     this.logoUri = logoUri;
     this.chainType = chainType;
     this.balance = balance;
+    this.shadowFrom = shadowFrom;
   }
 }

@@ -4,13 +4,15 @@ import { AssetSchema } from '../../controller/swaggerSchema';
 export class Token {
   typeHash: string;
   typeScript?: Script;
-  info?: TokenInfo | null;
+  info?: TokenInfo;
+  shadowFrom?: TokenInfo;
   balance?: string;
 
-  constructor(typeHash: string, typeScript?: Script, info?: TokenInfo, balance?: string) {
+  constructor(typeHash: string, typeScript?: Script, info?: TokenInfo, shadowFrom?: TokenInfo, balance?: string) {
     this.typeHash = typeHash;
     this.typeScript = typeScript;
     this.info = info;
+    this.shadowFrom = shadowFrom;
     this.balance = balance;
   }
 
@@ -63,6 +65,7 @@ export class Token {
       this.info.logoUri,
       this.info.chainType,
       this.balance,
+      this.shadowFrom,
     );
   }
 }
@@ -72,8 +75,16 @@ export class TokenInfo {
   symbol: string;
   decimal: number;
   logoUri: string;
-  issuerAddress: string;
+  address: string;
   chainType: string;
+  constructor(name: string, symbol: string, decimal: number, logoUri: string, address: string, chainType: string) {
+    this.name = name;
+    this.symbol = symbol;
+    this.decimal = decimal;
+    this.logoUri = logoUri;
+    this.address = address;
+    this.chainType = chainType;
+  }
 }
 
 export class TokenHolder {
