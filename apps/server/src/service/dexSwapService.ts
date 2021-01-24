@@ -1,30 +1,32 @@
-import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
-import { TxBuilderService, CancelOrderType } from '.';
 import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TokenTokenHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
+import { txBuilder } from '.';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
 import { mockDev } from '../tests/mock_data';
 
 export class DexSwapService {
-  private readonly txBuilderService: TxBuilderService;
+  private readonly txBuilderService: txBuilder.TxBuilderService;
   private readonly dexRepository: DexRepository;
 
   constructor() {
-    this.txBuilderService = new TxBuilderService();
+    this.txBuilderService = new txBuilder.TxBuilderService();
     this.dexRepository = ckbRepository;
   }
 
-  public async buildSwapOrderTx(ctx: Context, req: Server.SwapOrderRequest): Promise<Server.TransactionWithFee> {
+  public async buildSwapOrderTx(ctx: Context, req: txBuilder.SwapOrderRequest): Promise<txBuilder.TransactionWithFee> {
     return await this.txBuilderService.buildSwap(ctx, req);
   }
 
-  public async buildCancelOrderTx(ctx: Context, req: Server.CancelOrderRequest): Promise<Server.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req, CancelOrderType.Swap);
+  public async buildCancelOrderTx(
+    ctx: Context,
+    req: txBuilder.CancelOrderRequest,
+  ): Promise<txBuilder.TransactionWithFee> {
+    return await this.txBuilderService.buildCancelOrder(ctx, req);
   }
 
   async orders(lock: Script, _limit: number, _skip: number): Promise<OrderHistory[]> {
