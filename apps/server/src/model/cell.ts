@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as lumos from '@ckb-lumos/base';
+import * as ckbToolkit from 'ckb-js-toolkit';
 import * as pw from '@lay2/pw-core';
+
+import { Input } from '.';
 
 export interface Cell {
   cellOutput: CellOutput;
@@ -41,7 +44,19 @@ export class Script {
   }
 
   toHash(): string {
-    return this.toPwScript().toHash();
+    return lumos.utils.computeScriptHash(this.toLumosScript());
+  }
+
+  // FIXME: calculation raw tx hash
+  // FIXME: not serialize size
+  size(): number {
+    return lumos.core.SerializeScript(ckbToolkit.normalizers.NormalizeScript(this.toLumosScript())).byteLength;
+  }
+
+  static deserialize(value: any): Script {
+    // TransformScript already verify script for us
+    const script = <any>ckbToolkit.transformers.TransformScript(value, { validation: true });
+    return new Script(script.code_hash, script.hash_type, script.args);
   }
 }
 
@@ -84,6 +99,13 @@ class CellConver {
       return new Script(lumosScript.codeHash, lumosScript.hashType, lumosScript.args);
     }
     return new Script(lumosScript.code_hash, lumosScript.hash_type, lumosScript.args);
+  }
+
+  converToInput(cell: Cell, since = '0x0'): Input {
+    return {
+      previousOutput: cell.outPoint,
+      since,
+    };
   }
 
   converToPWScript(script: Script): pw.Script {

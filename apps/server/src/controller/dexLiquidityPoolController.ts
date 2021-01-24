@@ -1,9 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { Server } from '@gliaswap/types';
 
-import * as utils from '../utils';
-import { cellConver, Script } from '../model';
-import { dexLiquidityPoolService, DexLiquidityPoolService } from '../service';
+import { cellConver, Script, Token } from '../model';
+import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
@@ -109,16 +107,16 @@ export default class DexLiquidityPoolController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createLiquidityPool(ctx: Context): Promise<void> {
-    const reqBody = <Server.CreateLiquidityPoolRequest>ctx.request.body;
+    const reqBody = <txBuilder.CreateLiquidityPoolRequest>ctx.request.body;
     const req = {
-      tokenA: utils.deserializeToken(reqBody.tokenA),
-      tokenB: utils.deserializeToken(reqBody.tokenB),
-      userLock: utils.deserializeScript(reqBody.userLock),
+      tokenA: Token.deserialize(reqBody.tokenA),
+      tokenB: Token.deserialize(reqBody.tokenB),
+      userLock: Script.deserialize(reqBody.userLock),
     };
     const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = utils.serializeCreateLiquidityPoolResponse(resp);
+    ctx.body = resp.serialize();
   }
 
   @request('post', '/v1/liquidity-pool/orders')
@@ -196,17 +194,17 @@ export default class DexLiquidityPoolController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <Server.GenesisLiquidityRequest>ctx.request.body;
+    const reqBody = <txBuilder.GenesisLiquidityRequest>ctx.request.body;
     const req = {
-      tokenAAmount: utils.deserializeToken(reqBody.tokenAAmount),
-      tokenBAmount: utils.deserializeToken(reqBody.tokenBAmount),
+      tokenAAmount: Token.deserialize(reqBody.tokenAAmount),
+      tokenBAmount: Token.deserialize(reqBody.tokenBAmount),
       poolId: reqBody.poolId,
-      userLock: utils.deserializeScript(reqBody.userLock),
+      userLock: Script.deserialize(reqBody.userLock),
     };
     const txWithFee = await this.service.buildGenesisLiquidityOrderTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = utils.serializeTransactionWithFee(txWithFee);
+    ctx.body = txWithFee.serialize();
   }
 
   @request('post', '/v1/liquidity-pool/orders/add-liquidity')
@@ -240,19 +238,19 @@ export default class DexLiquidityPoolController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <Server.AddLiquidityRequest>ctx.request.body;
+    const reqBody = <txBuilder.AddLiquidityRequest>ctx.request.body;
     const req = {
-      tokenADesiredAmount: utils.deserializeToken(reqBody.tokenADesiredAmount),
-      tokenAMinAmount: utils.deserializeToken(reqBody.tokenAMinAmount),
-      tokenBDesiredAmount: utils.deserializeToken(reqBody.tokenBDesiredAmount),
-      tokenBMinAmount: utils.deserializeToken(reqBody.tokenBMinAmount),
+      tokenADesiredAmount: Token.deserialize(reqBody.tokenADesiredAmount),
+      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
+      tokenBDesiredAmount: Token.deserialize(reqBody.tokenBDesiredAmount),
+      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
       poolId: reqBody.poolId,
-      userLock: utils.deserializeScript(reqBody.userLock),
+      userLock: Script.deserialize(reqBody.userLock),
     };
     const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = utils.serializeTransactionWithFee(txWithFee);
+    ctx.body = txWithFee.serialize();
   }
 
   @request('post', '/v1/liquidity-pool/liquidity/remove-liquidity')
@@ -284,18 +282,18 @@ export default class DexLiquidityPoolController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <Server.RemoveLiquidityRequest>ctx.request.body;
+    const reqBody = <txBuilder.RemoveLiquidityRequest>ctx.request.body;
     const req = {
-      lpTokenAmount: utils.deserializeToken(reqBody.lpTokenAmount),
-      tokenAMinAmount: utils.deserializeToken(reqBody.tokenAMinAmount),
-      tokenBMinAmount: utils.deserializeToken(reqBody.tokenBMinAmount),
+      lpTokenAmount: Token.deserialize(reqBody.lpTokenAmount),
+      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
+      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
       poolId: reqBody.poolId,
-      userLock: utils.deserializeScript(reqBody.userLock),
+      userLock: Script.deserialize(reqBody.userLock),
     };
     const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = utils.serializeTransactionWithFee(txWithFee);
+    ctx.body = txWithFee.serialize();
   }
 
   @request('post', '/v1/liquidity-pool/orders/cancel')
@@ -321,14 +319,15 @@ export default class DexLiquidityPoolController {
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <Server.CancelOrderRequest>ctx.request.body;
+    const reqBody = <txBuilder.CancelOrderRequest>ctx.request.body;
     const req = {
       txHash: reqBody.txHash,
-      userLock: utils.deserializeScript(reqBody.userLock),
+      userLock: Script.deserialize(reqBody.userLock),
+      requestType: txBuilder.CancelRequestType.Liquidity,
     };
     const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
 
     ctx.status = 200;
-    ctx.body = utils.serializeTransactionWithFee(txWithFee);
+    ctx.body = txWithFee.serialize();
   }
 }

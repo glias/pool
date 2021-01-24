@@ -1,5 +1,16 @@
 export { cellConver, Cell, CellOutput, OutPoint, Script } from './cell';
-export { transactionConver, TransactionWithStatus, Transaction, TxStatus, Input, Output, CellDep } from './transaction';
+export {
+  transactionConver,
+  TransactionWithStatus,
+  Transaction,
+  TxStatus,
+  Input,
+  Output,
+  CellDep,
+  RawTransaction,
+  TransactionToSign,
+  WitnessArgs,
+} from './transaction';
 export { scriptEquals } from './scriptEquals';
 export * from './datas';
 export * from './tokens';
