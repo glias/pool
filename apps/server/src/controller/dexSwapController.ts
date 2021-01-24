@@ -63,7 +63,15 @@ export default class DexSwapController {
     const { lock, limit, skip } = req;
     const result = await this.service.orders(cellConver.converScript(lock), limit, skip);
     ctx.status = 200;
-    ctx.body = result;
+    ctx.body = result.map((x) => {
+      return {
+        transactionHash: x.transactionHash,
+        amountIn: x.amountIn.toAsset(),
+        amountOut: x.amountOut.toAsset(),
+        stage: x.stage,
+        type: x.type,
+      };
+    });
   }
 
   @request('post', '/v1/swap/orders/swap')

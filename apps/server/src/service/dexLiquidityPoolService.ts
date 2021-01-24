@@ -177,7 +177,8 @@ export class DexLiquidityPoolService {
       const infoTypeHash = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
         .decodeArgs(poolCell[0].cellOutput.lock.args).infoTypeHash;
-      const tokenB = tokens.find((x) => x.typeHash.slice(0, 42) === infoTypeHash);
+
+      const tokenB = tokens.find((x) => x.typeHash === infoTypeHash);
       tokenB.balance = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
         .decodeData(poolCell[0].data)

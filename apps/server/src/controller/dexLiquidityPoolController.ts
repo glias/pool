@@ -1,8 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
-import { ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
+import { AssetSchema, ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
 
@@ -27,9 +26,15 @@ export default class DexLiquidityPoolController {
           properties: {
             poolId: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            assets: {
+              type: 'array',
+              items: {
+                type: 'object',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                properties: (AssetSchema as any).swaggerDocument,
+              },
+            },
+            model: { type: 'string', required: true },
           },
         },
       },
@@ -45,7 +50,13 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; limit: number; skip: number }>ctx.request.body;
     const result = await this.service.getLiquidityPools(cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = result;
+    ctx.body = result.map((x) => {
+      return {
+        poolId: x.poolId,
+        assets: [x.tokenA.toAsset(), x.tokenB.toAsset()],
+        model: 'UNISWAP',
+      };
+    });
   }
 
   @request('post', '/v1/liquidity-pool/pool-id')
@@ -60,9 +71,15 @@ export default class DexLiquidityPoolController {
         properties: {
           poolId: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+          assets: {
+            type: 'array',
+            items: {
+              type: 'object',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              properties: (AssetSchema as any).swaggerDocument,
+            },
+          },
+          model: { type: 'string', required: true },
         },
       },
     },
@@ -76,7 +93,11 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; poolId: string }>ctx.request.body;
     const result = await this.service.getLiquidityPoolByPoolId(req.poolId, cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = result;
+    ctx.body = {
+      poolId: result.poolId,
+      assets: [result.tokenA.toAsset(), result.tokenB.toAsset()],
+      model: 'UNISWAP',
+    };
   }
 
   @request('post', '/v1/liquidity-pool/create')
@@ -134,9 +155,9 @@ export default class DexLiquidityPoolController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountIn: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            tokenA: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountOut: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            tokenB: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             stage: {
               type: 'array',
               items: {
@@ -164,7 +185,15 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script }>ctx.request.body;
     const result = await this.service.getOrders(cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = result;
+    ctx.body = result.map((x) => {
+      return {
+        transactionHash: x.transactionHash,
+        tokenA: x.amountIn.toAsset(),
+        tokenB: x.amountOut.toAsset(),
+        stage: x.stage,
+        type: x.type,
+      };
+    });
   }
 
   @request('post', '/v1/liquidity-pool/orders/genesis-liquidity')

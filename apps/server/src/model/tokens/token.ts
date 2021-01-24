@@ -1,4 +1,5 @@
 import { Script } from '..';
+import { AssetSchema } from '../../controller/swaggerSchema';
 
 export class Token {
   typeHash: string;
@@ -50,6 +51,19 @@ export class Token {
     }
 
     return new Token(value.typeHash);
+  }
+
+  toAsset(): AssetSchema {
+    return new AssetSchema(
+      this.typeHash,
+      { ...this.typeScript },
+      this.info.name,
+      this.info.symbol,
+      this.info.decimal,
+      this.info.logoUri,
+      this.info.chainType,
+      this.balance,
+    );
   }
 }
 

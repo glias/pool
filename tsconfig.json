@@ -2,6 +2,7 @@
   "files": [],
   "compilerOptions": {
     "composite": true,
+    "experimentalDecorators": true,
     "baseUrl": "./packages",
     "module": "commonjs",
     "target": "ES2020",
