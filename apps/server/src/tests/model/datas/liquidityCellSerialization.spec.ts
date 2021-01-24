@@ -29,7 +29,7 @@ test('serialized encoding and decoding args', () => {
 
   expect(CellInfoSerializationHolderFactory.getInstance().getLiquidityCellSerialization().decodeArgs(argsHex)).toEqual({
     ...liquidity,
-    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash).slice(2, 42)}`,
+    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash)}`,
   });
 });
 

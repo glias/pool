@@ -15,7 +15,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
         amount0,
         amount1,
       })
-      .toString('hex')}${infoTypeHash.slice(2, 42)}`;
+      .toString('hex')}${infoTypeHash.slice(2, 66)}`;
   }
 
   decodeArgs(argsHex: string): LiquidityOrderCellArgs {

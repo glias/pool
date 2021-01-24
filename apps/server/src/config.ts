@@ -1,7 +1,7 @@
 import * as dex from './model';
 import dotenv from 'dotenv';
-import { MySqlConnectionConfig } from 'knex';
 dotenv.config();
+import { MySqlConnectionConfig } from 'knex';
 
 export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
@@ -19,7 +19,7 @@ export const env = process.env.NODE_ENV || 'development';
 
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
-export const SWAP_ORDER_LOCK_CODE_TYPE_HASH = process.env.SWAP_ORDER_LOCK_CODE_TYPE_HASH;
+export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE;
 export const INFO_TYPE_CODE_HASH =
   process.env.INFO_TYPE_CODE_HASH || '0x0000000000000000000000000000000000000000000000000000000000000011';
 export const INFO_LOCK_CODE_HASH =

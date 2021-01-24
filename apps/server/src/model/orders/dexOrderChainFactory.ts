@@ -1,12 +1,18 @@
 import { BridgeInfoMatchChain, Input, Script, TransactionWithStatus } from '..';
+import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
+import { DexSwapOrderChain } from './dexSwapOrderChain';
 
 export class DexOrderChainFactory {
   private inputOutPointWithTransaction: Map<string, TransactionWithStatus>;
-
   private orderCells: DexOrderChain[];
+  private readonly markTheCellThatHasBeenTracked: Set<string>;
+  private readonly isSwapOrder: boolean;
 
-  private readonly markTheCellThatHasBeenTracked: Set<string> = new Set();
+  constructor(isSwapOrder: boolean) {
+    this.isSwapOrder = isSwapOrder;
+    this.markTheCellThatHasBeenTracked = new Set();
+  }
 
   getOrderChains(
     lock: Script,
@@ -59,7 +65,9 @@ export class DexOrderChainFactory {
     const output = nextTx.transaction.outputs[index];
     const data = nextTx.transaction.outputsData[index];
 
-    return new DexOrderChain(output, data, nextTx, index, null);
+    return this.isSwapOrder
+      ? new DexSwapOrderChain(output, data, nextTx, index, false, null)
+      : new DexLiquidityChain(output, data, nextTx, index, false, null);
   }
 
   private matchIndexOfInputInArray(inputs: Input[], targetInputOutPoint: string): number {
@@ -100,12 +108,15 @@ export class DexOrderChainFactory {
           output.type.args === type.args
         ) {
           const data = x.transaction.outputsData[index];
-          const bridgeInfoResult = bridgeInfoMatch.match(x.transaction.hash);
+          const bridgeInfoResult = bridgeInfoMatch ? bridgeInfoMatch.match(x.transaction.hash) : null;
           const isIn = bridgeInfoResult ? bridgeInfoResult.isIn : null;
           const isOrder = bridgeInfoResult ? bridgeInfoResult.isOrder : null;
           const bridgeInfo = bridgeInfoResult ? bridgeInfoResult.bridgeInfo : null;
+          const order = this.isSwapOrder
+            ? new DexSwapOrderChain(output, data, x, index, false, null, isIn, isOrder, bridgeInfo)
+            : new DexLiquidityChain(output, data, x, index, false, null);
 
-          orderCells.push(new DexOrderChain(output, data, x, index, null, isIn, isOrder, bridgeInfo));
+          orderCells.push(order);
         }
       });
     });

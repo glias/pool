@@ -1,13 +1,13 @@
 import { Context } from 'koa';
-import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TokenTokenHolderFactory } from '../model';
+import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TokenHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
-import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
+import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockDev } from '../tests/mock_data';
+import { mockSwapOrder } from '../tests/mock_data';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -30,8 +30,8 @@ export class DexSwapService {
   }
 
   async orders(lock: Script, _limit: number, _skip: number): Promise<OrderHistory[]> {
-    const types = TokenTokenHolderFactory.getInstance().getTypeScripts();
-    const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH, lock.toHash());
+    const types = TokenHolderFactory.getInstance().getTypeScripts();
+    const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock);
 
     const orders: DexOrderChain[] = [];
@@ -67,22 +67,22 @@ export class DexSwapService {
     const mock = MockRepositoryFactory.getDexRepositoryInstance();
     mock
       .mockCollectTransactions()
-      .resolves(mockDev)
+      .resolves([])
       .withArgs({
         lock: {
           script: orderLock.toLumosScript(),
           argsLen: 'any',
         },
-        type: {
-          codeHash: '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-          hashType: 'type',
-          args: '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
-        },
+        type: new Script(
+          '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+          'type',
+          '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+        ).toLumosScript(),
         order: 'desc',
-      });
+      })
+      .resolves(mockSwapOrder);
     const txs = await mock.collectTransactions(queryOptions);
-
-    const factory = new DexOrderChainFactory();
+    const factory = new DexOrderChainFactory(true);
     const orders = factory.getOrderChains(orderLock, type, txs, bridgeInfoMatch);
 
     return orders;

@@ -161,7 +161,10 @@ export default class DexLiquidityPoolController {
     skip: { type: 'number', required: true },
   })
   public async getOrders(ctx: Context): Promise<void> {
-    console.log(ctx);
+    const req = <{ lock: Script }>ctx.request.body;
+    const result = await this.service.getOrders(cellConver.converScript(req.lock));
+    ctx.status = 200;
+    ctx.body = result;
   }
 
   @request('post', '/v1/liquidity-pool/orders/genesis-liquidity')
