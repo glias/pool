@@ -2,13 +2,18 @@ import React from 'react';
 import { ViewContainer } from 'views/styled';
 import { SwapTable } from './SwapTable';
 import { SwapList } from './SwapList';
+import { SwapProvider } from './hook';
+import { CancelModal } from './CancelModal';
 
 const SwapView: React.FC = () => {
   return (
-    <ViewContainer>
-      <SwapTable />
-      <SwapList />
-    </ViewContainer>
+    <SwapProvider>
+      <ViewContainer>
+        <SwapTable />
+        <SwapList />
+      </ViewContainer>
+      <CancelModal />
+    </SwapProvider>
   );
 };
 

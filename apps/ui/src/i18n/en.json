@@ -12,6 +12,18 @@
         "route": "Route",
         "pay": "Pay",
         "receive": "Receive"
+      },
+      "cancel-modal": {
+        "review": "Review",
+        "operation": "Operation",
+        "cancel-swap": "Cancel Swap",
+        "pay": "Pay",
+        "cross-chain": "Cross Chain",
+        "receive": "Receive",
+        "meta": "You will get <bold>{{amount}} {{tokenName}}</bold> back to your available balance.",
+        "tx-fee": "Transaction Fee",
+        "tx-fee-desc": "This fee was paid to the CKB miner.",
+        "cancel": "Confirm Cancel"
       }
     },
     "actions": {

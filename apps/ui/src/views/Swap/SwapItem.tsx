@@ -9,6 +9,8 @@ import { AssetSymbol } from 'components/Asset';
 import { useMemo } from 'react';
 import { ReactComponent as InfoSvg } from 'asserts/svg/info.svg';
 import { ReactComponent as ArrowSvg } from 'asserts/svg/right-arrow.svg';
+import { useSwapContainer } from './hook';
+import { useCallback } from 'react';
 
 const RightArrow = styled.span`
   width: 12px;
@@ -86,19 +88,26 @@ export const Route = ({
 export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
   const balance = displayBalance(asset);
   return (
-    <span>
+    <span className="balance">
       {balance} {asset.symbol}
     </span>
   );
 };
 
 export const SwapItem = ({ order }: { order: SwapOrder }) => {
+  const { setCancelModalVisable, setCurrentOrder } = useSwapContainer();
   const timestamp = formatTimestamp(order.timestamp);
   const route = <Route tokenA={order.amountIn} tokenB={order.amountOut} orderType={order.type} />;
   const pay = <Balanced asset={order.amountIn} />;
   const receive = <Balanced asset={order.amountOut} />;
   const { status } = order.stage;
   const { type } = order;
+
+  const openCancelModal = useCallback(() => {
+    setCurrentOrder(order);
+    setCancelModalVisable(true);
+  }, [setCancelModalVisable, setCurrentOrder, order]);
+
   const action = useMemo(() => {
     const cancelBtn =
       status === 'pending' ? (
@@ -106,7 +115,12 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
           {i18n.t('actions.pending')}
         </Button>
       ) : type !== SwapOrderType.CrossChain ? (
-        <Button type="default" loading={status === 'canceling'} disabled={status === 'canceling'}>
+        <Button
+          type="default"
+          loading={status === 'canceling'}
+          disabled={status === 'canceling'}
+          onClick={openCancelModal}
+        >
           {i18n.t('actions.cancel')}
         </Button>
       ) : null;
@@ -116,7 +130,8 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
         <Button type="default" icon={<InfoSvg />} />
       </>
     );
-  }, [status, type]);
+  }, [status, type, openCancelModal]);
+
   return (
     <List.Item>
       <ItemContainer>
