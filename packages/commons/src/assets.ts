@@ -74,7 +74,7 @@ export function isEthNativeAsset(asset: Asset): asset is EthNativeAsset {
 }
 
 export function isEthErc20Asset(asset: Asset): asset is EthErc20Asset {
-  return has(asset, 'address');
+  return has(asset, 'address') && isEthAsset(asset);
 }
 
 export function isShadowAsset(asset: Asset): asset is ShadowAssetWithBalance {

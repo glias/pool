@@ -4,7 +4,7 @@ import i18n from 'i18n';
 import { SwapOrder, GliaswapAssetWithBalance, SwapOrderType, isShadowAsset } from '@gliaswap/commons';
 import styled from 'styled-components';
 import { TableRow } from 'components/TableRow';
-import { displayBalance, formatTimestamp } from 'utils';
+import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
 import { AssetSymbol } from 'components/Asset';
 import { useMemo } from 'react';
 import { ReactComponent as InfoSvg } from 'asserts/svg/info.svg';
@@ -99,7 +99,15 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
   const timestamp = formatTimestamp(order.timestamp);
   const route = <Route tokenA={order.amountIn} tokenB={order.amountOut} orderType={order.type} />;
   const pay = <Balanced asset={order.amountIn} />;
-  const receive = <Balanced asset={order.amountOut} />;
+  const receive = (
+    <Balanced
+      asset={
+        order.type === SwapOrderType.CrossChain && isShadowAsset(order.amountIn)
+          ? { ...order.amountOut, balance: calcCrossIn(order.amountOut.balance) }
+          : order.amountOut
+      }
+    />
+  );
   const { status } = order.stage;
   const { type } = order;
 

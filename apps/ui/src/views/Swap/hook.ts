@@ -10,6 +10,7 @@ import { Transaction } from '@lay2/pw-core';
 import { useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
+import { swapOrders } from 'mock/order-list';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -25,8 +26,10 @@ const useSwap = () => {
   const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
-  const [tokenA, setTokenA] = useState<GliaswapAssetWithBalance>();
-  const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>();
+  const [tokenA, setTokenA] = useState<GliaswapAssetWithBalance>(swapOrders[0].amountOut);
+  const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(swapOrders[0].amountIn);
+  const [pay, setPay] = useState('');
+  const [receive, setReceive] = useState('');
   const swapMode = useMemo(() => {
     if (!tokenA || !tokenB) {
       return SwapMode.NormalOrder;
@@ -64,6 +67,10 @@ const useSwap = () => {
     swapMode,
     setTokenA,
     setTokenB,
+    pay,
+    receive,
+    setPay,
+    setReceive,
   };
 };
 

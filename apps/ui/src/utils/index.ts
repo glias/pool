@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { GliaswapAssetWithBalance } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
+import { CROSS_CHAIN_FEE } from 'suite/constants';
 
 /**
  * @example
@@ -15,7 +16,7 @@ export function truncateMiddle(str: string, takeLength = 6, tailLength = takeLen
 }
 
 export function formatTimestamp(timestamp: string) {
-  return dayjs(parseInt(timestamp, 10)).format('YYYY/MM/DD HH:mm:ss');
+  return dayjs(new BigNumber(timestamp).toNumber()).format('YYYY/MM/DD HH:mm:ss');
 }
 
 // export function getShadowAssetByERC20(erc20: ): Asset {
@@ -32,4 +33,8 @@ export function displayBalance(asset: GliaswapAssetWithBalance) {
     .toFormat(8, BigNumber.ROUND_DOWN);
 
   return removeTrailingZero(balance.toString());
+}
+
+export function calcCrossIn(amount: string) {
+  return new BigNumber(amount).times(1 - CROSS_CHAIN_FEE).toString();
 }

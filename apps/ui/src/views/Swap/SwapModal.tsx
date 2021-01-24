@@ -97,7 +97,7 @@ export const SwapModal = () => {
               ) : null}
             </MetaContainer>
           ) : (
-            <CrossMeta isBid={false} pureCross={swapMode === SwapMode.CrossIn} />
+            <CrossMeta isBid={false} pureCross={swapMode === SwapMode.CrossOut} />
           )}
         </Form.Item>
         {currentCkbTx ? (

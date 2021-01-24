@@ -8,7 +8,8 @@ import { InputNumber } from 'components/InputNumber';
 import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'asserts/svg/swap.svg';
 import { useCallback } from 'react';
-import { useSwapContainer } from './hook';
+import { SwapMode, useSwapContainer } from './hook';
+import { GliaswapAssetWithBalance } from '@gliaswap/commons';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -24,11 +25,60 @@ const FormContainer = styled(Form)`
 
 export const SwapTable: React.FC = () => {
   const [form] = Form.useForm();
-  const { setReviewModalVisable } = useSwapContainer();
+  const {
+    setReviewModalVisable,
+    swapMode,
+    setPay,
+    setReceive,
+    setTokenA,
+    tokenA,
+    setTokenB,
+    tokenB,
+  } = useSwapContainer();
+
+  const getBalance = useCallback(
+    (field: string, asset: GliaswapAssetWithBalance) => {
+      const val = form.getFieldValue(field);
+      return new BigNumber(val).times(10 ** asset.decimals).toFixed(asset.decimals, BigNumber.ROUND_DOWN);
+    },
+    [form],
+  );
 
   const onSubmit = useCallback(() => {
+    const newTokenA: GliaswapAssetWithBalance = { ...tokenA, balance: getBalance('pay', tokenA) };
+    const newTokenB: GliaswapAssetWithBalance = { ...tokenB, balance: getBalance('receive', tokenB) };
+    setTokenA(newTokenA);
+    setTokenB(newTokenB);
     setReviewModalVisable(true);
-  }, [setReviewModalVisable]);
+  }, [setReviewModalVisable, setTokenA, tokenA, setTokenB, tokenB, getBalance]);
+
+  const payOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (swapMode === SwapMode.CrossIn) {
+        setPay(e.target.value);
+        form.setFieldsValue({ receive: val });
+      } else if (swapMode === SwapMode.CrossOut) {
+        setPay(e.target.value);
+        form.setFieldsValue({ receive: new BigNumber(val).times(0.999) });
+      }
+    },
+    [setPay, swapMode, form],
+  );
+
+  const receiveOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (swapMode === SwapMode.CrossIn) {
+        setReceive(e.target.value);
+        form.setFieldsValue({ pay: val });
+      } else if (swapMode === SwapMode.CrossOut) {
+        setReceive(e.target.value);
+        form.setFieldsValue({ pay: new BigNumber(val).div(0.999) });
+      }
+    },
+    [setReceive, swapMode, form],
+  );
 
   return (
     <Block>
@@ -39,6 +89,9 @@ export const SwapTable: React.FC = () => {
           max="0.1"
           assets={[]}
           renderKeys={(_, i) => i}
+          inputProps={{
+            onChange: payOnChange,
+          }}
           formItemProps={{
             rules: [
               {
@@ -46,6 +99,7 @@ export const SwapTable: React.FC = () => {
                   if (new BigNumber(val).isLessThan(1)) {
                     return Promise.reject('some error');
                   }
+                  return Promise.resolve();
                 },
               },
             ],
@@ -59,6 +113,9 @@ export const SwapTable: React.FC = () => {
           name="receive"
           max="0.1"
           assets={[]}
+          inputProps={{
+            onChange: receiveOnChange,
+          }}
           renderKeys={(_, i) => i}
         />
         <Form.Item className="submit">
