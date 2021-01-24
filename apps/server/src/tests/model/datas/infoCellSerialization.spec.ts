@@ -15,8 +15,8 @@ test('serialized encoding and decoding args', () => {
     .encodeArgs(ckbUtils.scriptToHash(typeHash1), ckbUtils.scriptToHash(typeHash2));
 
   expect(CellInfoSerializationHolderFactory.getInstance().getInfoCellSerialization().decodeArgs(argsHex)).toEqual({
-    hash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 42)}`,
-    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 42)}`,
+    hash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 66)}`,
+    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash2).slice(2, 66)}`,
   });
 });
 
@@ -39,6 +39,6 @@ test('serialized encoding and decoding data', () => {
 
   expect(CellInfoSerializationHolderFactory.getInstance().getInfoCellSerialization().decodeData(dataHex)).toEqual({
     ...data,
-    liquiditySudtTypeHash20: ckbUtils.scriptToHash(typeHash).slice(0, 42),
+    liquiditySudtTypeHash: ckbUtils.scriptToHash(typeHash).slice(0, 66),
   });
 });
