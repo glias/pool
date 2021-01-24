@@ -15,7 +15,7 @@ import { ReactComponent as DownArrowSvg } from 'asserts/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 
-const Container = styled(ModalContainer)`
+export const Container = styled(ModalContainer)`
   .cancel {
     color: #f35252;
   }

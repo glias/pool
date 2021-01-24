@@ -7,6 +7,8 @@ import i18n from 'i18n';
 import { InputNumber } from 'components/InputNumber';
 import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'asserts/svg/swap.svg';
+import { useCallback } from 'react';
+import { useSwapContainer } from './hook';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -22,6 +24,12 @@ const FormContainer = styled(Form)`
 
 export const SwapTable: React.FC = () => {
   const [form] = Form.useForm();
+  const { setReviewModalVisable } = useSwapContainer();
+
+  const onSubmit = useCallback(() => {
+    setReviewModalVisable(true);
+  }, [setReviewModalVisable]);
+
   return (
     <Block>
       <FormContainer form={form} layout="vertical">
@@ -54,7 +62,7 @@ export const SwapTable: React.FC = () => {
           renderKeys={(_, i) => i}
         />
         <Form.Item className="submit">
-          <ConfirmButton text={i18n.t('swap.order-table.swap')} />
+          <ConfirmButton text={i18n.t('swap.order-table.swap')} htmlType="submit" onClick={onSubmit} />
         </Form.Item>
       </FormContainer>
     </Block>

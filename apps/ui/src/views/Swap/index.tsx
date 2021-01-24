@@ -4,6 +4,7 @@ import { SwapTable } from './SwapTable';
 import { SwapList } from './SwapList';
 import { SwapProvider } from './hook';
 import { CancelModal } from './CancelModal';
+import { SwapModal } from './SwapModal';
 
 const SwapView: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ const SwapView: React.FC = () => {
         <SwapList />
       </ViewContainer>
       <CancelModal />
+      <SwapModal />
     </SwapProvider>
   );
 };

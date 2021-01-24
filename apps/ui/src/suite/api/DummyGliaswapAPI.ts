@@ -20,7 +20,7 @@ import {
   ethNativeWithBalance,
 } from '../placeholder/assets';
 
-import { swapIrders } from 'mock/order-list';
+import { swapOrders } from 'mock/order-list';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
   getDefaultAssetList() {
@@ -104,7 +104,7 @@ export class DummyGliaswapAPI implements GliaswapAPI {
   }
 
   getSwapOrders(): Promise<SwapOrder[]> {
-    return Promise.resolve(swapIrders);
+    return Promise.resolve(swapOrders);
   }
 
   swapCrossChainOrder(): Promise<TransactionConfig> {

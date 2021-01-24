@@ -1,6 +1,6 @@
 import { SwapOrder, SwapOrderType } from '@gliaswap/commons';
 
-export const swapIrders: SwapOrder[] = [
+export const swapOrders: SwapOrder[] = [
   {
     transactionHash: '123',
     timestamp: '1611394969541',
@@ -69,7 +69,7 @@ export const swapIrders: SwapOrder[] = [
       name: 'CKB',
       decimals: 8,
       symbol: 'CKB',
-      typeHash: '',
+      typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
       balance: '1234578901234578900',
       locked: '',
       logoURI: 'https://www.nervos.org/wp-content/uploads/2020/12/nervos-logo-white-700px.png',

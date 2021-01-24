@@ -24,6 +24,13 @@
         "tx-fee": "Transaction Fee",
         "tx-fee-desc": "This fee was paid to the CKB miner.",
         "cancel": "Confirm Cancel"
+      },
+      "swap-modal": {
+        "swap": "Swap",
+        "cross-meta": "You will receive additional {{amount}} CKB given free by CrossChain Relayer once you cross chain successfully. ",
+        "order-meta": "Placing this Order will lock your additional {{amount}} CKB in the Order. ",
+        "learn-why": "Learn Why",
+        "confirm": "Confirm"
       }
     },
     "actions": {
