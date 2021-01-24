@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 
 import { Script } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
-import { ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
+import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 import { cellConver, Token } from '../model';
 
 const swapTag = tags(['Swap']);
@@ -29,9 +29,9 @@ export default class DexSwapController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountIn: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountIn: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountOut: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountOut: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             stage: {
               type: 'object',
               properties: {

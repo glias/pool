@@ -62,7 +62,7 @@ export class Token {
       this.typeScript ? { ...this.typeScript } : null,
       this.info.name,
       this.info.symbol,
-      this.info.decimal,
+      this.info.decimals,
       this.info.logoURI,
       this.info.chainType,
       new BigNumber(this.balance).toString(),
@@ -74,14 +74,14 @@ export class Token {
 export class TokenInfo {
   name: string;
   symbol: string;
-  decimal: number;
+  decimals: number;
   logoURI: string;
   address: string;
   chainType: string;
-  constructor(name: string, symbol: string, decimal: number, logoURI: string, address: string, chainType: string) {
+  constructor(name: string, symbol: string, decimals: number, logoURI: string, address: string, chainType: string) {
     this.name = name;
     this.symbol = symbol;
-    this.decimal = decimal;
+    this.decimals = decimals;
     this.logoURI = logoURI;
     this.address = address;
     this.chainType = chainType;

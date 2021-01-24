@@ -61,7 +61,7 @@ export default class DexTokenController {
         info: {
           name: token.info.name,
           symbol: token.info.symbol,
-          decimals: token.info.decimal,
+          decimals: token.info.decimals,
           logo_uri: token.info.logoURI,
         },
       };
@@ -70,8 +70,8 @@ export default class DexTokenController {
         new Script(lock.codeHash, lock.hashType, lock.args).toPwScript(),
       );
 
-      const amount = new pwCore.Amount('0', token.info.decimal);
-      const occupiedCapacity = new pwCore.Amount('0', token.info.decimal);
+      const amount = new pwCore.Amount('0', token.info.decimals);
+      const occupiedCapacity = new pwCore.Amount('0', token.info.decimals);
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
           occupiedCapacity.add(cell.occupiedCapacity());
@@ -109,7 +109,7 @@ function toCKBAsset(token: Token): commons.CkbAsset {
   return {
     chainType: 'Nervos',
     name: token.info.name,
-    decimals: token.info.decimal,
+    decimals: token.info.decimals,
     symbol: token.info.symbol,
     logoURI: token.info.logoURI,
     typeHash: token.typeHash,

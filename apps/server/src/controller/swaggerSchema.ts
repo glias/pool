@@ -18,7 +18,7 @@ export class TokenInfoSchema {
   @swaggerProperty({ type: 'string', required: true })
   symbol: string;
   @swaggerProperty({ type: 'number', required: true })
-  decimal: number;
+  decimals: number;
   @swaggerProperty({ type: 'string', required: true })
   logoURI: string;
   @swaggerProperty({ type: 'string', required: true })
@@ -161,18 +161,25 @@ export class AssetSchema {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
   typeScript: ScriptSchema;
+
   @swaggerProperty({ type: 'string', required: true })
   name: string;
+
   @swaggerProperty({ type: 'string', required: true })
   symbol: string;
+
   @swaggerProperty({ type: 'number', required: true })
-  decimal: number;
+  decimals: number;
+
   @swaggerProperty({ type: 'string', required: true })
   logoURI: string;
+
   @swaggerProperty({ type: 'string', required: true })
   chainType: string;
+
   @swaggerProperty({ type: 'string', required: true })
   balance: string;
+
   @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
   shadowFrom?: TokenInfoSchema;
 
@@ -181,7 +188,7 @@ export class AssetSchema {
     typeScript: ScriptSchema,
     name: string,
     symbol: string,
-    decimal: number,
+    decimals: number,
     logoURI: string,
     chainType: string,
     balance: string,
@@ -196,7 +203,7 @@ export class AssetSchema {
 
     this.name = name;
     this.symbol = symbol;
-    this.decimal = decimal;
+    this.decimals = decimals;
     this.logoURI = logoURI;
     this.chainType = chainType;
     this.balance = balance;
