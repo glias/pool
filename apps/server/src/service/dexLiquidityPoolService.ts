@@ -1,12 +1,15 @@
 import { Server } from '@gliaswap/types';
 import { Context } from 'koa';
-import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenTokenHolderFactory } from '../model';
+import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
 import { TxBuilderService, CancelOrderType } from '.';
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockCkEthPoolInfo, mockGliaPoolInfo, mockUserLiquidityCells } from '../tests/mock_data';
+import { mockCkEthPoolInfo, mockGliaPoolInfo, mockLiquidityOrder, mockUserLiquidityCells } from '../tests/mock_data';
 import { QueryOptions } from '@ckb-lumos/base';
+import { ScriptBuilder } from '../model';
+import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
+import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
@@ -15,6 +18,47 @@ export class DexLiquidityPoolService {
   constructor() {
     this.dexRepository = ckbRepository;
     this.txBuilderService = new TxBuilderService();
+  }
+
+  async getOrders(lock: Script): Promise<OrderHistory[]> {
+    const liquidityOrders: DexOrderChain[] = [];
+    const factory = new DexOrderChainFactory(false);
+
+    for (const type of TokenHolderFactory.getInstance().getTypeScripts()) {
+      const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
+      const queryOptions: QueryOptions = {
+        lock: {
+          script: orderLock.toLumosScript(),
+          argsLen: 'any',
+        },
+        type: type.toLumosScript(),
+        order: 'desc',
+      };
+
+      // const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
+      const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      mock
+        .mockCollectTransactions()
+        .resolves([])
+        .withArgs({
+          lock: {
+            script: orderLock.toLumosScript(),
+            argsLen: 'any',
+          },
+          type: new Script(
+            '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+            'type',
+            '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+          ).toLumosScript(),
+          order: 'desc',
+        })
+        .resolves(mockLiquidityOrder);
+      const liquidityTxs = await mock.collectTransactions(queryOptions);
+      const orders = factory.getOrderChains(orderLock, type, liquidityTxs, null);
+      orders.forEach((x) => liquidityOrders.push(x));
+    }
+
+    return liquidityOrders.map((x) => x.getOrderHistory());
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {
@@ -56,14 +100,14 @@ export class DexLiquidityPoolService {
         .withArgs({
           lock: queryOptions.lock,
           type: new Script(
-            TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+            TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
             'type',
             new Script(
               INFO_LOCK_CODE_HASH,
               'type',
               CellInfoSerializationHolderFactory.getInstance()
                 .getInfoCellSerialization()
-                .encodeArgs(CKB_STR_TO_HASH, TokenTokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
+                .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
             ).toHash(),
           ).toLumosScript(),
         })
@@ -95,7 +139,7 @@ export class DexLiquidityPoolService {
 
   private async getPoolInfos(): Promise<PoolInfo[]> {
     const poolInfos: PoolInfo[] = [];
-    const tokens = TokenTokenHolderFactory.getInstance().getTokens();
+    const tokens = TokenHolderFactory.getInstance().getTokens();
     for (const type of POOL_INFO_TYPE_SCRIPT) {
       const queryOptions: QueryOptions = {
         lock: {
@@ -141,7 +185,7 @@ export class DexLiquidityPoolService {
         .sudtReserve.toString();
 
       // Prevent modification to the same tokenA
-      const tokenA = { ...TokenTokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH) };
+      const tokenA = { ...TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH) };
       tokenA.balance = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
         .decodeData(poolCell[0].data)

@@ -1,5 +1,5 @@
 import { body, Context, request, summary, tags, description } from 'koa-swagger-decorator';
-import { TokenTokenHolderFactory, Token, Script } from '../model';
+import { TokenHolderFactory, Token, Script } from '../model';
 import { TokenCellCollectorService } from '../service';
 // import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
 
@@ -23,7 +23,7 @@ export default class DexTokenController {
   @description('Get Token List')
   @tokenTag
   public async getDefaultAssetList(ctx: Context): Promise<void> {
-    const tokens = TokenTokenHolderFactory.getInstance().getTokens();
+    const tokens = TokenHolderFactory.getInstance().getTokens();
     const assets = tokens.map(toCKBAsset);
 
     ctx.body = assets;
@@ -32,7 +32,7 @@ export default class DexTokenController {
   public async getAssetList(ctx: Context): Promise<void> {
     const name = ctx.request.body.name;
 
-    const _tokens = TokenTokenHolderFactory.getInstance()
+    const _tokens = TokenHolderFactory.getInstance()
       .getTokens()
       .filter((token) => token.info.name === name)
       .map(toCKBAsset);
@@ -44,10 +44,10 @@ export default class DexTokenController {
     const lock: commons.Script = ctx.request.body.lock;
     const assets: commons.CkbAsset[] = ctx.request.body.assets;
 
-    let tokens = TokenTokenHolderFactory.getInstance().getTokens();
+    let tokens = TokenHolderFactory.getInstance().getTokens();
     if (assets) {
       tokens = assets.map((asset) => {
-        return TokenTokenHolderFactory.getInstance().getTokenByTypeHash(asset.typeHash);
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(asset.typeHash);
       });
     }
 
