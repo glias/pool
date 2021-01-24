@@ -2,7 +2,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import * as pw from '@lay2/pw-core';
-import { DexRepository } from '.';
+import { DexRepository, txHash } from '.';
 import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import {
   BridgeInfo,
@@ -106,6 +106,10 @@ export class CkbRepository implements DexRepository {
     req.push(['getBlock', blockHash]);
     const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
     return block[0].header.timestamp;
+  }
+
+  async sendTransaction(tx: CKBComponents.RawTransaction): Promise<txHash> {
+    return await this.ckbNode.rpc.sendTransaction(tx);
   }
 
   /**

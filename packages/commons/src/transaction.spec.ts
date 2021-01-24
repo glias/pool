@@ -7,7 +7,7 @@ test('serialize and deserialize transaction', () => {
     cellDeps: [],
     headerDeps: [],
     inputCells: [],
-    outputs: [],
+    outputCells: [],
     version: '0x01',
   });
 

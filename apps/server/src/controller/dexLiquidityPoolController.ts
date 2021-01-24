@@ -1,7 +1,7 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
-import { AssetSchema, ScriptSchema, TokenSchema, TransactionSchema } from './swaggerSchema';
+import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
 
@@ -111,7 +111,7 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           lpToken: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
@@ -207,7 +207,7 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -250,7 +250,7 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -299,7 +299,7 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },
@@ -345,7 +345,7 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionSchema as any).swaggerDocument, required: true },
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
           fee: { type: 'string', required: true },
         },
       },

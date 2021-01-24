@@ -22,9 +22,9 @@ export type WitnessArgs = {
   outputType: string;
 };
 
-export type SerializedTransaction = {
+export type SerializedTransactonToSign = {
   inputCells: InputCell[];
-  outputs: OutputCell[];
+  outputCells: OutputCell[];
   cellDeps: CKBComponents.RawTransactionToSign['cellDeps'];
   headerDeps: CKBComponents.RawTransactionToSign['headerDeps'];
   version: CKBComponents.RawTransactionToSign['version'];
@@ -32,8 +32,8 @@ export type SerializedTransaction = {
   witnessArgs: WitnessArgs[];
 };
 
-export type SerializedTransactionWithFee = {
-  transaction: SerializedTransaction;
+export type SerializedTransactionToSignWithFee = {
+  transactionToSign: SerializedTransactonToSign;
   fee: string;
 };
 
@@ -85,9 +85,9 @@ function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
   return dep.serializeJson() as CKBComponents.CellDep;
 }
 
-function deserializeTransaction(serialized: SerializedTransaction): Transaction {
+function deserializeTransactionToSign(serialized: SerializedTransactonToSign): Transaction {
   const inputCells: Cell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
-  const outputs: Cell[] = serialized.outputs.map((cell) => deserializeOutputCell(cell));
+  const outputs: Cell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
   const cellDeps: CellDep[] = serialized.cellDeps.map(deserializeCellDeps);
 
   const raw = new RawTransaction(inputCells, outputs, cellDeps, serialized.headerDeps, serialized.version);
@@ -101,15 +101,31 @@ function deserializeTransaction(serialized: SerializedTransaction): Transaction 
   );
 }
 
-function serializeTransaction(transaction: Transaction): SerializedTransaction {
-  const serialized = transaction.serializeJson() as SerializedTransaction;
-  serialized.witnessArgs = transaction.witnessArgs.map((arg) => ({
-    inputType: arg.input_type,
-    lock: arg.lock,
-    outputType: arg.output_type,
-  }));
+function serializedSignedTransaction(transaction: Transaction): CKBComponents.RawTransaction {
+  const cellDeps: CKBComponents.CellDep[] = transaction.raw.cellDeps.map((dep) => {
+    return {
+      outPoint: dep.outPoint,
+      depType: dep.depType == DepType.code ? 'code' : 'depGroup',
+    };
+  });
+  const { version, headerDeps, inputs, outputsData } = transaction.raw;
+  const outputs = transaction.raw.outputs.map((output) => {
+    return {
+      capacity: output.capacity.toHexString(),
+      lock: output.lock,
+      type: output.type,
+    };
+  });
 
-  return serialized;
+  return {
+    version,
+    cellDeps,
+    headerDeps,
+    inputs,
+    outputs,
+    outputsData,
+    witnesses: transaction.witnesses,
+  };
 }
 
 /**
@@ -120,11 +136,11 @@ export const TransactionHelper = {
   deserializeOutputCell,
   deserializeInputCell,
   deserializeScript,
-  deserializeTransaction,
+  deserializeTransactionToSign,
 
   serializeCellDep,
   serializeScript,
   serializeOutputCell,
   serializeInputCell,
-  serializeTransaction,
+  serializedSignedTransaction,
 };

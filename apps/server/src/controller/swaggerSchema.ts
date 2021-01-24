@@ -83,11 +83,12 @@ export class CellSchema {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
   type: ScriptSchema;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @swaggerProperty({ type: 'object', properties: (OutPointSchema as any).swaggerDocument })
-  outPoint: OutPointSchema;
   @swaggerProperty({ type: 'string' })
   data: string;
+  @swaggerProperty({ type: 'string' })
+  txHash: string;
+  @swaggerProperty({ type: 'string' })
+  index: string;
 }
 
 @swaggerClass()
@@ -101,7 +102,26 @@ export class WitnessArgsSchema {
 }
 
 @swaggerClass()
-export class TransactionSchema {
+export class TransactionToSignSchema {
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
+  inputCells: Array<CellSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
+  outputCells: Array<CellSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellDepSchema as any).swaggerDocument } })
+  cellDeps: Array<CellDepSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'string' } })
+  headerDeps: Array<string>;
+  @swaggerProperty({ type: 'string', required: true })
+  version: string;
+  @swaggerProperty({
+    type: 'array',
+    items: { type: 'object', properties: (WitnessArgsSchema as any).swaggerProperty },
+  })
+  witnessArgs: Array<WitnessArgsSchema>;
+}
+
+@swaggerClass()
+export class SignedTransactionSchema {
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
   inputCells: Array<CellSchema>;
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
