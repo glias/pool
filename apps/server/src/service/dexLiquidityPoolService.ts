@@ -6,12 +6,11 @@ import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
-import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockCkEthPoolInfo, mockGliaPoolInfo, mockUserLiquidityCells, mockLiquidityOrder } from '../tests/mock_data';
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
+import { DexRepository } from '../repository';
 
 export class DexLiquidityPoolService {
-  // private readonly dexRepository: DexRepository;
+  private readonly dexRepository: DexRepository;
   private readonly txBuilderService: txBuilder.TxBuilderService;
 
   constructor() {
@@ -34,25 +33,25 @@ export class DexLiquidityPoolService {
         order: 'desc',
       };
 
-      // const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
-      const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      mock
-        .mockCollectTransactions()
-        .resolves([])
-        .withArgs({
-          lock: {
-            script: orderLock.toLumosScript(),
-            argsLen: 'any',
-          },
-          type: new Script(
-            '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-            'type',
-            '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
-          ).toLumosScript(),
-          order: 'desc',
-        })
-        .resolves(mockLiquidityOrder);
-      const liquidityTxs = await mock.collectTransactions(queryOptions);
+      const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
+      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      // mock
+      //   .mockCollectTransactions()
+      //   .resolves([])
+      //   .withArgs({
+      //     lock: {
+      //       script: orderLock.toLumosScript(),
+      //       argsLen: 'any',
+      //     },
+      //     type: new Script(
+      //       '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+      //       'type',
+      //       '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+      //     ).toLumosScript(),
+      //     order: 'desc',
+      //   })
+      //   .resolves(mockLiquidityOrder);
+      // const liquidityTxs = await mock.collectTransactions(queryOptions);
       const orders = factory.getOrderChains(orderLock, type, liquidityTxs, null);
       orders.forEach((x) => liquidityOrders.push(x));
     }
@@ -90,29 +89,29 @@ export class DexLiquidityPoolService {
         lock: lock.toLumosScript(),
         type: new Script(poolInfo.tokenB.typeHash, 'type', script.toHash()).toLumosScript(),
       };
-      // const userLiquidity = await this.dexRepository.collectCells(queryOptions);
+      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
 
-      const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      mock
-        .mockCollectCells()
-        .resolves([])
-        .withArgs({
-          lock: queryOptions.lock,
-          type: new Script(
-            TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-            'type',
-            new Script(
-              INFO_LOCK_CODE_HASH,
-              'type',
-              CellInfoSerializationHolderFactory.getInstance()
-                .getInfoCellSerialization()
-                .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
-            ).toHash(),
-          ).toLumosScript(),
-        })
-        .resolves(mockUserLiquidityCells);
+      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      // mock
+      //   .mockCollectCells()
+      //   .resolves([])
+      //   .withArgs({
+      //     lock: queryOptions.lock,
+      //     type: new Script(
+      //       TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+      //       'type',
+      //       new Script(
+      //         INFO_LOCK_CODE_HASH,
+      //         'type',
+      //         CellInfoSerializationHolderFactory.getInstance()
+      //           .getInfoCellSerialization()
+      //           .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
+      //       ).toHash(),
+      //     ).toLumosScript(),
+      //   })
+      //   .resolves(mockUserLiquidityCells);
 
-      const userLiquidityCells = await mock.collectCells(queryOptions);
+      // const userLiquidityCells = await mock.collectCells(queryOptions);
 
       if (userLiquidityCells.length === 0) {
         continue;
@@ -152,23 +151,23 @@ export class DexLiquidityPoolService {
         type: type.toLumosScript(),
       };
 
-      // const poolCell = await this.dexRepository.collectCells(queryOptions);
+      const poolCell = await this.dexRepository.collectCells(queryOptions);
 
-      const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      mock
-        .mockCollectCells()
-        .withArgs({
-          lock: queryOptions.lock,
-          type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
-        })
-        .resolves(mockGliaPoolInfo)
-        .withArgs({
-          lock: queryOptions.lock,
-          type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
-        })
-        .resolves(mockCkEthPoolInfo);
+      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      // mock
+      //   .mockCollectCells()
+      //   .withArgs({
+      //     lock: queryOptions.lock,
+      //     type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
+      //   })
+      //   .resolves(mockGliaPoolInfo)
+      //   .withArgs({
+      //     lock: queryOptions.lock,
+      //     type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
+      //   })
+      //   .resolves(mockCkEthPoolInfo);
 
-      const poolCell = await mock.collectCells(queryOptions);
+      // const poolCell = await mock.collectCells(queryOptions);
 
       if (poolCell.length === 0) {
         continue;

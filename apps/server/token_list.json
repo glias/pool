@@ -2,12 +2,14 @@
     {
         "typeHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "typeScript": null,
+        "shadowFromType": null,
+        "shadowFromAddress": null,
         "info": {
             "name": "CKB",
             "symbol": "CKB",
             "decimal": "8",
             "logoUri": "",
-            "issuerAddress": "",
+            "address": "",
             "chainType":"Nervos"
         }
     },
@@ -23,7 +25,7 @@
             "symbol": "GLIA",
             "decimal": "8",
             "logoUri": "",
-            "issuerAddress": "ckt1qyqppsrmkue95prhy4faekhqg7re5zxh8czq8w7sdn",
+            "address": "ckt1qyqppsrmkue95prhy4faekhqg7re5zxh8czq8w7sdn",
             "chainType":"Nervos"
         }
     },
@@ -34,12 +36,14 @@
             "hashType": "type",
             "args": "0x8462b20277bcbaa30d821790b852fb322d55c2b12e750ea91ad7059bc98dda4b"
         },
+        "shadowFromType": "erc20",
+        "shadowFromAddress": "0x0000000000000000000000000000000000000000",
         "info": {
             "name": "ckETH",
             "symbol": "ckETH",
             "decimal": "18",
             "logoUri": "",
-            "issuerAddress": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf2qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3n39hh3y",
+            "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf2qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3n39hh3y",
             "chainType":"Nervos"
         }
     },
@@ -50,12 +54,14 @@
             "hashType": "type",
             "args": "0xe18b390fbeffbe7c7a03119b54a6493d29ea428d2e1dda3efa016110c0cc1125"
         },
+        "shadowFromType": "erc20",
+        "shadowFromAddress": "0xC4401D8D5F05B958e6f1b884560F649CdDfD9615",
         "info": {
             "name": "ckDAI",
             "symbol": "ckDAI",
             "decimal": "18",
             "logoUri": "",
-            "issuerAddress": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azft3zqrkx47pdetrn0rwyy2c8kf8xalktptwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nlvy8yz",
+            "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azft3zqrkx47pdetrn0rwyy2c8kf8xalktptwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nlvy8yz",
             "chainType":"Nervos"
         }
     },
@@ -66,12 +72,14 @@
             "hashType": "type",
             "args": "0x9c3da505eac9e15cb7986c064728a130e75ab746416be0debf593e9e54f19464"
         },
+        "shadowFromType": "erc20",
+        "shadowFromAddress": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
         "info": {
             "name": "ckUSDC",
             "symbol": "ckUSDC",
             "decimal": "6",
             "logoUri": "",
-            "issuerAddress": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf28cdyfgl2xuglt7fpur0wq30lrvzz4934wux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nqalf2n",
+            "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf28cdyfgl2xuglt7fpur0wq30lrvzz4934wux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nqalf2n",
             "chainType":"Nervos"
         }
     },
@@ -82,12 +90,14 @@
             "hashType": "type",
             "args": "0x1e9d753bd0e2ef727cc32f31daa6d4f93c0130833dd7b176ce79eaa5442d32ec"
         },
+        "shadowFromType": "erc20",
+        "shadowFromAddress": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
         "info": {
             "name": "ckUSDT",
             "symbol": "ckUSDT",
             "decimal": "6",
             "logoUri": "",
-            "issuerAddress": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf288e354z7kctlsm9a2m2uxgncf6mufsclwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nv78tkl",
+            "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf288e354z7kctlsm9a2m2uxgncf6mufsclwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nv78tkl",
             "chainType":"Nervos"
         }
     }

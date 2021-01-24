@@ -1,0 +1,42 @@
+[
+    {
+        "info": {
+            "name": "ETH",
+            "symbol": "ETH",
+            "decimal": "18",
+            "logoUri": "",
+            "address": "0x0000000000000000000000000000000000000000",
+            "chainType":"Ethereum"
+        }
+    },
+    {
+        "info": {
+            "name": "DAI",
+            "symbol": "DAI",
+            "decimal": "18",
+            "logoUri": "",
+            "address": "0xC4401D8D5F05B958e6f1b884560F649CdDfD9615",
+            "chainType":"Ethereum"
+        }
+    },
+    {
+        "info": {
+            "name": "USDC",
+            "symbol": "USDC",
+            "decimal": "6",
+            "logoUri": "",
+            "address": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
+            "chainType":"Ethereum"
+        }
+    },
+    {
+        "info": {
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimal": "6",
+            "logoUri": "",
+            "address": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
+            "chainType":"Ethereum"
+        }
+    }
+]

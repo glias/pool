@@ -6,8 +6,6 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
-import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockSwapOrder } from '../tests/mock_data';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -62,26 +60,26 @@ export class DexSwapService {
       type: type.toLumosScript(),
       order: 'desc',
     };
-    // const txs = await this.dexRepository.collectTransactions(queryOptions);
+    const txs = await this.dexRepository.collectTransactions(queryOptions);
 
-    const mock = MockRepositoryFactory.getDexRepositoryInstance();
-    mock
-      .mockCollectTransactions()
-      .resolves([])
-      .withArgs({
-        lock: {
-          script: orderLock.toLumosScript(),
-          argsLen: 'any',
-        },
-        type: new Script(
-          '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-          'type',
-          '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
-        ).toLumosScript(),
-        order: 'desc',
-      })
-      .resolves(mockSwapOrder);
-    const txs = await mock.collectTransactions(queryOptions);
+    // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+    // mock
+    //   .mockCollectTransactions()
+    //   .resolves([])
+    //   .withArgs({
+    //     lock: {
+    //       script: orderLock.toLumosScript(),
+    //       argsLen: 'any',
+    //     },
+    //     type: new Script(
+    //       '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+    //       'type',
+    //       '0xe18b390fbeffbe7c7a03119b54a6493d29ea428d2e1dda3efa016110c0cc1125',
+    //     ).toLumosScript(),
+    //     order: 'desc',
+    //   })
+    //   .resolves(mockSwapOrder);
+    // const txs = await mock.collectTransactions(queryOptions);
     const factory = new DexOrderChainFactory(true);
     const orders = factory.getOrderChains(orderLock, type, txs, bridgeInfoMatch);
 

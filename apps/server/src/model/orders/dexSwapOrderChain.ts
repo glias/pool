@@ -1,5 +1,5 @@
 import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
-import { CKB_TOKEN_TYPE_HASH, SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
+import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
@@ -12,6 +12,7 @@ export enum ORDER_TYPE {
 
 const enum ORDER_STATUS {
   PENDING = 'pending',
+  OPEN = 'open',
   COMPLETED = 'completed',
   CANCELING = 'canceling',
 }
@@ -43,25 +44,25 @@ export class DexSwapOrderChain extends DexOrderChain {
 
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
-
     const amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
     const amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
 
     if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
       // sudt => ckb
-      amountIn.balance = this.getData().toString();
+      amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
     } else {
       // ckb => sudt
-      amountIn.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+      amountIn.balance =
+        this._isOrder === false ? this._bridgeInfo.amount : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
     }
 
     amountOut.balance = argsData.amountOutMin.toString();
     const steps = this.buildStep();
     const status = this.getStatus();
-
+    const timestamp = this.tx.txStatus.timestamp;
     const orderHistory: OrderHistory = {
       transactionHash: transactionHash,
-      timestamp: this.tx.txStatus.timestamp,
+      timestamp: timestamp,
       amountIn: amountIn,
       amountOut: amountOut,
       stage: {
@@ -95,34 +96,35 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   getStatus(): string {
-    const order = this.getLastOrder();
-    if (order.cell.lock.codeHash === SWAP_ORDER_LOCK_CODE_HASH) {
-      return ORDER_STATUS.PENDING;
-    }
-
-    if (this.getArgsData().sudtTypeHash == CKB_TYPE_HASH) {
-      // sudt => ckb
-      const income = BigInt(order.cell.capacity) - BigInt(this.cell.capacity);
-      if (income < this.getArgsData().amountOutMin) {
-        return ORDER_STATUS.CANCELING;
+    const orders = this.getOrders();
+    if (this._isOrder || !this._bridgeInfo) {
+      if (orders.length === 1) {
+        if (this.tx.txStatus.status === 'pending') {
+          return ORDER_STATUS.PENDING;
+        }
+        return ORDER_STATUS.OPEN;
       }
-    } else {
-      // ckb => sudt
-      if (
-        CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(order.data) <
-        this.getArgsData().amountOutMin
-      ) {
-        return ORDER_STATUS.CANCELING;
-      }
-    }
 
-    return ORDER_STATUS.COMPLETED;
+      return ORDER_STATUS.COMPLETED;
+    }
   }
 
   buildStep(): Step[] {
     const orders = this.getOrders();
     const result: Step[] = [];
-    if (this._bridgeInfo) {
+
+    if (this._isIn === false) {
+      const step: Step = new Step(this.tx.transaction.hash);
+      result.push(step);
+      result.push(step);
+
+      const stepEth: Step = new Step(this._bridgeInfo.eth_tx_hash);
+      result.push(stepEth);
+
+      return result;
+    }
+
+    if (this._isIn) {
       const step: Step = new Step(this._bridgeInfo.eth_tx_hash);
       result.push(step);
       result.push(step);

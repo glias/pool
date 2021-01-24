@@ -82,7 +82,7 @@ export const mockSwapOrder = [
           type: new Script(
             '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
             'type',
-            '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
+            '0xe18b390fbeffbe7c7a03119b54a6493d29ea428d2e1dda3efa016110c0cc1125',
           ),
         },
       ],
@@ -98,6 +98,7 @@ export const mockSwapOrder = [
     txStatus: {
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4c',
       status: 'committed',
+      timestamp: '1611493825117',
     },
   },
   {
@@ -136,6 +137,7 @@ export const mockSwapOrder = [
     txStatus: {
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4e',
       status: 'committed',
+      timestamp: '1611493825117',
     },
   },
 ];
@@ -221,6 +223,7 @@ export const mockLiquidityOrder = [
     txStatus: {
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4c',
       status: 'committed',
+      timestamp: '1611493825117',
     },
   },
   {
@@ -259,6 +262,7 @@ export const mockLiquidityOrder = [
     txStatus: {
       blockHash: '0x977aa9a6ba5559f6a338c606e6676a99b420663fef4990b7ab25bdb9e01fbc4e',
       status: 'committed',
+      timestamp: '1611493825117',
     },
   },
 ];

@@ -66,6 +66,7 @@ export default class DexSwapController {
     ctx.body = result.map((x) => {
       return {
         transactionHash: x.transactionHash,
+        timestamp: x.timestamp,
         amountIn: x.amountIn.toAsset(),
         amountOut: x.amountOut.toAsset(),
         stage: x.stage,
