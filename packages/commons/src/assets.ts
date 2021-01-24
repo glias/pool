@@ -77,6 +77,10 @@ export function isEthErc20Asset(asset: Asset): asset is EthErc20Asset {
   return has(asset, 'address');
 }
 
+export function isShadowAsset(asset: Asset): asset is ShadowAssetWithBalance {
+  return has(asset, 'shadowFrom');
+}
+
 export function isEthErc20Usdt(asset: Asset): asset is EthErc20Asset {
   // TODO
   return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_USDT_ADDRESS');

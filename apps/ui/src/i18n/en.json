@@ -15,7 +15,8 @@
       }
     },
     "actions": {
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "pending": "Pending"
     },
     "common": {
       "max": "Max"

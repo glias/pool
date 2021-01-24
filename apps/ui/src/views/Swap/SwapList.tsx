@@ -5,41 +5,51 @@ import { Title } from 'components/Title';
 import i18n from 'i18n';
 import { SwapOrder } from '@gliaswap/commons';
 import styled from 'styled-components';
-import { TableRow } from 'components/TableRow';
-import { formatTimestamp } from 'utils';
+import { useQuery } from 'react-query';
+import { useGliaswap } from 'contexts';
+import { useGlobalConfig } from 'contexts/config';
+import { useCallback } from 'react';
+import { SwapItem } from './SwapItem';
 
-const ItemContainer = styled.div``;
-
-const SwapItem = ({ order }: { order: SwapOrder }) => {
-  const timestamp = formatTimestamp(order.timestamp);
-  return (
-    <List.Item>
-      <ItemContainer>
-        <TableRow label={i18n.t('swap.order-list.time')} value={timestamp} />
-        <TableRow label={i18n.t('swap.order-list.route')} value="" />
-        <TableRow label={i18n.t('swap.order-list.pay')} value="" />
-        <TableRow label={i18n.t('swap.order-list.receive')} value="" />
-      </ItemContainer>
-    </List.Item>
-  );
-};
+const ListContainer = styled.div`
+  .ant-list-item {
+    border-bottom: none;
+    padding: 8px;
+    &:nth-child(odd) {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+`;
 
 export const SwapList: React.FC = () => {
-  const data: SwapOrder[] = [];
+  const { currentUserLock } = useGliaswap();
+  const { api } = useGlobalConfig();
+  const { data, status } = useQuery(
+    ['swap-list', currentUserLock],
+    () => {
+      return api.getSwapOrders();
+    },
+    {
+      enabled: !!currentUserLock,
+      refetchInterval: 5000,
+      refetchIntervalInBackground: true,
+    },
+  );
+  const renderItem = useCallback((order: SwapOrder) => {
+    return <SwapItem order={order} />;
+  }, []);
   return (
     <Block>
       <Title>{i18n.t('swap.order-list.title')}</Title>
-      <List
-        bordered={false}
-        dataSource={data}
-        renderItem={(order) => {
-          return (
-            <List.Item>
-              <SwapItem order={order} />
-            </List.Item>
-          );
-        }}
-      />
+      <ListContainer>
+        <List
+          pagination={{ position: 'bottom' }}
+          bordered={false}
+          dataSource={data}
+          loading={status === 'loading'}
+          renderItem={renderItem}
+        />
+      </ListContainer>
     </Block>
   );
 };

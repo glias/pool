@@ -26,7 +26,7 @@ export const SwapTable: React.FC = () => {
     <Block>
       <FormContainer form={form} layout="vertical">
         <InputNumber
-          label={i18n.t('swap.order-list.you-pay')}
+          label={i18n.t('swap.order-table.you-pay')}
           name="pay"
           max="0.1"
           assets={[]}
@@ -47,14 +47,14 @@ export const SwapTable: React.FC = () => {
           <SwapSvg />
         </div>
         <InputNumber
-          label={i18n.t('swap.order-list.you-receive')}
+          label={i18n.t('swap.order-table.you-receive')}
           name="receive"
           max="0.1"
           assets={[]}
           renderKeys={(_, i) => i}
         />
         <Form.Item className="submit">
-          <ConfirmButton text={i18n.t('swap.order-list.swap')} />
+          <ConfirmButton text={i18n.t('swap.order-table.swap')} />
         </Form.Item>
       </FormContainer>
     </Block>
