@@ -109,7 +109,30 @@ export class CkbRepository implements DexRepository {
   }
 
   async sendTransaction(tx: CKBComponents.RawTransaction): Promise<txHash> {
-    return await this.ckbNode.rpc.sendTransaction(tx);
+    const timeout = (ms: number) => {
+      return new Promise((resolve, _reject) => {
+        setTimeout(function () {
+          resolve(null);
+        }, ms);
+      });
+    };
+
+    const txHash = await this.ckbNode.rpc.sendTransaction(tx);
+
+    let count = 5;
+    while (count >= 0) {
+      const txsInPool = await this.getPoolTxs();
+      for (let i = 0; i < txsInPool.length; i++) {
+        const status = txsInPool[i].txStatus.status;
+        if (status == 'pending' || status == 'proposed') {
+          return txHash;
+        }
+      }
+      count -= 1;
+      await timeout(5000);
+    }
+
+    throw new Error('send transaction timeout');
   }
 
   /**
