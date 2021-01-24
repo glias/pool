@@ -10,8 +10,9 @@ export class TokenHolderFactory {
       const tokens: Token[] = [];
       for (let i = 0; i < datas.length; i++) {
         const data = datas[i];
-        data.typeScript = cellConver.converScript(data.typeScript);
-        tokens.push(data);
+        const typeScript = cellConver.converScript(data.typeScript);
+        const token = new Token(data.typeHash, typeScript, data.info, undefined);
+        tokens.push(token);
       }
       this.instace = new TokenHolder(tokens);
     }

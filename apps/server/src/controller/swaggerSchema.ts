@@ -124,3 +124,43 @@ export class TransactionSchema {
   @swaggerProperty({ type: 'array', items: { type: 'string' } })
   witnesses: Array<string>;
 }
+
+export class AssetSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  typeHash: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
+  typeScript: ScriptSchema;
+  @swaggerProperty({ type: 'string', required: true })
+  name: string;
+  @swaggerProperty({ type: 'string', required: true })
+  symbol: string;
+  @swaggerProperty({ type: 'number', required: true })
+  decimal: number;
+  @swaggerProperty({ type: 'string', required: true })
+  logoUri: string;
+  @swaggerProperty({ type: 'string', required: true })
+  chainType: string;
+  @swaggerProperty({ type: 'string', required: true })
+  balance: string;
+
+  constructor(
+    typeHash: string,
+    typeScript: ScriptSchema,
+    name: string,
+    symbol: string,
+    decimal: number,
+    logoUri: string,
+    chainType: string,
+    balance: string,
+  ) {
+    this.typeHash = typeHash;
+    this.typeScript = typeScript;
+    this.name = name;
+    this.symbol = symbol;
+    this.decimal = decimal;
+    this.logoUri = logoUri;
+    this.chainType = chainType;
+    this.balance = balance;
+  }
+}
