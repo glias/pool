@@ -1,5 +1,4 @@
-export { DefaultTokenCellCollectorService, TokenCellCollectorService } from './tokenCellCollectorService';
-export { TxBuilderService, CancelOrderType } from './txBuilderService';
-export { ForgeCellService, DefaultForgeCellService, ForgedCell } from './forgeCellService';
+export * as txBuilder from './txBuilderService';
 export { dexLiquidityPoolService, DexLiquidityPoolService } from './dexLiquidityPoolService';
 export { dexSwapService, DexSwapService } from './dexSwapService';
+export { TokenCellCollectorService } from './tokenCellCollectorService';

@@ -3,7 +3,7 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import * as pw from '@lay2/pw-core';
 import { DexRepository } from '.';
-import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
+import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import {
   BridgeInfo,
   Cell,
@@ -124,7 +124,7 @@ export class CkbRepository implements DexRepository {
       const userLock = lock.toPwScript();
       const orderLock = new Script(
         SWAP_ORDER_LOCK_CODE_HASH,
-        SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+        SWAP_ORDER_LOCK_HASH_TYPE,
         userLock.toHash(),
       ).toPwScript();
 

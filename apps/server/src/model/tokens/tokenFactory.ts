@@ -2,7 +2,7 @@ import fs from 'fs';
 import * as path from 'path';
 import { cellConver, Token, TokenHolder } from '..';
 
-export class TokenTokenHolderFactory {
+export class TokenHolderFactory {
   private static instace: TokenHolder;
   static getInstance(): TokenHolder {
     if (!this.instace) {
