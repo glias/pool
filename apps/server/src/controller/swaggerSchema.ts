@@ -211,7 +211,9 @@ export class AssetSchema {
     this.logoURI = logoURI;
     this.chainType = chainType;
     this.address = address;
-    this.balance = balance;
+    if (balance !== 'NaN') {
+      this.balance = balance;
+    }
     if (shadowFrom) {
       this.shadowFrom = shadowFrom;
     }
