@@ -1,5 +1,4 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { Server } from '@gliaswap/types';
 
 import { Script } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
@@ -91,13 +90,16 @@ export default class DexSwapController {
     tokenOutMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createSwapOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <Server.SwapOrderRequest>ctx.request.body;
+    const reqBody = <txBuilder.SwapOrderRequest>ctx.request.body;
     const req = {
       tokenInAmount: Token.deserialize(reqBody.tokenInAmount),
       tokenOutMinAmount: Token.deserialize(reqBody.tokenOutMinAmount),
       userLock: Script.deserialize(reqBody.userLock),
+      tips: Token.deserialize(reqBody.tips),
     };
 
     const txWithFee = await this.service.buildSwapOrderTx(ctx, req);

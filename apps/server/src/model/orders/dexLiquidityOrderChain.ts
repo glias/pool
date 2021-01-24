@@ -40,8 +40,9 @@ export class DexLiquidityChain extends DexOrderChain {
     const amountA = ckbToken;
     const amountB = sudtToken;
 
-    amountA.balance = argsData.amount0.toString();
-    amountB.balance = argsData.amount1.toString();
+    // FIXME:
+    amountA.balance = argsData.ckbMin.toString();
+    amountB.balance = argsData.sudtMin.toString();
     const steps = this.buildStep();
     const status = this.getStatus();
 

@@ -3,6 +3,7 @@ import { CKB_TOKEN_TYPE_HASH, SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
+import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 export enum ORDER_TYPE {
   SellCKB = 0,
@@ -43,11 +44,18 @@ export class DexSwapOrderChain extends DexOrderChain {
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
 
-    const amountIn = argsData.orderType === ORDER_TYPE.BuyCKB ? ckbToken : sudtToken;
-    const amountOut = argsData.orderType === ORDER_TYPE.BuyCKB ? sudtToken : ckbToken;
+    const amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
+    const amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
 
-    amountIn.balance = argsData.amountIn.toString();
-    amountOut.balance = argsData.minAmountOut.toString();
+    if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
+      // sudt => ckb
+      amountIn.balance = this.getData().toString();
+    } else {
+      // ckb => sudt
+      amountIn.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+    }
+
+    amountOut.balance = argsData.amountOutMin.toString();
     const steps = this.buildStep();
     const status = this.getStatus();
 
@@ -92,16 +100,18 @@ export class DexSwapOrderChain extends DexOrderChain {
       return ORDER_STATUS.PENDING;
     }
 
-    if (this.getArgsData().orderType === ORDER_TYPE.BuyCKB) {
-      if (
-        CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(order.data) <
-        this.getArgsData().minAmountOut
-      ) {
+    if (this.getArgsData().sudtTypeHash == CKB_TYPE_HASH) {
+      // sudt => ckb
+      const income = BigInt(order.cell.capacity) - BigInt(this.cell.capacity);
+      if (income < this.getArgsData().amountOutMin) {
         return ORDER_STATUS.CANCELING;
       }
     } else {
-      const income = BigInt(order.cell.capacity) - BigInt(this.cell.capacity);
-      if (income < this.getArgsData().minAmountOut) {
+      // ckb => sudt
+      if (
+        CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(order.data) <
+        this.getArgsData().amountOutMin
+      ) {
         return ORDER_STATUS.CANCELING;
       }
     }

@@ -13,8 +13,10 @@ test('serialized encoding and decoding args', () => {
   const liquidity = {
     userLockHash: ckbUtils.scriptToHash(lockScript),
     version: 1,
-    amount0: 100n,
-    amount1: 100n,
+    sudtMin: 100n,
+    ckbMin: 100n,
+    tips: 0n,
+    tipsSudt: 0n,
   };
 
   const argsHex = CellInfoSerializationHolderFactory.getInstance()
@@ -22,14 +24,16 @@ test('serialized encoding and decoding args', () => {
     .encodeArgs(
       liquidity.userLockHash,
       liquidity.version,
-      liquidity.amount0,
-      liquidity.amount1,
+      liquidity.sudtMin,
+      liquidity.ckbMin,
       ckbUtils.scriptToHash(typeHash),
+      liquidity.tips,
+      liquidity.tipsSudt,
     );
 
   expect(CellInfoSerializationHolderFactory.getInstance().getLiquidityCellSerialization().decodeArgs(argsHex)).toEqual({
     ...liquidity,
-    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash)}`,
+    infoTypeHash: `0x${ckbUtils.scriptToHash(typeHash).slice(2, 66)}`,
   });
 });
 

@@ -40,6 +40,7 @@ export interface GenesisLiquidityRequest {
   tokenBAmount: Token;
   poolId: string;
   userLock: Script;
+  tips: Token;
 }
 
 export interface AddLiquidityRequest {
@@ -49,6 +50,7 @@ export interface AddLiquidityRequest {
   tokenBMinAmount: Token;
   poolId: string;
   userLock: Script;
+  tips: Token;
 }
 
 export interface RemoveLiquidityRequest {
@@ -57,12 +59,14 @@ export interface RemoveLiquidityRequest {
   tokenBMinAmount: Token;
   poolId: string;
   userLock: Script;
+  tips: Token;
 }
 
 export interface SwapOrderRequest {
   tokenInAmount: Token;
   tokenOutMinAmount: Token;
   userLock: Script;
+  tips: Token;
 }
 
 export interface CancelOrderRequest {
@@ -249,7 +253,8 @@ export class TxBuilderService {
     // Generate genesis request lock script
     const lockArgs = (() => {
       const encoder = this.codec.getLiquidityCellSerialization().encodeArgs;
-      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId);
+      const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
+      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId, tips, tipsSudt);
     })();
     const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
@@ -358,8 +363,10 @@ export class TxBuilderService {
         req.tokenAMinAmount.typeHash == CKB_TYPE_HASH
           ? { ckbAmount: req.tokenAMinAmount.getBalance(), tokenAmount: req.tokenBMinAmount.getBalance() }
           : { ckbAmount: req.tokenBMinAmount.getBalance(), tokenAmount: req.tokenAMinAmount.getBalance() };
+      const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
+      const version = constants.REQUEST_VERSION;
 
-      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, ckbAmount, tokenAmount, req.poolId);
+      return encoder(req.userLock.toHash(), version, tokenAmount, ckbAmount, req.poolId, tips, tipsSudt);
     })();
     const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
@@ -461,8 +468,10 @@ export class TxBuilderService {
         req.tokenAMinAmount.typeHash == CKB_TYPE_HASH
           ? { ckbAmount: req.tokenAMinAmount.getBalance(), tokenAmount: req.tokenBMinAmount.getBalance() }
           : { ckbAmount: req.tokenBMinAmount.getBalance(), tokenAmount: req.tokenAMinAmount.getBalance() };
+      const version = constants.REQUEST_VERSION;
+      const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
 
-      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, ckbAmount, tokenAmount, req.poolId);
+      return encoder(req.userLock.toHash(), version, ckbAmount, tokenAmount, req.poolId, tips, tipsSudt);
     })();
     const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
@@ -555,12 +564,12 @@ export class TxBuilderService {
     }
   }
 
-  // Token => CKB
+  // Sudt => CKB
   private async buildSwapCkb(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, req.tokenInAmount.typeScript);
-    const minCapacity = constants.SWAP_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
+    const minCapacity = constants.SWAP_SELL_REQ_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
 
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, req.tokenInAmount);
     if (collectedCells.inputCapacity < minCapacity) {
@@ -573,16 +582,17 @@ export class TxBuilderService {
     // Generate swap request lock script
     const lockArgs = (() => {
       const encoder = this.codec.getSwapCellSerialization().encodeArgs;
-      const amountIn = req.tokenInAmount.getBalance();
       const minAmountOut = req.tokenOutMinAmount.getBalance();
+      const version = constants.REQUEST_VERSION;
+      const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
 
-      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, amountIn, minAmountOut, 1); // 1 => BuyCkb
+      return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
     const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
-      capacity: constants.SWAP_ORDER_CAPACITY.toString(),
+      capacity: constants.SWAP_SELL_REQ_CAPACITY.toString(),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -606,7 +616,7 @@ export class TxBuilderService {
       outputsData.push(tokenChangeData);
     }
 
-    let ckbChangeCapacity = collectedCells.inputCapacity - constants.SWAP_ORDER_CAPACITY;
+    let ckbChangeCapacity = collectedCells.inputCapacity - constants.SWAP_SELL_REQ_CAPACITY;
     if (collectedCells.inputToken > req.tokenInAmount.getBalance()) {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
@@ -648,11 +658,11 @@ export class TxBuilderService {
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
-  // CKB => Token
+  // CKB => SUDT
   private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
-    const minCapacity = req.tokenInAmount.getBalance() + constants.SWAP_ORDER_CAPACITY + minCKBChangeCapacity + txFee;
+    const minCapacity = req.tokenInAmount.getBalance() + constants.SWAP_BUY_REQ_CAPACITY + minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
     if (collectedCells.inputCapacity < minCapacity) {
       ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
@@ -661,16 +671,17 @@ export class TxBuilderService {
     // Generate swap request lock script
     const lockArgs = (() => {
       const encoder = this.codec.getSwapCellSerialization().encodeArgs;
-      const amountIn = req.tokenInAmount.getBalance();
       const minAmountOut = req.tokenOutMinAmount.getBalance();
+      const version = constants.REQUEST_VERSION;
+      const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
 
-      return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, amountIn, minAmountOut, 0); // 0 => SellCKB
+      return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
     const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
-      capacity: constants.SWAP_ORDER_CAPACITY.toString(),
+      capacity: constants.SWAP_BUY_REQ_CAPACITY.toString(),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -681,7 +692,7 @@ export class TxBuilderService {
     const outputsData: string[] = [reqData];
 
     const ckbChangeCapacity =
-      collectedCells.inputCapacity - constants.SWAP_ORDER_CAPACITY - req.tokenInAmount.getBalance();
+      collectedCells.inputCapacity - constants.SWAP_BUY_REQ_CAPACITY - req.tokenInAmount.getBalance();
     let ckbChangeOutput = {
       capacity: ckbChangeCapacity.toString(),
       lock: req.userLock,
@@ -835,8 +846,9 @@ export class TxBuilderService {
       ctx.throw('user lock hash not match', 400);
     }
 
-    // 1 => BuyCkb, split swap cell into free token cell and free ckb cell
-    const minCKBChangeCapacity = swapArgs.orderType == 1 ? TxBuilderService.minCKBChangeCapacity(userLock) : 0n;
+    // Sell sudt, split swap cell into free token cell and free ckb cell
+    const minCKBChangeCapacity =
+      swapArgs.sudtTypeHash == CKB_TYPE_HASH ? TxBuilderService.minCKBChangeCapacity(userLock) : 0n;
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
@@ -848,7 +860,7 @@ export class TxBuilderService {
     const outputs: Output[] = [];
     const outputsData: string[] = [];
 
-    if (swapArgs.orderType == 1) {
+    if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       const tokenChangeOutput = {
         capacity: minTokenChangeCapacity.toString(),
         lock: userLock,
@@ -859,7 +871,8 @@ export class TxBuilderService {
       outputsData.push(tokenChangeData);
     }
 
-    const ckbChangeCapacity = swapArgs.orderType == 1 ? inputCapacity - minTokenChangeCapacity : inputCapacity;
+    const ckbChangeCapacity =
+      swapArgs.sudtTypeHash == CKB_TYPE_HASH ? inputCapacity - minTokenChangeCapacity : inputCapacity;
     let ckbChangeOutput = {
       capacity: ckbChangeCapacity.toString(),
       lock: userLock,
@@ -872,7 +885,7 @@ export class TxBuilderService {
     });
 
     const cellDeps = [config.SWAP_ORDER_LOCK_DEP];
-    if (swapArgs.orderType == 1) {
+    if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
     const raw: RawTransaction = {
@@ -909,6 +922,21 @@ export class TxBuilderService {
   private static minTokenChangeCapacity(userLock: Script, tokenType: Script): bigint {
     const scriptSize = BigInt(userLock.size() + tokenType.size());
     return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
+  }
+
+  // TODO: refactor
+  private static tips(token: Token): { tips: bigint; tipsSudt: bigint } {
+    if (token.typeHash == CKB_TYPE_HASH) {
+      return {
+        tips: BigInt(token.balance),
+        tipsSudt: 0n,
+      };
+    } else {
+      return {
+        tips: 0n,
+        tipsSudt: BigInt(token.balance),
+      };
+    }
   }
 }
 

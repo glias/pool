@@ -1,5 +1,6 @@
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import { CellInfoSerializationHolderFactory } from '../../../model';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
 test('serialized encoding and decoding args', () => {
   const lockScript: CKBComponents.Script = {
@@ -11,14 +12,15 @@ test('serialized encoding and decoding args', () => {
   const swap = {
     userLockHash: ckbUtils.scriptToHash(lockScript),
     version: 1,
-    amountIn: 100n,
-    minAmountOut: 100n,
-    orderType: 1,
+    amountOutMin: 100n,
+    sudtTypeHash: CKB_TYPE_HASH,
+    tips: 0n,
+    tipsSudt: 0n,
   };
 
   const argsHex = CellInfoSerializationHolderFactory.getInstance()
     .getSwapCellSerialization()
-    .encodeArgs(swap.userLockHash, swap.version, swap.amountIn, swap.minAmountOut, swap.orderType);
+    .encodeArgs(swap.userLockHash, swap.version, swap.amountOutMin, swap.sudtTypeHash, swap.tips, swap.tipsSudt);
 
   expect(CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeArgs(argsHex)).toEqual(swap);
 });
