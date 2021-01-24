@@ -33,7 +33,7 @@ export const SwapModal = () => {
     if (isCrossChainOrder && isEthAsset(tokenA!)) {
       return {
         ...tokenA,
-        symbol: `ck${tokenA.name}`,
+        symbol: `ck${tokenA.symbol}`,
       };
     }
     return tokenA!;

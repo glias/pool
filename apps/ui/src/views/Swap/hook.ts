@@ -21,6 +21,7 @@ export enum SwapMode {
 const useSwap = () => {
   const [cancelModalVisable, setCancelModalVisable] = useState(false);
   const [reviewModalVisable, setReviewModalVisable] = useState(false);
+  const [stepModalVisable, setStepModalVisable] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
@@ -50,6 +51,8 @@ const useSwap = () => {
     setCancelModalVisable,
     reviewModalVisable,
     setReviewModalVisable,
+    stepModalVisable,
+    setStepModalVisable,
     currentOrder,
     setCurrentOrder,
     currentCkbTx,

@@ -95,7 +95,7 @@ export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
 };
 
 export const SwapItem = ({ order }: { order: SwapOrder }) => {
-  const { setCancelModalVisable, setCurrentOrder } = useSwapContainer();
+  const { setCancelModalVisable, setCurrentOrder, setStepModalVisable } = useSwapContainer();
   const timestamp = formatTimestamp(order.timestamp);
   const route = <Route tokenA={order.amountIn} tokenB={order.amountOut} orderType={order.type} />;
   const pay = <Balanced asset={order.amountIn} />;
@@ -107,6 +107,11 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     setCurrentOrder(order);
     setCancelModalVisable(true);
   }, [setCancelModalVisable, setCurrentOrder, order]);
+
+  const openStepModal = useCallback(() => {
+    setCurrentOrder(order);
+    setStepModalVisable(true);
+  }, [setStepModalVisable, setCurrentOrder, order]);
 
   const action = useMemo(() => {
     const cancelBtn =
@@ -127,10 +132,10 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     return (
       <>
         {cancelBtn}
-        <Button type="default" icon={<InfoSvg />} />
+        <Button type="default" icon={<InfoSvg />} onClick={openStepModal} />
       </>
     );
-  }, [status, type, openCancelModal]);
+  }, [status, type, openCancelModal, openStepModal]);
 
   return (
     <List.Item>

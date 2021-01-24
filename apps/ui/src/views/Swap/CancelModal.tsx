@@ -135,7 +135,7 @@ export const CancelModal = () => {
               {currentOrder ? (
                 <Trans
                   defaults="You will get <bold>{{amount}} {{tokenName}}</bold> back to your available balance." // optional defaultValue
-                  values={{ amount: displayBalance(tokenA), tokenName: tokenA?.name }}
+                  values={{ amount: displayBalance(tokenA), tokenName: tokenA?.symbol }}
                   components={{ bold: <strong /> }}
                 />
               ) : null}

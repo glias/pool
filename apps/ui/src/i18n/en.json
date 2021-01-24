@@ -31,6 +31,16 @@
         "order-meta": "Placing this Order will lock your additional {{amount}} CKB in the Order. ",
         "learn-why": "Learn Why",
         "confirm": "Confirm"
+      },
+      "progress": {
+        "title": "Progress",
+        "submit": "Request Submitted",
+        "confirm-eth": "Confirmed on Ethereum",
+        "confirm-ckb": "Confirmed on CKB",
+        "sucess": "Swap Successfully",
+        "lock": "Lock",
+        "burn": "Burn",
+        "swap-desc": "Normally your swap will complete successfully soon after step {{step}}, but if the price fluctuates above the slippage, your swap will be pending until the pool price fluctuates back to the price you submitted. You also have the option to cancel the operation if it takes too long."
       }
     },
     "actions": {
