@@ -45,7 +45,7 @@ export class BridgeAPI {
     const gasPrice = await web3.eth.getGasPrice();
     const nonce = await web3.eth.getTransactionCount(ethAddress);
     return axios.post(`${FORCE_BRIDGER_SERVER_URL}/lock`, {
-      token_address: asset.address,
+      token_address: asset.address.slice(2),
       amount,
       bridge_fee: '0x0',
       ckb_recipient_address: ckbAddress,

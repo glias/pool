@@ -20,6 +20,7 @@ import { useMemo, useEffect } from 'react';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
+import { useGliaswap } from 'contexts';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -48,18 +49,10 @@ export const SwapTable: React.FC = () => {
     setCurrentTx,
   } = useSwapContainer();
   const { assets } = useGliaswapContext();
-  const { bridgeAPI, adapter } = useGlobalConfig();
+  const { bridgeAPI } = useGlobalConfig();
+  const { currentCkbAddress: ckbAddress, currentEthAddress: ethAddress, adapter } = useGliaswap();
   const [isFetchingOrder, setIsFetchingOrder] = useState(false);
-
-  const { web3, signer } = adapter;
-
-  const ckbAddress = useMemo(() => {
-    return signer?.address?.toCKBAddress();
-  }, [signer]);
-
-  const ethAddress = useMemo(() => {
-    return signer?.address?.addressString;
-  }, [signer]);
+  const { web3 } = adapter.raw;
 
   const getBalance = useCallback(
     (field: string, asset: GliaswapAssetWithBalance) => {
