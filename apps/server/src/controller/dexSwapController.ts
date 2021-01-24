@@ -2,7 +2,7 @@ import { body, Context, request, responses, summary, tags, description } from 'k
 
 import { Script } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
-import { ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
+import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 import { cellConver, Token } from '../model';
 
 const swapTag = tags(['Swap']);
@@ -29,9 +29,9 @@ export default class DexSwapController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountIn: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountIn: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountOut: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountOut: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             stage: {
               type: 'object',
               properties: {
@@ -55,14 +55,18 @@ export default class DexSwapController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    ethAddress: { type: 'string', required: true },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
     const req = ctx.request.body;
-    const { lock, limit, skip } = req;
-    const result = await this.service.orders(cellConver.converScript(lock), limit, skip);
+    const { lock, ethAddress, limit, skip } = req;
+    const result = await this.service.orders(cellConver.converScript(lock), ethAddress, limit, skip);
     ctx.status = 200;
+
+    // console.log(result);
+
     ctx.body = result.map((x) => {
       return {
         transactionHash: x.transactionHash,
