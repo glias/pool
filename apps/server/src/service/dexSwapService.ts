@@ -45,7 +45,10 @@ export class DexSwapService {
       txs.forEach((x) => orders.push(x));
     }
 
-    return orders.map((x) => x.getOrderHistory());
+    return orders
+      .map((x) => x.getOrderHistory())
+      .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
+      .reverse();
   }
 
   private async getCross(
