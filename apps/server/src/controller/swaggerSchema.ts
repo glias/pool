@@ -178,6 +178,9 @@ export class AssetSchema {
   chainType: string;
 
   @swaggerProperty({ type: 'string', required: true })
+  address: string;
+
+  @swaggerProperty({ type: 'string', required: true })
   balance: string;
 
   @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
@@ -191,6 +194,7 @@ export class AssetSchema {
     decimals: number,
     logoURI: string,
     chainType: string,
+    address: string,
     balance: string,
     shadowFrom?: TokenInfoSchema,
   ) {
@@ -206,6 +210,7 @@ export class AssetSchema {
     this.decimals = decimals;
     this.logoURI = logoURI;
     this.chainType = chainType;
+    this.address = address;
     this.balance = balance;
     if (shadowFrom) {
       this.shadowFrom = shadowFrom;

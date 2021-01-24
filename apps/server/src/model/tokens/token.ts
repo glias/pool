@@ -65,6 +65,7 @@ export class Token {
       this.info.decimals,
       this.info.logoURI,
       this.info.chainType,
+      this.info.address,
       new BigNumber(this.balance).toString(),
       this.shadowFrom,
     );
