@@ -12,7 +12,7 @@ test('serialized encoding and decoding args', () => {
   const swap = {
     userLockHash: ckbUtils.scriptToHash(lockScript),
     version: 1,
-    minAmountOut: 100n,
+    amountOutMin: 100n,
     sudtTypeHash: CKB_TYPE_HASH,
     tips: 0n,
     tipsSudt: 0n,
@@ -20,7 +20,7 @@ test('serialized encoding and decoding args', () => {
 
   const argsHex = CellInfoSerializationHolderFactory.getInstance()
     .getSwapCellSerialization()
-    .encodeArgs(swap.userLockHash, swap.version, swap.minAmountOut, swap.sudtTypeHash, swap.tips, swap.tipsSudt);
+    .encodeArgs(swap.userLockHash, swap.version, swap.amountOutMin, swap.sudtTypeHash, swap.tips, swap.tipsSudt);
 
   expect(CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeArgs(argsHex)).toEqual(swap);
 });
