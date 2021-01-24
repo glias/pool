@@ -1,3 +1,15 @@
 {
-  "translation": {}
+  "translation": {
+    "swap": {
+      "order-list": {
+        "title": "My Pending Requests",
+        "you-pay": "You Pay",
+        "you-receive": "You Receive",
+        "swap": "Swap"
+      }
+    },
+    "common": {
+      "max": "Max"
+    }
+  }
 }

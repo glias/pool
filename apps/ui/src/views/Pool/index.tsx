@@ -1,22 +1,17 @@
-import React, { useEffect } from 'react';
-import { Route, Switch, useHistory, useLocation, useRouteMatch } from 'react-router-dom';
+import React from 'react';
+import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
+import { RoutePath } from 'routes';
 import LiquidityExplorer from './LiquidityExplorer';
 import { PoolDetail } from './PoolDetail';
 
 const PoolView: React.FC = () => {
   const match = useRouteMatch();
-  const location = useLocation();
-  const history = useHistory();
-
-  useEffect(() => {
-    if (location.pathname !== '/pool') return;
-    history.replace('/pool/explorer');
-  }, [location, history]);
 
   return (
     <Switch>
       <Route path={`${match.path}/explorer`} component={LiquidityExplorer} />
       <Route path={`${match.path}/:poolId`} component={PoolDetail} />
+      <Redirect from={RoutePath.Pool} exact to={`${match.path}/explorer`} />
     </Switch>
   );
 };
