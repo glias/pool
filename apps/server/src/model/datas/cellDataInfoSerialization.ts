@@ -3,8 +3,10 @@ import { DefaultLiquidityCellSerialization } from './liquidityCellSerialization'
 import { DefaultPoolCellSerialization } from './poolCellSerialization';
 import { DefaultSudtCellSerialization } from './sudtCellSerialization';
 import { DefaultSwapCellSerialization } from './swapCellSerialization';
+import { DefaultTipsArgsSerialization } from './tipsSerialization';
 
 export interface CellInfoSerializationHolder {
+  getTipsArgsSerialization(): TipsArgsSerialization;
   getLiquidityCellSerialization(): LiquidityCellSerialization;
   getSwapCellSerialization(): SwapCellSerialization;
   getInfoCellSerialization(): InfoCellSerialization;
@@ -13,11 +15,15 @@ export interface CellInfoSerializationHolder {
 }
 
 export class DefaultCellInfoSerializationHolder implements CellInfoSerializationHolder {
+  getTipsArgsSerialization(): TipsArgsSerialization {
+    return new DefaultTipsArgsSerialization();
+  }
+
   getLiquidityCellSerialization(): LiquidityCellSerialization {
-    return new DefaultLiquidityCellSerialization(this.getSudtCellSerialization());
+    return new DefaultLiquidityCellSerialization(this.getSudtCellSerialization(), this.getTipsArgsSerialization());
   }
   getSwapCellSerialization(): SwapCellSerialization {
-    return new DefaultSwapCellSerialization(this.getSudtCellSerialization());
+    return new DefaultSwapCellSerialization(this.getSudtCellSerialization(), this.getTipsArgsSerialization());
   }
   getInfoCellSerialization(): InfoCellSerialization {
     return new DefaultInfoCellSerialization();
@@ -36,15 +42,35 @@ export class CellInfoSerializationHolderFactory {
   }
 }
 
+export interface TipsArgsSerialization {
+  encodeArgs(tips: bigint, tipsSudt: bigint): string;
+  decodeArgs(argsHex: string): TipsCellArgs;
+}
+
 export interface LiquidityCellSerialization {
-  encodeArgs(userlockHash: string, version: number, amount0: bigint, amount1: bigint, infoTypeHash: string): string;
+  encodeArgs(
+    userlockHash: string,
+    version: number,
+    sudtMin: bigint,
+    ckbMin: bigint,
+    infoTypeHash: string,
+    tips: bigint,
+    tipsSudt: bigint,
+  ): string;
   decodeArgs(argsHex: string): LiquidityOrderCellArgs;
   encodeData(sudtAmount: bigint): string;
   decodeData(dataHex: string): bigint;
 }
 
 export interface SwapCellSerialization {
-  encodeArgs(userlockHash: string, version: number, amountIn: bigint, minAmountOut: bigint, orderType: number): string;
+  encodeArgs(
+    userlockHash: string,
+    version: number,
+    amountOutMin: bigint,
+    sudtTypeHash: string,
+    tips: bigint,
+    tipsSudt: bigint,
+  ): string;
   decodeArgs(argsHex: string): SwapOrderCellArgs;
   encodeData(sudtAmount: bigint): string;
   decodeData(dataHex: string): bigint;
@@ -67,17 +93,20 @@ export type SudtCellSerialization = PoolCellSerialization;
 export interface LiquidityOrderCellArgs {
   userLockHash: string;
   version: number;
-  amount0: bigint;
-  amount1: bigint;
+  sudtMin: bigint;
+  ckbMin: bigint;
   infoTypeHash: string;
+  tips: bigint;
+  tipsSudt: bigint;
 }
 
 export interface SwapOrderCellArgs {
   userLockHash: string;
   version: number;
-  amountIn: bigint;
-  minAmountOut: bigint;
-  orderType: number;
+  amountOutMin: bigint;
+  sudtTypeHash: string;
+  tips: bigint;
+  tipsSudt: bigint;
 }
 
 export interface InfoCellArgs {
@@ -89,5 +118,10 @@ export interface InfoCellData {
   ckbReserve: bigint;
   sudtReserve: bigint;
   totalLiquidity: bigint;
-  liquiditySudtTypeHash20: string;
+  liquiditySudtTypeHash: string;
+}
+
+export interface TipsCellArgs {
+  tips: bigint;
+  tipsSudt: bigint;
 }

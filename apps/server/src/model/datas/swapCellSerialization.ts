@@ -1,33 +1,48 @@
 import { createFixedStruct, U8, U128LE } from 'easy-byte';
-import { SudtCellSerialization, SwapCellSerialization, SwapOrderCellArgs } from '.';
+import { SudtCellSerialization, SwapCellSerialization, SwapOrderCellArgs, TipsArgsSerialization } from '.';
+import { TipsCellArgs } from '.';
 
 export class DefaultSwapCellSerialization implements SwapCellSerialization {
-  constructor(private serialization: SudtCellSerialization) {
+  constructor(private serialization: SudtCellSerialization, private tipsArgsSerialization: TipsArgsSerialization) {
     this.serialization = serialization;
+    this.tipsArgsSerialization = tipsArgsSerialization;
   }
 
-  encodeArgs(userlockHash: string, version: number, amountIn: bigint, minAmountOut: bigint, orderType: number): string {
+  encodeArgs(
+    userlockHash: string,
+    version: number,
+    amountOutMin: bigint,
+    sudtTypeHash: string,
+    tips: bigint,
+    tipsSudt: bigint,
+  ): string {
     const data = this.getStructDefine();
+    const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
 
     return `${userlockHash}${data
       .encode({
-        version: version,
-        amountIn: amountIn,
-        minAmountOut: minAmountOut,
-        orderType: orderType,
+        version,
+        amountOutMin,
       })
-      .toString('hex')}`;
+      .toString('hex')}${sudtTypeHash.slice(2)}${tipsArgs}`;
   }
 
   decodeArgs(argsHex: string): SwapOrderCellArgs {
     const args = this.getStructDefine();
-    const structObj = args.decode(Buffer.from(argsHex.slice(66, argsHex.length), 'hex'));
-    const swapOrderCellData: SwapOrderCellArgs = {
+
+    const dataLength = 66 + 2 + 32;
+
+    const userLockHash = argsHex.slice(0, 66);
+    const sudtTypeHash = `0x${argsHex.slice(dataLength, dataLength + 64)}`;
+    const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(dataLength + 64, argsHex.length));
+
+    const structObj = args.decode(Buffer.from(argsHex.slice(66, dataLength), 'hex'));
+    return {
+      userLockHash,
       ...structObj,
-      userLockHash: argsHex.slice(0, 66),
-      orderType: structObj.orderType,
+      sudtTypeHash,
+      ...tips,
     };
-    return swapOrderCellData;
   }
 
   encodeData(sudtAmount: bigint): string {
@@ -39,10 +54,6 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
   }
 
   private getStructDefine() {
-    return createFixedStruct()
-      .field('version', U8)
-      .field('amountIn', U128LE)
-      .field('minAmountOut', U128LE)
-      .field('orderType', U8);
+    return createFixedStruct().field('version', U8).field('amountOutMin', U128LE);
   }
 }

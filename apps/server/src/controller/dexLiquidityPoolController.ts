@@ -192,6 +192,8 @@ export default class DexLiquidityPoolController {
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = <txBuilder.GenesisLiquidityRequest>ctx.request.body;
@@ -200,6 +202,7 @@ export default class DexLiquidityPoolController {
       tokenBAmount: Token.deserialize(reqBody.tokenBAmount),
       poolId: reqBody.poolId,
       userLock: Script.deserialize(reqBody.userLock),
+      tips: Token.deserialize(reqBody.tips),
     };
     const txWithFee = await this.service.buildGenesisLiquidityOrderTx(ctx, req);
 
@@ -236,6 +239,8 @@ export default class DexLiquidityPoolController {
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = <txBuilder.AddLiquidityRequest>ctx.request.body;
@@ -246,6 +251,7 @@ export default class DexLiquidityPoolController {
       tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
       poolId: reqBody.poolId,
       userLock: Script.deserialize(reqBody.userLock),
+      tips: Token.deserialize(reqBody.tips),
     };
     const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
 
@@ -280,6 +286,8 @@ export default class DexLiquidityPoolController {
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = <txBuilder.RemoveLiquidityRequest>ctx.request.body;
@@ -289,6 +297,7 @@ export default class DexLiquidityPoolController {
       tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
       poolId: reqBody.poolId,
       userLock: Script.deserialize(reqBody.userLock),
+      tips: Token.deserialize(reqBody.tips),
     };
     const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
 

@@ -3,18 +3,18 @@ import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 
 export class DefaultInfoCellSerialization implements InfoCellSerialization {
   encodeArgs(hash: string, infoTypeHash: string): string {
-    return `${hash.slice(0, 42)}${infoTypeHash.slice(2, 42)}`;
+    return `0x${hash.slice(2)}${infoTypeHash.slice(2)}`;
   }
 
   decodeArgs(argsHex: string): InfoCellArgs {
     const infoCellData: InfoCellArgs = {
-      hash: argsHex.slice(0, 42),
-      infoTypeHash: `0x${argsHex.slice(42, argsHex.length)}`,
+      hash: argsHex.slice(0, 66),
+      infoTypeHash: `0x${argsHex.slice(66, argsHex.length)}`,
     };
     return infoCellData;
   }
 
-  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash20: string): string {
+  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash: string): string {
     const data = this.getStructDefine();
     return `0x${data
       .encode({
@@ -22,7 +22,7 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
         sudtReserve,
         totalLiquidity,
       })
-      .toString('hex')}${liquiditySudtTypeHash20.slice(2, 42)}`;
+      .toString('hex')}${liquiditySudtTypeHash.slice(2, 66)}`;
   }
 
   decodeData(dataHex: string): InfoCellData {
@@ -31,7 +31,7 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
 
     const infoCellData: InfoCellData = {
       ...structObj,
-      liquiditySudtTypeHash20: `0x${dataHex.slice(98, dataHex.length)}`,
+      liquiditySudtTypeHash: `0x${dataHex.slice(98, dataHex.length)}`,
     };
 
     return infoCellData;

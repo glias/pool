@@ -7,6 +7,7 @@ import {
 } from '../config';
 import { CellInfoSerializationHolderFactory, Script, TokenHolderFactory } from '../model';
 import { ScriptBuilder } from '../model';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
 const userLockScript = new Script(
   '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
@@ -67,7 +68,14 @@ export const mockSwapOrder = [
           lock: {
             args: CellInfoSerializationHolderFactory.getInstance()
               .getSwapCellSerialization()
-              .encodeArgs('0x9eb946551d1eed6aad1b186af975af8ddb2d5043a30d28b6228e6b66d4f3521a', 1, 1000n, 1000n, 1),
+              .encodeArgs(
+                '0x9eb946551d1eed6aad1b186af975af8ddb2d5043a30d28b6228e6b66d4f3521a',
+                1,
+                1000n,
+                CKB_TYPE_HASH,
+                0n,
+                0n,
+              ),
             codeHash: SWAP_ORDER_LOCK_CODE_HASH,
             hashType: SWAP_ORDER_LOCK_HASH_TYPE,
           },
@@ -185,13 +193,15 @@ export const mockLiquidityOrder = [
           lock: ScriptBuilder.buildLiquidityOrderLockScriptByArgsData({
             userLockHash: userLockScript.toHash(),
             version: 1,
-            amount0: 1000n,
-            amount1: 1000n,
+            sudtMin: 1000n,
+            ckbMin: 1000n,
             infoTypeHash: new Script(
               '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
               'type',
               '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
             ).toHash(),
+            tips: 0n,
+            tipsSudt: 0n,
           }),
           type: new Script(
             '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
