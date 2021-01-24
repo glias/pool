@@ -156,7 +156,7 @@ export const swapOrders: SwapOrder[] = [
       decimals: 18,
       symbol: 'ETH',
       address: '1234578901234578900',
-      balance: '',
+      balance: '1234578901234578900',
       logoURI: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
     },
     stage: {

@@ -13,3 +13,5 @@ export const README_URL = '';
 export const EXPLORER_URL = process.env.REACT_APP_EXPLORER_URL! || 'https://explorer.nervos.org/aggron/';
 
 export const ETHER_SCAN_URL = process.env.REACT_APP_ETHER_SCAN_URL! || 'https://ropsten.etherscan.io/';
+
+export const FORCE_BRIDGER_SERVER_URL = process.env.FORCE_BRIDGER_SERVER_URL! || 'http://47.56.233.149:3003';

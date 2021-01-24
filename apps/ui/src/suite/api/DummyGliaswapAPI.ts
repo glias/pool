@@ -9,40 +9,22 @@ import {
 import { Transaction } from '@lay2/pw-core';
 import { TransactionConfig } from 'web3-core';
 
-import {
-  ckbNativeAsset,
-  ckbNativeWithBalance,
-  ckbSudtGlia,
-  ckbSudtGliaWithBalance,
-  ethErc20Usdt,
-  ethErc20UsdtWithBalance,
-  ethNativeAsset,
-  ethNativeWithBalance,
-} from '../placeholder/assets';
+import { ckbNativeAsset, ckbSudtGlia } from '../placeholder/assets';
 
 import { swapOrders } from 'mock/order-list';
+import { assetList } from 'mock/asset-list';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
   getDefaultAssetList() {
-    return [ckbNativeAsset];
+    return assetList;
   }
 
   async getAssetList(): Promise<Asset[]> {
-    return [ckbNativeAsset, ckbSudtGlia, ethNativeAsset, ethErc20Usdt];
+    return assetList;
   }
 
   async getAssetsWithBalance() {
-    return [
-      {
-        ...ckbNativeWithBalance,
-        balance: String(Math.floor(1e12 * Math.random())),
-        locked: String(Math.floor(1e12 * Math.random())),
-        occupied: String(Math.floor(1e12 * Math.random())),
-      },
-      ckbSudtGliaWithBalance,
-      ethNativeWithBalance,
-      ethErc20UsdtWithBalance,
-    ];
+    return assetList;
   }
 
   async getLiquidityPools(_filter?: LiquidityPoolFilter): Promise<LiquidityInfo[]> {

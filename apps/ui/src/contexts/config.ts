@@ -1,10 +1,12 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { useConstant } from 'commons/use-constant';
 import { Web3ModalAdapter } from 'commons/WalletAdapter';
+import { BridgeAPI } from 'suite/api/bridgeAPI';
 import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
 
 export function useGlobalConfig() {
   const api = useConstant(() => new DummyGliaswapAPI());
+  const bridgeAPI = useConstant(() => new BridgeAPI());
 
   const adapter = useConstant(
     () =>
@@ -23,5 +25,5 @@ export function useGlobalConfig() {
       }),
   );
 
-  return { api, adapter };
+  return { api, adapter, bridgeAPI };
 }

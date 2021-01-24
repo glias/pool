@@ -52,11 +52,11 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
   );
 
   const onSelect = useCallback(
-    (key: K) => {
-      onSelected?.(key, selectedAsset!);
+    (key: K, asset) => {
+      onSelected?.(key, asset);
       setModalVisible(false);
     },
-    [onSelected, selectedAsset],
+    [onSelected],
   );
 
   const buttonElem = useMemo(() => {
