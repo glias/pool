@@ -29,9 +29,9 @@ export default class DexSwapController {
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountIn: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountIn: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            amountOut: { tyep: 'object', properties: (TokenSchema as any).swaggerDocument },
+            amountOut: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
             stage: {
               type: 'object',
               properties: {
@@ -54,7 +54,7 @@ export default class DexSwapController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { tyep: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     limit: { type: 'number', required: true },
     skip: { type: 'number', required: true },
   })

@@ -26,7 +26,7 @@ export default class SendTransactionController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    signedTx: { tyep: 'object', properties: (SignedTransactionSchema as any).swaggerDocument },
+    signedTx: { type: 'object', properties: (SignedTransactionSchema as any).swaggerDocument },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
     const signedTx = <CKBComponents.RawTransaction>ctx.request.body;
