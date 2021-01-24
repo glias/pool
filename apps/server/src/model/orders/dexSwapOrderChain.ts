@@ -30,7 +30,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     index: number,
     live: boolean,
     nextOrderCell: DexOrderChain,
-    // private readonly _isIn?: boolean,
+    private readonly _isIn?: boolean,
     private readonly _isOrder?: boolean,
     private readonly _bridgeInfo?: BridgeInfo,
   ) {

@@ -23,7 +23,15 @@ export class ScriptBuilder {
       LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash,
       CellInfoSerializationHolderFactory.getInstance()
         .getLiquidityCellSerialization()
-        .encodeArgs(argsData.userLockHash, argsData.version, argsData.amount0, argsData.amount1, argsData.infoTypeHash),
+        .encodeArgs(
+          argsData.userLockHash,
+          argsData.version,
+          argsData.sudtMin,
+          argsData.ckbMin,
+          argsData.infoTypeHash,
+          argsData.tips,
+          argsData.tipsSudt,
+        ),
     );
   }
 }
