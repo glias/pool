@@ -6,7 +6,7 @@ import * as constants from '@gliaswap/constants';
 import { ckbRepository, DexRepository } from '../repository';
 import * as utils from '../utils';
 import { Cell, Script, Token, RawTransaction, cellConver, Output, TransactionToSign } from '../model';
-import { LiquidityOrderCellInfoSerialization, SudtAmountSerialization, SwapOrderCellInfoSerialization } from '../model';
+import { CellInfoSerializationHolderFactory, CellInfoSerializationHolder } from '../model';
 import * as config from '../config';
 
 export interface CreateLiquidityPoolRequest {
@@ -106,10 +106,12 @@ export interface CellCollector {
 export class TxBuilderService {
   private readonly cellCollector: CellCollector;
   private readonly dexRepository: DexRepository;
+  private readonly codec: CellInfoSerializationHolder;
 
   constructor(collector?: CellCollector, dexRepository?: DexRepository) {
     this.cellCollector = collector ? collector : new TxBuilderCellCollector();
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
+    this.codec = CellInfoSerializationHolderFactory.getInstance();
   }
 
   public async buildCreateLiquidityPool(
@@ -246,7 +248,7 @@ export class TxBuilderService {
 
     // Generate genesis request lock script
     const lockArgs = (() => {
-      const encoder = LiquidityOrderCellInfoSerialization.encodeArgs;
+      const encoder = this.codec.getLiquidityCellSerialization().encodeArgs;
       return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId);
     })();
     const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
@@ -257,7 +259,7 @@ export class TxBuilderService {
       lock: reqLock,
       type: token.typeScript,
     };
-    const reqData = SudtAmountSerialization.encodeData(token.getBalance());
+    const reqData = this.codec.getSudtCellSerialization().encodeData(token.getBalance());
 
     // Generate outputs and change cells
     const outputs: Output[] = [reqOutput];
@@ -270,7 +272,9 @@ export class TxBuilderService {
         lock: req.userLock,
         type: token.typeScript,
       };
-      const tokenChangeData = SudtAmountSerialization.encodeData(collectedCells.inputToken - token.getBalance());
+      const tokenChangeData = this.codec
+        .getSudtCellSerialization()
+        .encodeData(collectedCells.inputToken - token.getBalance());
       outputs.push(tokenChangeOutput);
       outputsData.push(tokenChangeData);
     }
@@ -349,7 +353,7 @@ export class TxBuilderService {
 
     // Generate add liquidity request lock script
     const lockArgs = (() => {
-      const encoder = LiquidityOrderCellInfoSerialization.encodeArgs;
+      const encoder = this.codec.getLiquidityCellSerialization().encodeArgs;
       const { ckbAmount, tokenAmount } =
         req.tokenAMinAmount.typeHash == CKB_TYPE_HASH
           ? { ckbAmount: req.tokenAMinAmount.getBalance(), tokenAmount: req.tokenBMinAmount.getBalance() }
@@ -365,7 +369,7 @@ export class TxBuilderService {
       lock: reqLock,
       type: tokenDesired.typeScript,
     };
-    const reqData = SudtAmountSerialization.encodeData(tokenDesired.getBalance());
+    const reqData = this.codec.getSudtCellSerialization().encodeData(tokenDesired.getBalance());
 
     // Generate outputs and change cells
     const outputs: Output[] = [reqOutput];
@@ -378,7 +382,9 @@ export class TxBuilderService {
         lock: req.userLock,
         type: tokenDesired.typeScript,
       };
-      const tokenChangeData = SudtAmountSerialization.encodeData(collectedCells.inputToken - tokenDesired.getBalance());
+      const tokenChangeData = this.codec
+        .getSudtCellSerialization()
+        .encodeData(collectedCells.inputToken - tokenDesired.getBalance());
       outputs.push(tokenChangeOutput);
       outputsData.push(tokenChangeData);
     }
@@ -450,7 +456,7 @@ export class TxBuilderService {
 
     // Generate remove liquidity request lock script
     const lockArgs = (() => {
-      const encoder = LiquidityOrderCellInfoSerialization.encodeArgs;
+      const encoder = this.codec.getLiquidityCellSerialization().encodeArgs;
       const { ckbAmount, tokenAmount } =
         req.tokenAMinAmount.typeHash == CKB_TYPE_HASH
           ? { ckbAmount: req.tokenAMinAmount.getBalance(), tokenAmount: req.tokenBMinAmount.getBalance() }
@@ -466,7 +472,7 @@ export class TxBuilderService {
       lock: reqLock,
       type: req.lpTokenAmount.typeScript,
     };
-    const reqData = SudtAmountSerialization.encodeData(req.lpTokenAmount.getBalance());
+    const reqData = this.codec.getSudtCellSerialization().encodeData(req.lpTokenAmount.getBalance());
 
     // Generate outputs and change cells
     const outputs: Output[] = [reqOutput];
@@ -479,9 +485,9 @@ export class TxBuilderService {
         lock: req.userLock,
         type: req.lpTokenAmount.typeScript,
       };
-      const tokenChangeData = SudtAmountSerialization.encodeData(
-        collectedCells.inputToken - req.lpTokenAmount.getBalance(),
-      );
+      const tokenChangeData = this.codec
+        .getSudtCellSerialization()
+        .encodeData(collectedCells.inputToken - req.lpTokenAmount.getBalance());
       outputs.push(tokenChangeOutput);
       outputsData.push(tokenChangeData);
     }
@@ -566,7 +572,7 @@ export class TxBuilderService {
 
     // Generate swap request lock script
     const lockArgs = (() => {
-      const encoder = SwapOrderCellInfoSerialization.encodeArgs;
+      const encoder = this.codec.getSwapCellSerialization().encodeArgs;
       const amountIn = req.tokenInAmount.getBalance();
       const minAmountOut = req.tokenOutMinAmount.getBalance();
 
@@ -580,7 +586,7 @@ export class TxBuilderService {
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
-    const reqData = SudtAmountSerialization.encodeData(req.tokenInAmount.getBalance());
+    const reqData = this.codec.getSudtCellSerialization().encodeData(req.tokenInAmount.getBalance());
 
     // Generate outputs and change cells
     const outputs: Output[] = [reqOutput];
@@ -593,9 +599,9 @@ export class TxBuilderService {
         lock: req.userLock,
         type: req.tokenInAmount.typeScript,
       };
-      const tokenChangeData = SudtAmountSerialization.encodeData(
-        collectedCells.inputToken - req.tokenInAmount.getBalance(),
-      );
+      const tokenChangeData = this.codec
+        .getSudtCellSerialization()
+        .encodeData(collectedCells.inputToken - req.tokenInAmount.getBalance());
       outputs.push(tokenChangeOutput);
       outputsData.push(tokenChangeData);
     }
@@ -654,7 +660,7 @@ export class TxBuilderService {
 
     // Generate swap request lock script
     const lockArgs = (() => {
-      const encoder = SwapOrderCellInfoSerialization.encodeArgs;
+      const encoder = this.codec.getSwapCellSerialization().encodeArgs;
       const amountIn = req.tokenInAmount.getBalance();
       const minAmountOut = req.tokenOutMinAmount.getBalance();
 
@@ -749,7 +755,7 @@ export class TxBuilderService {
     txFee: bigint = 61n * constants.CKB_DECIMAL,
   ): Promise<TransactionWithFee> {
     const liquidityArgs = (() => {
-      const decoder = LiquidityOrderCellInfoSerialization.decodeArgs;
+      const decoder = this.codec.getLiquidityCellSerialization().decodeArgs;
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (liquidityArgs.userLockHash != userLock.toHash()) {
@@ -822,7 +828,7 @@ export class TxBuilderService {
     txFee: bigint = 61n * constants.CKB_DECIMAL,
   ): Promise<TransactionWithFee> {
     const swapArgs = (() => {
-      const decoder = SwapOrderCellInfoSerialization.decodeArgs;
+      const decoder = this.codec.getSwapCellSerialization().decodeArgs;
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (swapArgs.userLockHash != userLock.toHash()) {
@@ -908,9 +914,11 @@ export class TxBuilderService {
 
 class TxBuilderCellCollector implements CellCollector {
   private readonly ckbRepository: DexRepository;
+  private readonly codec: CellInfoSerializationHolder;
 
   constructor() {
     this.ckbRepository = ckbRepository;
+    this.codec = CellInfoSerializationHolderFactory.getInstance();
   }
 
   public async collect(ctx: Context, capacity: bigint, userLock: Script, token?: Token): Promise<CollectedCells> {
@@ -930,7 +938,7 @@ class TxBuilderCellCollector implements CellCollector {
           break;
         }
 
-        inputTokenAmount = inputTokenAmount + SudtAmountSerialization.decodeData(cell.data);
+        inputTokenAmount = inputTokenAmount + this.codec.getSudtCellSerialization().decodeData(cell.data);
         inputCells.push(cell);
         inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
       }
