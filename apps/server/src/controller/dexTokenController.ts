@@ -7,15 +7,15 @@ import { Primitive } from '@gliaswap/types';
 import * as pwCore from '@lay2/pw-core';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Script, Token, TokenHolderFactory } from '../model';
-import { TokenCellCollectorService } from '../service';
+import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 
 const tokenTag = tags(['Token']);
 
 export default class DexTokenController {
   private readonly service: TokenCellCollectorService;
 
-  constructor(service: TokenCellCollectorService) {
-    this.service = service;
+  constructor() {
+    this.service = new DefaultTokenCellCollectorService();
   }
 
   @request('post', '/v1/get-default-asset-list')
