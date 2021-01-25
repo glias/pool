@@ -1,7 +1,9 @@
-import * as blake2bWasm from 'blake2b-wasm';
+import blake2bUtil from 'blake2b';
 
 export function blake2b(data: string[]): string {
-  const hasher = blake2bWasm(32, null, null, Buffer.from('ckb-default-hash'));
-  data.map(Buffer.from).forEach(hasher.update);
+  const hasher = blake2bUtil(32, null, null, Buffer.from('ckb-default-hash'));
+  for (const bytes of data) {
+    hasher.update(Buffer.from(bytes));
+  }
   return `0x${hasher.digest('hex')}`;
 }
