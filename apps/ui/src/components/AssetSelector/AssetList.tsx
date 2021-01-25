@@ -39,7 +39,6 @@ export function AssetList<A extends Asset, K extends Key>(
   props: React.PropsWithChildren<AssetListProps<A, K>> & React.HTMLAttributes<HTMLUListElement>,
 ) {
   const { assets, onSelected, disabledKeys, ...wrapperProps } = props;
-
   const listNode = assets.map((asset, i) => {
     const assetNode = (
       <>

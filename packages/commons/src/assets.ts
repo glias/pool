@@ -74,7 +74,7 @@ export function isCkbSudtAsset<T extends Asset>(asset: T): asset is T & CkbSudtA
 }
 
 export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowOfEthAsset {
-  return isCkbSudtAsset(asset) && has(asset, 'shadowOf');
+  return isCkbSudtAsset(asset) && has(asset, 'shadowFrom');
 }
 
 export function isEthNativeAsset<T extends Asset>(asset: T): asset is T & EthNativeAsset {

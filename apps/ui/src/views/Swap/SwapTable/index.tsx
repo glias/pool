@@ -62,7 +62,7 @@ export const SwapTable: React.FC = () => {
     [form],
   );
 
-  useSwapTable({
+  const { onReceiveSelect, onPaySelectAsset, receiveSelectorDisabledKeys } = useSwapTable({
     form,
     tokenA,
     tokenB,
@@ -185,9 +185,8 @@ export const SwapTable: React.FC = () => {
           }}
           selectorProps={{
             selectedKey: tokenA?.symbol,
-            onSelected: (_, asset) => {
-              setTokenA(asset);
-            },
+            onSelected: onPaySelectAsset,
+            group: (a) => a.chainType,
           }}
         />
         <div className="swap">
@@ -204,9 +203,9 @@ export const SwapTable: React.FC = () => {
           renderKeys={(a) => a.symbol}
           selectorProps={{
             selectedKey: tokenB?.symbol,
-            onSelected: (_, asset) => {
-              setTokenB(asset);
-            },
+            onSelected: onReceiveSelect,
+            disabledKeys: receiveSelectorDisabledKeys,
+            group: (a) => a.chainType,
           }}
         />
         <Form.Item className="submit">

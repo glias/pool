@@ -37,7 +37,7 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
-  const { selectedKey, onSelected, assets, renderKey, group, ...otherProps } = props;
+  const { selectedKey, onSelected, assets, renderKey, group, disabledKeys, ...otherProps } = props;
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectable = !!onSelected;
@@ -75,7 +75,6 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
 
   const modalElem = useMemo(() => {
     if (!selectable) return;
-
     return (
       <AssetSelectorModal
         onCancel={() => setModalVisible(false)}
@@ -84,10 +83,10 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
         onSelected={onSelect}
         renderKey={renderKey}
         group={group}
-        disabledKeys={selectedAsset ? ([selectedKey] as K[]) : undefined}
+        disabledKeys={disabledKeys ? disabledKeys : selectedAsset ? ([selectedKey] as K[]) : undefined}
       />
     );
-  }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey]);
+  }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey, disabledKeys]);
 
   const onClick = useCallback(() => {
     if (!selectable) return;
