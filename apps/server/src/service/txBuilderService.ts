@@ -6,6 +6,7 @@ import * as constants from '@gliaswap/constants';
 import { ckbRepository, DexRepository } from '../repository';
 import * as utils from '../utils';
 import { Cell, Script, Token, RawTransaction, cellConver, Output, TransactionToSign } from '../model';
+import { TokenHolderFactory } from '../model';
 import { CellInfoSerializationHolderFactory, CellInfoSerializationHolder } from '../model';
 import * as config from '../config';
 
@@ -144,26 +145,25 @@ export class TxBuilderService {
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
 
     // Generate info lock script
-    const typeHash20 = infoType.toHash().slice(2, 42);
-    const pairHash20 = () => {
-      const hashes = [req.tokenA.typeHash, req.tokenB.typeHash].map((hash) => {
-        return hash == CKB_TYPE_HASH ? 'ckb' : hash;
-      });
-      return utils.blake2b(hashes).slice(2, 42);
-    };
-    const infoLockArgs = `0x${pairHash20}${typeHash20}`;
+    const typeHash = infoType.toHash().slice(2);
+    const pairHash = (() => {
+      const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
+      const hashes = ['ckb', token.typeHash];
+      return utils.blake2b(hashes).slice(2);
+    })();
+    const infoLockArgs = `0x${pairHash}${typeHash}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
-    const lpTokenTypeHash20 = lpTokenType.toHash().slice(2, 42);
+    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
     const ckbReserve = '0x00'.slice(2);
     const tokenReserve = '0x00'.slice(2);
     const totalLiquidity = '0x00'.slice(2);
-    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash20}`;
+    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
 
     // Finally, generate info output cell
     const infoOutput = {
@@ -213,6 +213,116 @@ export class TxBuilderService {
     const estimatedTxFee = txToSign.calcFee();
     if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
       return await this.buildCreateLiquidityPool(ctx, req, estimatedTxFee);
+    }
+
+    changeOutput = txToSign.raw.outputs.pop();
+    changeOutput.capacity = (BigInt(changeOutput.capacity) - estimatedTxFee).toString();
+    txToSign.raw.outputs.push(changeOutput);
+
+    return new CreateLiquidityPoolResponse(txToSign, estimatedTxFee, lpToken);
+  }
+
+  public async buildTestLiquidityPool(
+    ctx: Context,
+    req: CreateLiquidityPoolRequest,
+    txFee = 0n,
+  ): Promise<CreateLiquidityPoolResponse> {
+    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
+      ctx.throw('token/token pool isnt support yet', 400);
+    }
+
+    // Collect enough free ckb to generate liquidity pool cells
+    // Ensure we always have change output cell to simplify tx fee calculation
+    const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
+    const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
+    const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
+    if (inputCapacity < minCapacity) {
+      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
+    }
+    if (!inputCells[0].outPoint) {
+      ctx.throw('create pool failed, first input donest have outpoint', 500);
+    }
+
+    const tokenHolder = TokenHolderFactory.getInstance();
+    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
+    if (!tokenHolder.getTokenByTypeHash(reqToken.typeHash)) {
+      ctx.throw('token not in token list', 400, { tokenType: reqToken.typeHash });
+    }
+
+    // Generate info type script
+    // For testnet, we use default hardcode id for each token pool
+    const id = config.POOL_INFO_ID[reqToken.info.symbol];
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
+
+    // Generate info lock script
+    const typeHash = infoType.toHash().slice(2);
+    const pairHash = (() => {
+      const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
+      const hashes = ['ckb', token.typeHash];
+      return utils.blake2b(hashes).slice(2);
+    })();
+    const infoLockArgs = `0x${pairHash}${typeHash}`;
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
+
+    // Generate liquidity provider token type script
+    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
+    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
+    const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
+
+    // Generate info data
+    const ckbReserve = '0x00'.slice(2);
+    const tokenReserve = '0x00'.slice(2);
+    const totalLiquidity = '0x00'.slice(2);
+    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
+
+    // Finally, generate info output cell
+    const infoOutput = {
+      capacity: constants.INFO_CAPACITY.toString(),
+      lock: infoLock,
+      type: infoType,
+    };
+
+    // Generate pool output cell
+    const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
+    const poolData = `0x00`;
+    const poolOutput = {
+      capacity: constants.MIN_POOL_CAPACITY.toString(),
+      lock: infoLock,
+      type: tokenType,
+    };
+
+    // Generate change output cell
+    const changeCapacity = inputCapacity - constants.INFO_CAPACITY - constants.MIN_POOL_CAPACITY;
+    let changeOutput = {
+      capacity: changeCapacity.toString(),
+      lock: req.userLock,
+    };
+
+    const outputs: Output[] = [infoOutput, poolOutput, changeOutput];
+    const outputsData: string[] = [infoData, poolData, `0x`];
+
+    // Generate transaction
+    const inputs = inputCells.map((cell) => {
+      return cellConver.converToInput(cell);
+    });
+    const raw: RawTransaction = {
+      cellDeps: [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP],
+      headerDeps: [],
+      inputs,
+      outputs,
+      outputsData,
+      version: '0x0',
+    };
+    const txToSign = new TransactionToSign(
+      raw,
+      inputCells,
+      [config.PW_WITNESS_ARGS.Secp256k1],
+      [config.PW_ECDSA_WITNESS_LEN],
+    );
+
+    const estimatedTxFee = txToSign.calcFee();
+    if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
+      return await this.buildTestLiquidityPool(ctx, req, estimatedTxFee);
     }
 
     changeOutput = txToSign.raw.outputs.pop();
