@@ -17,7 +17,7 @@ export interface ScriptEquals {
   ): boolean;
 
   matchTypeScriptWapper(
-    script: lumos.ScriptWrapper | 'empty',
+    script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
   ): boolean;
 }

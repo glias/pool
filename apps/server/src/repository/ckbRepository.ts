@@ -8,6 +8,8 @@ import {
   Cell,
   cellConver,
   OutPoint,
+  PendingFilter,
+  PoolFilter,
   Script,
   scriptEquals,
   transactionConver,
@@ -54,39 +56,20 @@ export class CkbRepository implements DexRepository {
   async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
     const lumosCells = await this.lumosRepository.collectCells(queryOptions);
     const dexCells = lumosCells.map((x) => cellConver.conver(x));
-    const groupByInputOutPoint = await this.getPoolCells();
+    // const groupByInputOutPoint = await this.getPoolCells();
     const result: Cell[] = [];
 
-    dexCells.forEach((cell) => {
-      const tx = groupByInputOutPoint.get(this.genKey(cell.outPoint));
-      if (tx) {
-        for (let i = 0; i < tx.transaction.outputs.length; i++) {
-          const output = tx.transaction.outputs[i];
-          if (output.type) {
-            if (
-              scriptEquals.equalsLockScript(queryOptions.lock, output.lock) &&
-              scriptEquals.equalsTypeScript(queryOptions.type, output.type)
-            ) {
-              const pendingCell: Cell = {
-                cellOutput: {
-                  capacity: cell.cellOutput.capacity,
-                  lock: cell.cellOutput.lock,
-                  type: cell.cellOutput.type,
-                },
-                outPoint: cell.outPoint,
-                blockHash: tx.txStatus.blockHash,
-                blockNumber: '0',
-                data: tx.transaction.outputsData[i],
-              };
-
-              result.push(pendingCell);
-            }
-          }
-        }
+    const pendingTxs = await this.getPoolTxs();
+    const filter: PoolFilter = new PendingFilter(pendingTxs);
+    for (const cell of dexCells) {
+      const matchCells = await filter.getCellFilter().matchCells(queryOptions, cell);
+      if (matchCells) {
+        matchCells.forEach((x) => result.push(x));
       } else {
         result.push(cell);
       }
-    });
+    }
+
     return result;
   }
 

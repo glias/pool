@@ -8,7 +8,7 @@ export interface PoolFilter {
 }
 
 export interface CellFilter {
-  matchCells(queryOptions: QueryOptions, cell: Cell): void;
+  matchCells(queryOptions: QueryOptions, cell: Cell): Promise<Cell[]>;
 }
 
 export interface TransactionFilter {
@@ -21,27 +21,30 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     throw new Error('Method not implemented.');
   }
 
-  async matchCells(queryOptions: QueryOptions, cell: Cell): Promise<void> {
+  async matchCells(queryOptions: QueryOptions, cell: Cell): Promise<Cell[]> {
     const groupByInputOutPoint: Map<string, TransactionWithStatus> = await this.getPoolCells();
     const tx = groupByInputOutPoint.get(this.genKey(cell.outPoint));
     const result: Cell[] = [];
     if (tx) {
       for (let i = 0; i < tx.transaction.outputs.length; i++) {
         const output = tx.transaction.outputs[i];
-
         if (output.type) {
           if (
             scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock) &&
-            scriptEquals.equalsTypeScript(queryOptions.type, output.type)
+            scriptEquals.matchTypeScriptWapper(queryOptions.type, output.type)
           ) {
+            const pendingCell: Cell = this.buildPendingCell(cell, tx, i);
+            result.push(pendingCell);
+          }
+        } else {
+          if (scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock)) {
             const pendingCell: Cell = this.buildPendingCell(cell, tx, i);
             result.push(pendingCell);
           }
         }
       }
-    } else {
-      result.push(cell);
     }
+    return result;
   }
 
   private buildPendingCell(cell: Cell, tx: TransactionWithStatus, i: number): Cell {
