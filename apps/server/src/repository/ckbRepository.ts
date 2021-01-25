@@ -108,8 +108,12 @@ export class CkbRepository implements DexRepository {
       return await Promise.all(
         ckbTxs.map(async (x) => {
           const tx = transactionConver.conver(x);
-          const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-          tx.txStatus.timestamp = timestamp;
+          if (x.txStatus.blockHash) {
+            const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+            tx.txStatus.timestamp = timestamp;
+          } else {
+            tx.txStatus.timestamp = new Date().getTime().toString(16);
+          }
           return tx;
         }),
       );
@@ -121,8 +125,13 @@ export class CkbRepository implements DexRepository {
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
     const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
     const tx = transactionConver.conver(ckbTx);
-    const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-    tx.txStatus.timestamp = timestamp;
+    if (tx.txStatus.blockHash) {
+      const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+      tx.txStatus.timestamp = timestamp;
+    } else {
+      tx.txStatus.timestamp = new Date().getTime().toString(16);
+    }
+
     return tx;
   }
 
