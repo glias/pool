@@ -11,7 +11,6 @@ import {
   PendingFilter,
   PoolFilter,
   Script,
-  scriptEquals,
   transactionConver,
   TransactionWithStatus,
 } from '../model';
@@ -56,16 +55,13 @@ export class CkbRepository implements DexRepository {
   async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
     const lumosCells = await this.lumosRepository.collectCells(queryOptions);
     const dexCells = lumosCells.map((x) => cellConver.conver(x));
-    // const groupByInputOutPoint = await this.getPoolCells();
     const result: Cell[] = [];
 
     const pendingTxs = await this.getPoolTxs();
-    const filter: PoolFilter = new PendingFilter(pendingTxs);
+    const filter: PoolFilter = new PendingFilter(pendingTxs, null);
     for (const cell of dexCells) {
-      const matchCells = await filter.getCellFilter().matchCells(queryOptions, cell);
+      const matchCells = filter.getCellFilter().matchCells(queryOptions, cell);
       if (matchCells.length !== 0) {
-        // console.log(matchCells);
-        // matchCells.forEach((x) => console.log(x));
         matchCells.forEach((x) => result.push(x));
       } else {
         result.push(cell);
@@ -75,9 +71,9 @@ export class CkbRepository implements DexRepository {
     return result;
   }
 
-  async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
+  async collectTransactions(queryOptions: QueryOptions, includePool?: boolean): Promise<TransactionWithStatus[]> {
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
-    return await Promise.all(
+    const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
         const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
@@ -85,9 +81,31 @@ export class CkbRepository implements DexRepository {
         return tx;
       }),
     );
+
+    if (includePool) {
+      const pendingTxs = await this.getPoolTxs();
+      const hashes = [];
+      for (const tx of pendingTxs) {
+        tx.transaction.inputs.forEach((x) => {
+          hashes.push(['getTransaction', x.previousOutput.txHash]);
+        });
+      }
+      const inputTxs = await this.getTransactions(hashes);
+      const filter: PoolFilter = new PendingFilter(pendingTxs, inputTxs);
+      filter
+        .getTransactionFilter()
+        .matchTransactions(queryOptions)
+        .forEach((x) => result.push(x));
+    }
+
+    return result;
   }
 
   async getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]> {
+    if (ckbReqParams.length === 0) {
+      return [];
+    }
+
     try {
       const ckbTxs = await this.ckbNode.rpc.createBatchRequest(ckbReqParams).exec();
       return await Promise.all(
@@ -97,7 +115,7 @@ export class CkbRepository implements DexRepository {
             const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
             tx.txStatus.timestamp = timestamp;
           } else {
-            tx.txStatus.timestamp = new Date().getTime().toString(16);
+            tx.txStatus.timestamp = `0x${new Date().getTime().toString(16)}`;
           }
           return tx;
         }),
@@ -114,7 +132,7 @@ export class CkbRepository implements DexRepository {
       const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
       tx.txStatus.timestamp = timestamp;
     } else {
-      tx.txStatus.timestamp = new Date().getTime().toString(16);
+      tx.txStatus.timestamp = `0x${new Date().getTime().toString(16)}`;
     }
 
     return tx;

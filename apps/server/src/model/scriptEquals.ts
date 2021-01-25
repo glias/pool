@@ -112,6 +112,15 @@ class DefaultScriptEquals implements ScriptEquals {
       };
     }
 
+    if ('argsLen' in script) {
+      const s = <lumos.ScriptWrapper>script;
+      return {
+        code_hash: s.script.code_hash,
+        hash_type: s.script.hash_type,
+        args: s.script.args,
+      };
+    }
+
     const s = <Script>script;
     return {
       code_hash: s.codeHash,

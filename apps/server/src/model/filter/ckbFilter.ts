@@ -8,21 +8,32 @@ export interface PoolFilter {
 }
 
 export interface CellFilter {
-  matchCells(queryOptions: QueryOptions, cell: Cell): Promise<Cell[]>;
+  matchCells(queryOptions: QueryOptions, cell: Cell): Cell[];
 }
 
 export interface TransactionFilter {
-  matchTransactions(): void;
+  matchTransactions(queryOptions: QueryOptions): TransactionWithStatus[];
 }
 
 export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter {
-  constructor(private txs: TransactionWithStatus[]) {}
-  matchTransactions(): void {
-    throw new Error('Method not implemented.');
+  private alreadyHash: Set<string> = new Set();
+
+  constructor(private txs: TransactionWithStatus[], private inputTxs?: TransactionWithStatus[]) {}
+  matchTransactions(queryOptions: QueryOptions): TransactionWithStatus[] {
+    if (!this.inputTxs) {
+      throw new Error('inputTxs not undefined');
+    }
+
+    const result = this.matchTxsByOutput(queryOptions);
+    this.matchTxsByInput(queryOptions).forEach((x) => {
+      result.push(x);
+    });
+
+    return result;
   }
 
-  async matchCells(queryOptions: QueryOptions, cell: Cell): Promise<Cell[]> {
-    const groupByInputOutPoint: Map<string, TransactionWithStatus> = await this.getPoolCells();
+  matchCells(queryOptions: QueryOptions, cell: Cell): Cell[] {
+    const groupByInputOutPoint: Map<string, TransactionWithStatus> = this.getPoolCells();
     const tx = groupByInputOutPoint.get(this.genKey(cell.outPoint));
     const result: Cell[] = [];
     if (tx) {
@@ -37,8 +48,6 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
             result.push(pendingCell);
           }
         } else {
-          // console.log(scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock));
-
           if (scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock)) {
             const pendingCell: Cell = this.buildPendingCell(output, tx, i);
             result.push(pendingCell);
@@ -58,7 +67,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
       },
       outPoint: {
         txHash: tx.transaction.hash,
-        index: i.toString(16),
+        index: `0x${i.toString(16)}`,
       },
       blockHash: tx.txStatus.blockHash,
       blockNumber: '0',
@@ -66,7 +75,83 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     };
   }
 
-  async getPoolCells(): Promise<Map<string, TransactionWithStatus>> {
+  matchTxsByInput(queryOptions: QueryOptions): TransactionWithStatus[] {
+    const result: TransactionWithStatus[] = [];
+    const groupByInputOutPoint = this.getInputCells();
+    this.txs.forEach((x) => {
+      if (this.alreadyHash.has(x.transaction.hash)) {
+        return;
+      }
+      console.log(x.transaction.hash);
+
+      for (let i = 0; i < x.transaction.inputs.length; i++) {
+        const key = this.genKey(x.transaction.inputs[i].previousOutput);
+        const cell = groupByInputOutPoint.get(key);
+        if (queryOptions.type) {
+          if (
+            scriptEquals.matchLockScriptWapper(queryOptions.lock, cell.lock) &&
+            scriptEquals.matchTypeScriptWapper(queryOptions.type, cell.type)
+          ) {
+            this.alreadyHash.add(x.transaction.hash);
+            result.push(x);
+          }
+        } else {
+          if (scriptEquals.matchLockScriptWapper(queryOptions.lock, cell.lock)) {
+            this.alreadyHash.add(x.transaction.hash);
+            result.push(x);
+          }
+        }
+      }
+    });
+
+    return result;
+  }
+
+  matchTxsByOutput(queryOptions: QueryOptions): TransactionWithStatus[] {
+    const result: TransactionWithStatus[] = [];
+    this.txs.forEach((x) => {
+      if (this.alreadyHash.has(x.transaction.hash)) {
+        return;
+      }
+      for (let i = 0; i < x.transaction.outputs.length; i++) {
+        const cell = x.transaction.outputs[i];
+        if (queryOptions.type) {
+          if (
+            scriptEquals.matchLockScriptWapper(queryOptions.lock, cell.lock) &&
+            scriptEquals.matchTypeScriptWapper(queryOptions.type, cell.type)
+          ) {
+            this.alreadyHash.add(x.transaction.hash);
+            result.push(x);
+          }
+        } else {
+          if (scriptEquals.matchLockScriptWapper(queryOptions.lock, cell.lock)) {
+            this.alreadyHash.add(x.transaction.hash);
+            result.push(x);
+          }
+        }
+      }
+    });
+
+    return result;
+  }
+
+  getInputCells(): Map<string, CellOutput> {
+    const groupByInputOutPoint: Map<string, CellOutput> = new Map();
+    this.inputTxs.forEach((x) => {
+      for (let i = 0; i < x.transaction.outputs.length; i++) {
+        const cell = x.transaction.outputs[i];
+        const key = this.genKey({
+          txHash: x.transaction.hash,
+          index: `0x${i.toString(16)}`,
+        });
+        groupByInputOutPoint.set(key, cell);
+      }
+    });
+
+    return groupByInputOutPoint;
+  }
+
+  getPoolCells(): Map<string, TransactionWithStatus> {
     const groupByInputOutPoint = new Map<string, TransactionWithStatus>();
     this.txs.forEach((tx) => {
       tx.transaction.inputs.forEach((input) => {

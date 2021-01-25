@@ -39,6 +39,19 @@ test('equals ScriptWrapper lock return true', () => {
   expect(scriptEquals.matchLockScriptWapper(ScriptWrapper, target)).toEqual(true);
 });
 
+test('ScriptWrapper argsLen is -1', () => {
+  const target: lumos.Script = {
+    code_hash: script.codeHash,
+    hash_type: <lumos.HashType>script.hashType,
+    args: `${script.args}000000000011111100000011111`,
+  };
+  const ScriptWrapper: lumos.ScriptWrapper = {
+    script: target,
+    argsLen: -1,
+  };
+  expect(scriptEquals.matchLockScriptWapper(ScriptWrapper, target)).toEqual(true);
+});
+
 test('equals type return true', () => {
   const target = script;
   expect(scriptEquals.equalsTypeScript(script, target)).toEqual(true);
