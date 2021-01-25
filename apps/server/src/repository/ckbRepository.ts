@@ -108,8 +108,12 @@ export class CkbRepository implements DexRepository {
       return await Promise.all(
         ckbTxs.map(async (x) => {
           const tx = transactionConver.conver(x);
-          const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-          tx.txStatus.timestamp = timestamp;
+          if (x.txStatus.blockHash) {
+            const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+            tx.txStatus.timestamp = timestamp;
+          } else {
+            tx.txStatus.timestamp = new Date().getTime().toString();
+          }
           return tx;
         }),
       );
