@@ -71,7 +71,7 @@ export default class DexTokenController {
       const primitiveToken: Primitive.Token = {
         balance: '0',
         typeHash: token.typeHash,
-        typeScript: token.typeScript.toPwScript(),
+        typeScript: token.typeScript ? token.typeScript.toPwScript() : null,
         info: {
           name: token.info.name,
           symbol: token.info.symbol,
