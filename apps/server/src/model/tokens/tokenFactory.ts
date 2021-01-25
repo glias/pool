@@ -15,8 +15,8 @@ export class TokenHolderFactory {
         const info = new TokenInfo(
           data.info.name,
           data.info.symbol,
-          data.info.decimal,
-          data.info.logoUri,
+          data.info.decimals,
+          data.info.logoURI,
           data.info.address,
           data.info.chainType,
         );
@@ -42,8 +42,8 @@ export class TokenHolderFactory {
       const info = new TokenInfo(
         data.info.name,
         data.info.symbol,
-        data.info.decimal,
-        data.info.logoUri,
+        data.info.decimals,
+        data.info.logoURI,
         data.info.address,
         data.info.chainType,
       );

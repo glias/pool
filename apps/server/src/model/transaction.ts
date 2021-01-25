@@ -142,7 +142,8 @@ class TransactionConver {
         headerDeps: [],
         inputs: this.converInputs(lumosTx.transaction.inputs),
         outputs: this.converOutputs(lumosTx.transaction.outputs),
-        outputsData: 'outputsData' in lumosTx ? lumosTx.transaction.outputsData : lumosTx.transaction.outputs_data,
+        outputsData:
+          'outputsData' in lumosTx.transaction ? lumosTx.transaction.outputsData : lumosTx.transaction.outputs_data,
         version: lumosTx.transaction.version,
         witnesses: lumosTx.transaction.witnesses,
       },
