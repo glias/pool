@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import i18n from 'i18n';
 import { InputNumber } from 'components/InputNumber';
 import BigNumber from 'bignumber.js';
-import { ReactComponent as SwapSvg } from 'asserts/svg/swap.svg';
+import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from './hook';
 import {
@@ -15,7 +15,6 @@ import {
   isCkbNativeAsset,
   isEthNativeAsset,
 } from '@gliaswap/commons';
-import { useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import { useMemo, useEffect } from 'react';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
@@ -48,9 +47,14 @@ export const SwapTable: React.FC = () => {
     setCurrentEthTx,
     setCurrentTx,
   } = useSwapContainer();
-  const { assets } = useGliaswapContext();
   const { bridgeAPI } = useGlobalConfig();
-  const { currentCkbAddress: ckbAddress, currentEthAddress: ethAddress, adapter } = useGliaswap();
+  const {
+    currentCkbAddress: ckbAddress,
+    currentEthAddress: ethAddress,
+    adapter,
+    realtimeAssets: assets,
+  } = useGliaswap();
+
   const [isFetchingOrder, setIsFetchingOrder] = useState(false);
   const { web3 } = adapter.raw;
 
@@ -136,6 +140,9 @@ export const SwapTable: React.FC = () => {
         await swapCrossChain();
       }
     } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        throw new Error(error);
+      }
       Modal.error({
         title: 'Build Transaction',
         content: error.message,

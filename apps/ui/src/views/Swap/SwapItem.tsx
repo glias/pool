@@ -7,8 +7,8 @@ import { TableRow } from 'components/TableRow';
 import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
 import { AssetSymbol } from 'components/Asset';
 import { useMemo } from 'react';
-import { ReactComponent as InfoSvg } from 'asserts/svg/info.svg';
-import { ReactComponent as ArrowSvg } from 'asserts/svg/right-arrow.svg';
+import { ReactComponent as InfoSvg } from 'assets/svg/info.svg';
+import { ReactComponent as ArrowSvg } from 'assets/svg/right-arrow.svg';
 import { useSwapContainer } from './hook';
 import { useCallback } from 'react';
 

@@ -7,7 +7,7 @@ import i18n from 'i18n';
 import React from 'react';
 import { useMemo } from 'react';
 import { SwapMode, useSwapContainer } from './hook';
-import { ReactComponent as DownArrowSvg } from 'asserts/svg/down-arrow.svg';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 import { Container, AssetRow } from './CancelModal';

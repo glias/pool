@@ -1,6 +1,6 @@
 import React from 'react';
 import { MetaContainer } from 'components/MetaContainer';
-import Gift from 'asserts/img/gift.png';
+import Gift from 'assets/img/gift.png';
 import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY, README_URL } from 'suite/constants';
 import i18n from 'i18n';
 

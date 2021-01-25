@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 import styled from 'styled-components';
 import { displayBalance } from 'utils';
 import { useSwapContainer } from './hook';
-import { ReactComponent as DownArrowSvg } from 'asserts/svg/down-arrow.svg';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 
