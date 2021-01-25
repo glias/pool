@@ -167,16 +167,16 @@ export class TxBuilderService {
 
     // Finally, generate info output cell
     const infoOutput = {
-      capacity: constants.INFO_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.INFO_CAPACITY),
       lock: infoLock,
       type: infoType,
     };
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x0`;
+    const poolData = `0x00`;
     const poolOutput = {
-      capacity: constants.MIN_POOL_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
       type: tokenType,
     };
@@ -184,7 +184,7 @@ export class TxBuilderService {
     // Generate change output cell
     const changeCapacity = inputCapacity - constants.INFO_CAPACITY - constants.MIN_POOL_CAPACITY;
     let changeOutput = {
-      capacity: changeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(changeCapacity),
       lock: req.userLock,
     };
 
@@ -216,7 +216,7 @@ export class TxBuilderService {
     }
 
     changeOutput = txToSign.raw.outputs.pop();
-    changeOutput.capacity = (BigInt(changeOutput.capacity) - estimatedTxFee).toString();
+    changeOutput.capacity = TxBuilderService.hexBigint(BigInt(changeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(changeOutput);
 
     return new CreateLiquidityPoolResponse(txToSign, estimatedTxFee, lpToken);
@@ -277,16 +277,16 @@ export class TxBuilderService {
 
     // Finally, generate info output cell
     const infoOutput = {
-      capacity: constants.INFO_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.INFO_CAPACITY),
       lock: infoLock,
       type: infoType,
     };
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x0`;
+    const poolData = `0x00`;
     const poolOutput = {
-      capacity: constants.MIN_POOL_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
       type: tokenType,
     };
@@ -294,7 +294,7 @@ export class TxBuilderService {
     // Generate change output cell
     const changeCapacity = inputCapacity - constants.INFO_CAPACITY - constants.MIN_POOL_CAPACITY;
     let changeOutput = {
-      capacity: changeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(changeCapacity),
       lock: req.userLock,
     };
 
@@ -326,7 +326,7 @@ export class TxBuilderService {
     }
 
     changeOutput = txToSign.raw.outputs.pop();
-    changeOutput.capacity = (BigInt(changeOutput.capacity) - estimatedTxFee).toString();
+    changeOutput.capacity = TxBuilderService.hexBigint(BigInt(changeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(changeOutput);
 
     return new CreateLiquidityPoolResponse(txToSign, estimatedTxFee, lpToken);
@@ -370,7 +370,7 @@ export class TxBuilderService {
 
     // Generate genesis request output cell
     const reqOutput = {
-      capacity: (constants.LIQUIDITY_ORDER_CAPACITY + ckb.getBalance()).toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckb.getBalance()),
       lock: reqLock,
       type: token.typeScript,
     };
@@ -383,7 +383,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > token.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: token.typeScript,
       };
@@ -399,7 +399,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -430,7 +430,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -482,7 +482,7 @@ export class TxBuilderService {
 
     // Generate add liquidity request output cell
     const reqOutput = {
-      capacity: (constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance()).toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance()),
       lock: reqLock,
       type: tokenDesired.typeScript,
     };
@@ -495,7 +495,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > tokenDesired.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: tokenDesired.typeScript,
       };
@@ -511,7 +511,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -542,7 +542,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -587,7 +587,7 @@ export class TxBuilderService {
 
     // Generate add liquidity request output cell
     const reqOutput = {
-      capacity: constants.LIQUIDITY_ORDER_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY),
       lock: reqLock,
       type: req.lpTokenAmount.typeScript,
     };
@@ -600,7 +600,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > req.lpTokenAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: req.lpTokenAmount.typeScript,
       };
@@ -616,7 +616,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -647,7 +647,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -702,7 +702,7 @@ export class TxBuilderService {
 
     // Generate swap request output cell
     const reqOutput = {
-      capacity: constants.SWAP_SELL_REQ_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.SWAP_SELL_REQ_CAPACITY),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -715,7 +715,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > req.tokenInAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: req.tokenInAmount.typeScript,
       };
@@ -731,7 +731,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -796,7 +796,7 @@ export class TxBuilderService {
     // Generate swap request output cell
     const reqCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY;
     const reqOutput = {
-      capacity: reqCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -808,7 +808,7 @@ export class TxBuilderService {
 
     const ckbChangeCapacity = collectedCells.inputCapacity - reqCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -839,7 +839,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -865,7 +865,7 @@ export class TxBuilderService {
       cellOutput: output,
       outPoint: {
         txHash: transaction.hash,
-        index: idx.toString(16),
+        index: `0x${idx.toString(16)}`,
       },
       blockHash: null,
       blockNumber: null,
@@ -900,7 +900,7 @@ export class TxBuilderService {
     const outputsData: string[] = [];
 
     const tokenChangeOutput = {
-      capacity: minTokenChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
       lock: userLock,
       type: requestCell.cellOutput.type,
     };
@@ -910,7 +910,7 @@ export class TxBuilderService {
 
     const ckbChangeCapacity = inputCapacity - minTokenChangeCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -940,7 +940,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -976,7 +976,7 @@ export class TxBuilderService {
 
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: userLock,
         type: requestCell.cellOutput.type,
       };
@@ -988,7 +988,7 @@ export class TxBuilderService {
     const ckbChangeCapacity =
       swapArgs.sudtTypeHash == CKB_TYPE_HASH ? inputCapacity - minTokenChangeCapacity : inputCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -1023,10 +1023,14 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
+  }
+
+  private static hexBigint(n: bigint): string {
+    return `0x${n.toString(16)}`;
   }
 
   private static minCKBChangeCapacity(userLock: Script): bigint {
