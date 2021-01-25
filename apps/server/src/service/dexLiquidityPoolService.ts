@@ -7,14 +7,14 @@ import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
-import { DexRepository } from '../repository';
+import { ckbRepository, DexRepository } from '../repository';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderService: txBuilder.TxBuilderService;
 
   constructor() {
-    // this.dexRepository = ckbRepository;
+    this.dexRepository = ckbRepository;
     this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
