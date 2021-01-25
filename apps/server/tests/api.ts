@@ -78,6 +78,40 @@ const generateToken = (amount: bigint, symbol: string) => {
   };
 };
 
+const deserializeTransactionToSign = (serialized: commons.SerializedTransactonToSign) => {
+  const inputs = serialized.inputCells.map((cell) => {
+    return {
+      previousOutput: {
+        txHash: cell.txHash,
+        index: cell.index,
+      },
+      since: '0x0',
+    };
+  });
+  const outputs = serialized.outputCells.map((cell) => {
+    return {
+      capacity: cell.capacity,
+      lock: cell.lock,
+      type: cell.type,
+    };
+  });
+  const outputsData = serialized.outputCells.map((cell) => {
+    return cell.data;
+  });
+
+  const txToSign: CKBComponents.RawTransactionToSign = {
+    version: serialized.version,
+    cellDeps: serialized.cellDeps,
+    headerDeps: serialized.headerDeps,
+    inputs,
+    outputs,
+    witnesses: serialized.witnessArgs,
+    outputsData,
+  };
+
+  return txToSign;
+};
+
 async function createTestPool(tokenSymbol: string) {
   const req = {
     tokenA: ckbToken(0n),
@@ -89,7 +123,7 @@ async function createTestPool(tokenSymbol: string) {
 
   try {
     const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
-    const tx = commons.TransactionHelper.deserializeTransactionToSign(resp.data.tx);
+    const tx = deserializeTransactionToSign(resp.data.tx);
     console.log(tx);
     console.log(resp.data.fee);
     console.log(resp.data.lpToken);
