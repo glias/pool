@@ -1,12 +1,13 @@
 // import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
 import * as lumos from '@ckb-lumos/base';
+import { formatByteLike } from 'easy-byte'
 import * as commons from '@gliaswap/commons';
 import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { Primitive } from '@gliaswap/types';
 import * as pwCore from '@lay2/pw-core';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
-import { Script, Token, TokenHolderFactory } from '../model';
+import { Script, Token, TokenHolderFactory, DefaultCellInfoSerializationHolder } from '../model';
 import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 
 const tokenTag = tags(['Token']);
@@ -85,14 +86,21 @@ export default class DexTokenController {
       );
 
 
-      let amount = new pwCore.Amount('0x00', token.info.decimals);
-      let occupiedCapacity = new pwCore.Amount('0', token.info.decimals);
+      let amount = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData("0x00");
+      let occupiedCapacity = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData("0x00");
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
-          occupiedCapacity = occupiedCapacity.add(cell.occupiedCapacity());
-          amount = amount.add(cell.capacity);
+          if (cell.getHexData() === "0x" && !cell.type) {
+            amount += new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.capacity.toUInt128LE());
+          }
+          if (cell.getHexData() !== "0x" || cell.type) {
+            occupiedCapacity = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.occupiedCapacity().toUInt128LE());
+          }
         } else {
-          amount = amount.add(new pwCore.Amount(lumos.utils.readBigUInt128LE(cell.getHexData()).toString()));
+          if (cell.getHexData() !== "0x" && cell.type) {
+            const sudt = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.getHexData());
+            amount += sudt;
+          }
         }
       }
 
@@ -101,15 +109,15 @@ export default class DexTokenController {
       if (token.typeHash === CKB_TYPE_HASH) {
         listAssetBalance.push({
           typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          balance: amount.toUInt128LE(),
+          balance: amount.toString(),
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
-          occupied: occupiedCapacity.toUInt128LE(),
+          occupied: occupiedCapacity.toString(),
           ...ckbAsset,
         } as CkbNativeAssetWithBalance);
       } else {
         listAssetBalance.push({
           typeHash: token.typeHash,
-          balance: amount.toUInt128LE(),
+          balance: amount.toString(),
           locked: '0',
           ...ckbAsset,
         });
