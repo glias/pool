@@ -1,11 +1,7 @@
-// import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
-import * as lumos from '@ckb-lumos/base';
-import { formatByteLike } from 'easy-byte'
 import * as commons from '@gliaswap/commons';
 import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { Primitive } from '@gliaswap/types';
-import * as pwCore from '@lay2/pw-core';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Script, Token, TokenHolderFactory, DefaultCellInfoSerializationHolder } from '../model';
 import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
@@ -85,20 +81,25 @@ export default class DexTokenController {
         new Script(lock.codeHash, lock.hashType, lock.args).toPwScript(),
       );
 
-
-      let amount = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData("0x00");
-      let occupiedCapacity = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData("0x00");
+      let amount = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData('0x00');
+      let occupiedCapacity = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData('0x00');
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
-          if (cell.getHexData() === "0x" && !cell.type) {
-            amount += new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.capacity.toUInt128LE());
+          if (cell.getHexData() === '0x' && !cell.type) {
+            amount += new DefaultCellInfoSerializationHolder()
+              .getSudtCellSerialization()
+              .decodeData(cell.capacity.toUInt128LE());
           }
-          if (cell.getHexData() !== "0x" || cell.type) {
-            occupiedCapacity = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.occupiedCapacity().toUInt128LE());
+          if (cell.getHexData() !== '0x' || cell.type) {
+            occupiedCapacity = new DefaultCellInfoSerializationHolder()
+              .getSudtCellSerialization()
+              .decodeData(cell.occupiedCapacity().toUInt128LE());
           }
         } else {
-          if (cell.getHexData() !== "0x" && cell.type) {
-            const sudt = new DefaultCellInfoSerializationHolder().getSudtCellSerialization().decodeData(cell.getHexData());
+          if (cell.getHexData() !== '0x' && cell.type) {
+            const sudt = new DefaultCellInfoSerializationHolder()
+              .getSudtCellSerialization()
+              .decodeData(cell.getHexData());
             amount += sudt;
           }
         }
