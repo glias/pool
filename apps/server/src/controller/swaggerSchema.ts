@@ -210,8 +210,12 @@ export class AssetSchema {
     this.decimals = decimals;
     this.logoURI = logoURI;
     this.chainType = chainType;
-    this.address = address;
-    this.balance = balance;
+    if (address) {
+      this.address = address;
+    }
+    if (balance !== 'NaN') {
+      this.balance = balance;
+    }
     if (shadowFrom) {
       this.shadowFrom = shadowFrom;
     }

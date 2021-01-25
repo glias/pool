@@ -24,9 +24,15 @@ export default class DexTokenController {
   @tokenTag
   public async getDefaultAssetList(ctx: Context): Promise<void> {
     const tokens = TokenHolderFactory.getInstance().getTokens();
-    const assets = tokens.map(toCKBAsset);
+    const result = [];
+    tokens.forEach((x) => {
+      result.push(x.toAsset());
+      if (x.shadowFrom) {
+        result.push(new Token(null, null, x.shadowFrom, null, null).toAsset());
+      }
+    });
 
-    ctx.body = assets;
+    ctx.body = result;
   }
 
   public async getAssetList(ctx: Context): Promise<void> {
