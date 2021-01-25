@@ -4,9 +4,11 @@ import { has, propEq } from './utils';
 export type ChainType = 'Nervos' | 'Ethereum';
 export type Script = CKBComponents.Script;
 
-export interface Asset {
+export interface ChainSpec {
   chainType: ChainType;
+}
 
+export interface Asset extends ChainSpec {
   name: string;
   decimals: number;
   symbol: string;
@@ -24,8 +26,8 @@ export type OccupiedBalance = { occupied: BalanceValue };
 // the asset with the balance
 export type AssetWithBalance = Balanced & Asset;
 
-export type NervosChain = { chainType: 'Nervos'; typeHash: string };
-export type CkbAsset = NervosChain & Asset;
+export type CkbChainSpec = { chainType: 'Nervos'; typeHash: string };
+export type CkbAsset = CkbChainSpec & Asset;
 export type GliaswapLockedBalance = Balanced & LockedBalance;
 // prettier-ignore
 export type CkbNativeAsset =
@@ -37,12 +39,12 @@ export type CkbNativeAssetWithBalance = CkbNativeAsset & GliaswapLockedBalance &
 export type CkbSudtAssetWithBalance = CkbSudtAsset & GliaswapLockedBalance;
 
 // A shadow asset is a counterpart that crossed to a CKB from another chain, such as an ETH native token crossing over to ckETH
-export type ShadowOfEth = { shadowOf: EthAsset };
-export type ShadowOfEthAsset = CkbAsset & ShadowOfEth;
-export type ShadowOfEthWithBalance = ShadowOfEthAsset & GliaswapLockedBalance;
+export type ShadowFromEth = { shadowFrom: EthAsset };
+export type ShadowFromEthAsset = CkbAsset & ShadowFromEth;
+export type ShadowFromEthWithBalance = ShadowFromEthAsset & GliaswapLockedBalance;
 
-export type EthereumChain = { chainType: 'Ethereum'; address: string };
-export type EthAsset = EthereumChain & Asset;
+export type EthChainSpec = { chainType: 'Ethereum'; address: string };
+export type EthAsset = EthChainSpec & Asset;
 // prettier-ignore
 export type EthNativeAsset = EthAsset & { address: '0x0000000000000000000000000000000000000000'; };
 export type EthErc20Asset = EthAsset;
@@ -52,15 +54,32 @@ export type EthErc20AssetWithBalance = EthErc20Asset & Balanced;
 export type GliaswapAssetWithBalance =
   | CkbNativeAssetWithBalance
   | CkbSudtAssetWithBalance
+  | ShadowFromEthWithBalance
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
+export function isCkbChainSpec(spec: ChainSpec): spec is CkbChainSpec {
+  return propEq(spec, 'chainType', 'Nervos') && has(spec, 'typeHash');
+}
+
+export function getCkbChainSpec<T extends CkbChainSpec>(spec: T): CkbChainSpec {
+  return { typeHash: spec.typeHash, chainType: spec.chainType };
+}
+
+export function isEthereumChainSpec(spec: ChainSpec): spec is EthChainSpec {
+  return propEq(spec, 'chainType', 'Ethereum') && has(spec, 'address');
+}
+
+export function getEthChainSpec<T extends EthChainSpec>(spec: T): EthChainSpec {
+  return { address: spec.address, chainType: spec.chainType };
+}
+
 export function isCkbAsset<T extends Asset>(asset: T): asset is T & CkbAsset {
-  return propEq(asset, 'chainType', 'Nervos');
+  return isCkbChainSpec(asset);
 }
 
 export function isEthAsset<T extends Asset>(asset: T): asset is T & EthAsset {
-  return propEq(asset, 'chainType', 'Ethereum');
+  return isEthereumChainSpec(asset);
 }
 
 export function isCkbNativeAsset<T extends Asset>(asset: Asset): asset is T & CkbNativeAsset {
@@ -73,8 +92,8 @@ export function isCkbSudtAsset<T extends Asset>(asset: T): asset is T & CkbSudtA
   return isCkbAsset(asset) && !isCkbNativeAsset(asset);
 }
 
-export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowOfEthAsset {
-  return isCkbSudtAsset(asset) && has(asset, 'shadowOf');
+export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowFromEthAsset {
+  return isCkbSudtAsset(asset) && has(asset, 'shadowFrom');
 }
 
 export function isEthNativeAsset<T extends Asset>(asset: T): asset is T & EthNativeAsset {

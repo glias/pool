@@ -50,16 +50,18 @@ export const AssetBalanceList: React.FC<LiquidityAssetAmountProps & React.HTMLAt
   return (
     <LiquidityAssetAmountsWrapper {...styledProps}>
       <table>
-        {assets.map((asset, i) => (
-          <tr key={i}>
-            <td className="column-numerical">
-              <HumanizeBalance asset={asset} value={asset.balance} />
-            </td>
-            <td className="column-symbol">
-              <AssetSymbol asset={asset} hideSymbolText={hideSymbolText} hideSymbolIcon={hideSymbolIcon} />
-            </td>
-          </tr>
-        ))}
+        <tbody>
+          {assets.map((asset, i) => (
+            <tr key={i}>
+              <td className="column-numerical">
+                <HumanizeBalance asset={asset} value={asset.balance} />
+              </td>
+              <td className="column-symbol">
+                <AssetSymbol asset={asset} hideSymbolText={hideSymbolText} hideSymbolIcon={hideSymbolIcon} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </LiquidityAssetAmountsWrapper>
   );

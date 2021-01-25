@@ -1,4 +1,16 @@
-import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, PoolInfo, Script } from '../';
+import {
+  Asset,
+  ChainSpec,
+  CkbAssetWithBalance,
+  GliaswapAssetWithBalance,
+  LiquidityAssetWithBalance,
+  LiquidityInfo,
+  LiquidityOrderSummary,
+  Maybe,
+  PoolInfo,
+  Script,
+  SerializedTransactionToSignWithFee,
+} from '../';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
@@ -14,6 +26,20 @@ export interface LiquidityOrderSummaryFilter {
   lock: Script;
 }
 
+export interface GenerateAddLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+}
+
+export interface GenerateRemoveLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  // minimum receiving share
+  assets: CkbAssetWithBalance[];
+  lpToken: LiquidityAssetWithBalance;
+}
+
 export interface GliaswapAPI {
   /**
    * get the default asset list, used as a placeholder
@@ -26,7 +52,7 @@ export interface GliaswapAPI {
   /**
    * Get assets with balances, if no `assets` is passed, the built-in AssetWithBalance is returned
    */
-  getAssetsWithBalance: (lock: Script, assets?: Asset[]) => Promise<GliaswapAssetWithBalance[]>;
+  getAssetsWithBalance: (lock: Script, assets?: ChainSpec[]) => Promise<GliaswapAssetWithBalance[]>;
   /**
    * get liquidity pools information
    */
@@ -42,5 +68,11 @@ export interface GliaswapAPI {
 
   getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
-  // TODO generate transaction and the other data API
+  generateAddLiquidityTransaction: (
+    payload: GenerateAddLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateRemoveLiquidityTransaction: () => Promise<SerializedTransactionToSignWithFee>;
+
+  cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;
 }
