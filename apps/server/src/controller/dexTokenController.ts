@@ -35,6 +35,10 @@ export default class DexTokenController {
     ctx.body = result;
   }
 
+  @request('post', '/v1/get-asset-list')
+  @summary('Get Asset List')
+  @description('Get Asset List')
+  @tokenTag
   public async getAssetList(ctx: Context): Promise<void> {
     const name = ctx.request.body.name;
 
@@ -46,6 +50,10 @@ export default class DexTokenController {
     ctx.body = body;
   }
 
+  @request('post', '/v1/get-asset-with-balance')
+  @summary('Get Asset With Balance')
+  @description('Get Asset With Balance')
+  @tokenTag
   public async getAssetsWithBalance(ctx: Context): Promise<void> {
     const lock: commons.Script = ctx.request.body.lock;
     const assets: commons.CkbAsset[] = ctx.request.body.assets;
