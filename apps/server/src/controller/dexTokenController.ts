@@ -7,15 +7,15 @@ import { Primitive } from '@gliaswap/types';
 import * as pwCore from '@lay2/pw-core';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Script, Token, TokenHolderFactory } from '../model';
-import { TokenCellCollectorService } from '../service';
+import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 
 const tokenTag = tags(['Token']);
 
 export default class DexTokenController {
   private readonly service: TokenCellCollectorService;
 
-  constructor(service: TokenCellCollectorService) {
-    this.service = service;
+  constructor() {
+    this.service = new DefaultTokenCellCollectorService();
   }
 
   @request('post', '/v1/get-default-asset-list')
@@ -35,6 +35,10 @@ export default class DexTokenController {
     ctx.body = result;
   }
 
+  @request('post', '/v1/get-asset-list')
+  @summary('Get Asset List')
+  @description('Get Asset List')
+  @tokenTag
   public async getAssetList(ctx: Context): Promise<void> {
     const name = ctx.request.body.name;
 
@@ -46,6 +50,10 @@ export default class DexTokenController {
     ctx.body = body;
   }
 
+  @request('post', '/v1/get-asset-with-balance')
+  @summary('Get Asset With Balance')
+  @description('Get Asset With Balance')
+  @tokenTag
   public async getAssetsWithBalance(ctx: Context): Promise<void> {
     const lock: commons.Script = ctx.request.body.lock;
     const assets: commons.CkbAsset[] = ctx.request.body.assets;
@@ -63,7 +71,7 @@ export default class DexTokenController {
       const primitiveToken: Primitive.Token = {
         balance: '0',
         typeHash: token.typeHash,
-        typeScript: token.typeScript.toPwScript(),
+        typeScript: token.typeScript ? token.typeScript.toPwScript() : null,
         info: {
           name: token.info.name,
           symbol: token.info.symbol,
