@@ -141,7 +141,7 @@ export class TxBuilderService {
     }
 
     // Generate info type script
-    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0x00']);
+    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
