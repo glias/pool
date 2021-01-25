@@ -1,3 +1,3 @@
 export { ckbRepository } from './ckbRepository';
-export { DexRepository } from './dexRepository';
+export { DexRepository, txHash } from './dexRepository';
 export { lumosRepository } from './lumosRepository';

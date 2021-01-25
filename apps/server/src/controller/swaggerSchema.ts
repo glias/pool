@@ -18,9 +18,13 @@ export class TokenInfoSchema {
   @swaggerProperty({ type: 'string', required: true })
   symbol: string;
   @swaggerProperty({ type: 'number', required: true })
-  decimal: number;
+  decimals: number;
   @swaggerProperty({ type: 'string', required: true })
-  logoUri: string;
+  logoURI: string;
+  @swaggerProperty({ type: 'string', required: true })
+  address: string;
+  @swaggerProperty({ type: 'string', required: true })
+  chainType: string;
 }
 
 @swaggerClass()
@@ -83,11 +87,24 @@ export class CellSchema {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
   type: ScriptSchema;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @swaggerProperty({ type: 'object', properties: (OutPointSchema as any).swaggerDocument })
-  outPoint: OutPointSchema;
   @swaggerProperty({ type: 'string' })
   data: string;
+  @swaggerProperty({ type: 'string' })
+  txHash: string;
+  @swaggerProperty({ type: 'string' })
+  index: string;
+}
+
+@swaggerClass()
+export class CellOutputSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  capacity: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true })
+  lock: ScriptSchema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
+  type: ScriptSchema;
 }
 
 @swaggerClass()
@@ -101,26 +118,106 @@ export class WitnessArgsSchema {
 }
 
 @swaggerClass()
-export class TransactionSchema {
+export class TransactionToSignSchema {
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
   inputCells: Array<CellSchema>;
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellSchema as any).swaggerDocument } })
-  outputs: Array<CellSchema>;
+  outputCells: Array<CellSchema>;
   @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellDepSchema as any).swaggerDocument } })
   cellDeps: Array<CellDepSchema>;
   @swaggerProperty({ type: 'array', items: { type: 'string' } })
   headerDeps: Array<string>;
   @swaggerProperty({ type: 'string', required: true })
   version: string;
-  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellInputSchema as any).swaggerDocument } })
-  inputs: Array<CellInputSchema>;
-  @swaggerProperty({ type: 'string' })
-  outputsData: Array<string>;
   @swaggerProperty({
     type: 'array',
     items: { type: 'object', properties: (WitnessArgsSchema as any).swaggerProperty },
   })
   witnessArgs: Array<WitnessArgsSchema>;
+}
+
+@swaggerClass()
+export class SignedTransactionSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  version: string;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellDepSchema as any).swaggerDocument } })
+  cellDeps: Array<CellDepSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'string' } })
+  headerDeps: Array<string>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellInputSchema as any).swaggerDocument } })
+  inputs: Array<CellInputSchema>;
+  @swaggerProperty({ type: 'array', items: { type: 'object', properties: (CellOutputSchema as any).swaggerDocument } })
+  outputs: Array<CellOutputSchema>;
   @swaggerProperty({ type: 'array', items: { type: 'string' } })
   witnesses: Array<string>;
+  @swaggerProperty({ type: 'array', items: { type: 'string' } })
+  outputsData: Array<string>;
+}
+
+@swaggerClass()
+export class AssetSchema {
+  @swaggerProperty({ type: 'string', required: true })
+  typeHash: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @swaggerProperty({ type: 'object', properties: (ScriptSchema as any).swaggerDocument })
+  typeScript: ScriptSchema;
+
+  @swaggerProperty({ type: 'string', required: true })
+  name: string;
+
+  @swaggerProperty({ type: 'string', required: true })
+  symbol: string;
+
+  @swaggerProperty({ type: 'number', required: true })
+  decimals: number;
+
+  @swaggerProperty({ type: 'string', required: true })
+  logoURI: string;
+
+  @swaggerProperty({ type: 'string', required: true })
+  chainType: string;
+
+  @swaggerProperty({ type: 'string', required: true })
+  address: string;
+
+  @swaggerProperty({ type: 'string', required: true })
+  balance: string;
+
+  @swaggerProperty({ type: 'object', properties: (TokenInfoSchema as any).swaggerDocument })
+  shadowFrom?: TokenInfoSchema;
+
+  constructor(
+    typeHash: string,
+    typeScript: ScriptSchema,
+    name: string,
+    symbol: string,
+    decimals: number,
+    logoURI: string,
+    chainType: string,
+    address: string,
+    balance: string,
+    shadowFrom?: TokenInfoSchema,
+  ) {
+    if (typeHash) {
+      this.typeHash = typeHash;
+    }
+    if (typeScript) {
+      this.typeScript = typeScript;
+    }
+
+    this.name = name;
+    this.symbol = symbol;
+    this.decimals = decimals;
+    this.logoURI = logoURI;
+    this.chainType = chainType;
+    if (address) {
+      this.address = address;
+    }
+    if (balance !== 'NaN') {
+      this.balance = balance;
+    }
+    if (shadowFrom) {
+      this.shadowFrom = shadowFrom;
+    }
+  }
 }

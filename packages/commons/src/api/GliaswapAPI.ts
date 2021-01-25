@@ -1,7 +1,7 @@
 import { Transaction } from '@lay2/pw-core';
 import { TransactionConfig } from 'web3-core';
-import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, Script } from '../';
 import { SwapOrder } from '../swap';
+import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, PoolInfo, Script } from '../';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
@@ -33,7 +33,7 @@ export interface GliaswapAPI {
   /**
    * get liquidity pools information
    */
-  getLiquidityPools: (filter?: LiquidityPoolFilter) => Promise<LiquidityInfo[]>;
+  getLiquidityPools: (filter?: LiquidityPoolFilter) => Promise<PoolInfo[]>;
 
   /**
    * get liquidity info by poolId, when a lock is passed in,

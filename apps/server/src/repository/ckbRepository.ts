@@ -1,9 +1,8 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
-import * as pw from '@lay2/pw-core';
-import { DexRepository } from '.';
-import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_CODE_TYPE_HASH } from '../config';
+import { DexRepository, txHash } from '.';
+import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import {
   BridgeInfo,
   Cell,
@@ -24,6 +23,32 @@ export class CkbRepository implements DexRepository {
   constructor() {
     this.lumosRepository = lumosRepository;
     this.ckbNode = new CKB(ckbConfig.nodeUrl);
+  }
+  async sendTransaction(tx: CKBComponents.RawTransaction): Promise<txHash> {
+    const timeout = (ms: number) => {
+      return new Promise((resolve, _reject) => {
+        setTimeout(function () {
+          resolve(null);
+        }, ms);
+      });
+    };
+
+    const txHash = await this.ckbNode.rpc.sendTransaction(tx);
+
+    let count = 5;
+    while (count >= 0) {
+      const txsInPool = await this.getPoolTxs();
+      for (let i = 0; i < txsInPool.length; i++) {
+        const status = txsInPool[i].txStatus.status;
+        if (status == 'pending' || status == 'proposed') {
+          return txHash;
+        }
+      }
+      count -= 1;
+      await timeout(5000);
+    }
+
+    throw new Error('send transaction timeout');
   }
 
   async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
@@ -83,8 +108,12 @@ export class CkbRepository implements DexRepository {
       return await Promise.all(
         ckbTxs.map(async (x) => {
           const tx = transactionConver.conver(x);
-          const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-          tx.txStatus.timestamp = timestamp;
+          if (x.txStatus.blockHash) {
+            const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+            tx.txStatus.timestamp = timestamp;
+          } else {
+            tx.txStatus.timestamp = new Date().getTime().toString(16);
+          }
           return tx;
         }),
       );
@@ -96,8 +125,13 @@ export class CkbRepository implements DexRepository {
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
     const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
     const tx = transactionConver.conver(ckbTx);
-    const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-    tx.txStatus.timestamp = timestamp;
+    if (tx.txStatus.blockHash) {
+      const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+      tx.txStatus.timestamp = timestamp;
+    } else {
+      tx.txStatus.timestamp = new Date().getTime().toString(16);
+    }
+
     return tx;
   }
 
@@ -115,6 +149,7 @@ export class CkbRepository implements DexRepository {
    */
   async getForceBridgeHistory(
     lock: Script,
+    ethAddress: string,
     pureCross: boolean,
   ): Promise<{
     eth_to_ckb: BridgeInfo[];
@@ -124,7 +159,7 @@ export class CkbRepository implements DexRepository {
       const userLock = lock.toPwScript();
       const orderLock = new Script(
         SWAP_ORDER_LOCK_CODE_HASH,
-        SWAP_ORDER_LOCK_CODE_TYPE_HASH,
+        SWAP_ORDER_LOCK_HASH_TYPE,
         userLock.toHash(),
       ).toPwScript();
 
@@ -133,14 +168,13 @@ export class CkbRepository implements DexRepository {
         method: 'POST',
         body: {
           ckb_recipient_lockscript_addr: pureCross
-            ? userLock.toAddress().addressString
-            : orderLock.toAddress().addressString,
-          eth_recipient_addr: new pw.Address('', pw.AddressType.eth).addressString,
+            ? userLock.toAddress().toCKBAddress()
+            : orderLock.toAddress().toCKBAddress(),
+          eth_recipient_addr: ethAddress,
         },
         json: true,
       };
       const result = await rp(QueryOptions);
-
       return result;
     } catch (error) {
       console.error(error);

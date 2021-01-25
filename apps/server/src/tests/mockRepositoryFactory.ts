@@ -17,6 +17,7 @@ export class MockRepository implements DexRepository {
   }
   async getForceBridgeHistory(
     lock: Script,
+    ethAddress: string,
     pureCross: boolean,
   ): Promise<{
     eth_to_ckb: BridgeInfo[];
@@ -41,6 +42,10 @@ export class MockRepository implements DexRepository {
   }
 
   getTransaction(hash: string): Promise<TransactionWithStatus> {
+    throw new Error('Method not implemented.');
+  }
+
+  sendTransaction(tx: CKBComponents.RawTransaction): Promise<string> {
     throw new Error('Method not implemented.');
   }
 
