@@ -201,6 +201,13 @@ export class DexLiquidityPoolService {
     return poolInfos;
   }
 
+  public async buildCreateTestLiquidityPoolTx(
+    ctx: Context,
+    req: txBuilder.CreateLiquidityPoolRequest,
+  ): Promise<txBuilder.CreateLiquidityPoolResponse> {
+    return await this.txBuilderService.buildTestLiquidityPool(ctx, req);
+  }
+
   public async buildCreateLiquidityPoolTx(
     ctx: Context,
     req: txBuilder.CreateLiquidityPoolRequest,

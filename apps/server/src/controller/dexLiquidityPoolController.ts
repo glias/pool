@@ -140,6 +140,46 @@ export default class DexLiquidityPoolController {
     ctx.body = resp.serialize();
   }
 
+  @request('post', '/v1/liquidity-pool/create-test')
+  @summary('Create test liquidity pool tx')
+  @description('Create test liquidity pool tx')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
+          fee: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lpToken: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+  })
+  public async createTestLiquidityPool(ctx: Context): Promise<void> {
+    const reqBody = <txBuilder.CreateLiquidityPoolRequest>ctx.request.body;
+    const req = {
+      tokenA: Token.deserialize(reqBody.tokenA),
+      tokenB: Token.deserialize(reqBody.tokenB),
+      userLock: Script.deserialize(reqBody.userLock),
+    };
+    const resp = await this.service.buildCreateTestLiquidityPoolTx(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = resp.serialize();
+  }
+
   @request('post', '/v1/liquidity-pool/orders')
   @summary('Get liquidity orders')
   @description('Get liquidity orders')
