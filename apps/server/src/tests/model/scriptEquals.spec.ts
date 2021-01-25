@@ -36,7 +36,7 @@ test('equals ScriptWrapper lock return true', () => {
     script: target,
     argsLen: 'any',
   };
-  expect(scriptEquals.matchLockScriptWapper(ScriptWrapper, script, target)).toEqual(true);
+  expect(scriptEquals.matchLockScriptWapper(ScriptWrapper, target)).toEqual(true);
 });
 
 test('equals type return true', () => {
@@ -67,5 +67,5 @@ test('equals ScriptWrapper type return true', () => {
     script: target,
     argsLen: 'any',
   };
-  expect(scriptEquals.matchTypeScriptWapper(ScriptWrapper, script, target)).toEqual(true);
+  expect(scriptEquals.matchTypeScriptWapper(ScriptWrapper, target)).toEqual(true);
 });

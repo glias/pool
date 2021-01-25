@@ -29,25 +29,12 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
       for (let i = 0; i < tx.transaction.outputs.length; i++) {
         const output = tx.transaction.outputs[i];
 
-        scriptEquals.matchLockScriptWapper();
-
         if (output.type) {
           if (
-            scriptEquals.equalsLockScript(queryOptions.lock, output.lock) &&
+            scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock) &&
             scriptEquals.equalsTypeScript(queryOptions.type, output.type)
           ) {
-            const pendingCell: Cell = {
-              cellOutput: {
-                capacity: cell.cellOutput.capacity,
-                lock: cell.cellOutput.lock,
-                type: cell.cellOutput.type,
-              },
-              outPoint: cell.outPoint,
-              blockHash: tx.txStatus.blockHash,
-              blockNumber: '0',
-              data: tx.transaction.outputsData[i],
-            };
-
+            const pendingCell: Cell = this.buildPendingCell(cell, tx, i);
             result.push(pendingCell);
           }
         }
@@ -55,6 +42,20 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     } else {
       result.push(cell);
     }
+  }
+
+  private buildPendingCell(cell: Cell, tx: TransactionWithStatus, i: number): Cell {
+    return {
+      cellOutput: {
+        capacity: cell.cellOutput.capacity,
+        lock: cell.cellOutput.lock,
+        type: cell.cellOutput.type,
+      },
+      outPoint: cell.outPoint,
+      blockHash: tx.txStatus.blockHash,
+      blockNumber: '0',
+      data: tx.transaction.outputsData[i],
+    };
   }
 
   async getPoolCells(): Promise<Map<string, TransactionWithStatus>> {

@@ -12,27 +12,23 @@ export interface ScriptEquals {
   ) => boolean;
 
   matchLockScriptWapper(
-    sw: lumos.ScriptWrapper,
     script: Script | (lumos.Script | lumos.ScriptWrapper),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper),
   ): boolean;
 
   matchTypeScriptWapper(
-    sw: lumos.ScriptWrapper,
-    script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
+    script: lumos.ScriptWrapper | 'empty',
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
   ): boolean;
 }
 class DefaultScriptEquals implements ScriptEquals {
   matchLockScriptWapper(
-    sw: lumos.ScriptWrapper,
-    script: Script | lumos.Script | lumos.ScriptWrapper,
+    script: Script | (lumos.Script | lumos.ScriptWrapper),
     targetScript: Script | lumos.Script | lumos.ScriptWrapper,
   ): boolean {
-    return this.matchScriptWapper(sw, script, targetScript);
+    return this.matchScriptWapper(script, targetScript);
   }
   matchTypeScriptWapper(
-    sw: lumos.ScriptWrapper,
     script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
   ): boolean {
@@ -47,7 +43,7 @@ class DefaultScriptEquals implements ScriptEquals {
     if ('empty' === script || 'empty' === targetScript) {
       return false;
     }
-    return this.matchScriptWapper(sw, script, targetScript);
+    return this.matchScriptWapper(script, targetScript);
   }
 
   equalsLockScript(
@@ -76,11 +72,10 @@ class DefaultScriptEquals implements ScriptEquals {
   }
 
   private matchScriptWapper(
-    sw: lumos.ScriptWrapper,
     script: Script | (lumos.Script | lumos.ScriptWrapper),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper),
   ): boolean {
-    if ('argsLen' in sw && sw.argsLen && sw.argsLen !== -1) {
+    if ('argsLen' in script && script.argsLen && script.argsLen !== -1) {
       const s1 = this.normalizeScript(script);
       const s2 = this.normalizeScript(script);
       return s1.code_hash === s2.code_hash && s1.hash_type === s2.hash_type;
