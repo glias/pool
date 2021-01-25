@@ -1,5 +1,5 @@
 import { QueryOptions } from '@ckb-lumos/base';
-import { TransactionWithStatus, OutPoint, scriptEquals } from '..';
+import { TransactionWithStatus, OutPoint, scriptEquals, CellOutput } from '..';
 import { Cell } from '..';
 
 export interface PoolFilter {
@@ -28,17 +28,19 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     if (tx) {
       for (let i = 0; i < tx.transaction.outputs.length; i++) {
         const output = tx.transaction.outputs[i];
-        if (output.type) {
+        if (queryOptions.type) {
           if (
             scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock) &&
             scriptEquals.matchTypeScriptWapper(queryOptions.type, output.type)
           ) {
-            const pendingCell: Cell = this.buildPendingCell(cell, tx, i);
+            const pendingCell: Cell = this.buildPendingCell(output, tx, i);
             result.push(pendingCell);
           }
         } else {
+          // console.log(scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock));
+
           if (scriptEquals.matchLockScriptWapper(queryOptions.lock, output.lock)) {
-            const pendingCell: Cell = this.buildPendingCell(cell, tx, i);
+            const pendingCell: Cell = this.buildPendingCell(output, tx, i);
             result.push(pendingCell);
           }
         }
@@ -47,14 +49,17 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     return result;
   }
 
-  private buildPendingCell(cell: Cell, tx: TransactionWithStatus, i: number): Cell {
+  private buildPendingCell(cellOutput: CellOutput, tx: TransactionWithStatus, i: number): Cell {
     return {
       cellOutput: {
-        capacity: cell.cellOutput.capacity,
-        lock: cell.cellOutput.lock,
-        type: cell.cellOutput.type,
+        capacity: cellOutput.capacity,
+        lock: cellOutput.lock,
+        type: cellOutput.type,
       },
-      outPoint: cell.outPoint,
+      outPoint: {
+        txHash: tx.transaction.hash,
+        index: i.toString(16),
+      },
       blockHash: tx.txStatus.blockHash,
       blockNumber: '0',
       data: tx.transaction.outputsData[i],
