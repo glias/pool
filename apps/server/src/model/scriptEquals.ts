@@ -10,8 +10,46 @@ export interface ScriptEquals {
     script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
   ) => boolean;
+
+  matchLockScriptWapper(
+    sw: lumos.ScriptWrapper,
+    script: Script | (lumos.Script | lumos.ScriptWrapper),
+    targetScript: Script | (lumos.Script | lumos.ScriptWrapper),
+  ): boolean;
+
+  matchTypeScriptWapper(
+    sw: lumos.ScriptWrapper,
+    script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
+    targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
+  ): boolean;
 }
 class DefaultScriptEquals implements ScriptEquals {
+  matchLockScriptWapper(
+    sw: lumos.ScriptWrapper,
+    script: Script | lumos.Script | lumos.ScriptWrapper,
+    targetScript: Script | lumos.Script | lumos.ScriptWrapper,
+  ): boolean {
+    return this.matchScriptWapper(sw, script, targetScript);
+  }
+  matchTypeScriptWapper(
+    sw: lumos.ScriptWrapper,
+    script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
+    targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
+  ): boolean {
+    if (script && !targetScript) {
+      return false;
+    }
+
+    if (!script && targetScript) {
+      return false;
+    }
+
+    if ('empty' === script || 'empty' === targetScript) {
+      return false;
+    }
+    return this.matchScriptWapper(sw, script, targetScript);
+  }
+
   equalsLockScript(
     script: Script | (lumos.Script | lumos.ScriptWrapper),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper),
@@ -23,10 +61,32 @@ class DefaultScriptEquals implements ScriptEquals {
     script: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
     targetScript: Script | (lumos.Script | lumos.ScriptWrapper | 'empty'),
   ): boolean {
+    if (script && !targetScript) {
+      return false;
+    }
+
+    if (!script && targetScript) {
+      return false;
+    }
+
     if ('empty' === script || 'empty' === targetScript) {
       return false;
     }
     return this.equalsScript(script, targetScript);
+  }
+
+  private matchScriptWapper(
+    sw: lumos.ScriptWrapper,
+    script: Script | (lumos.Script | lumos.ScriptWrapper),
+    targetScript: Script | (lumos.Script | lumos.ScriptWrapper),
+  ): boolean {
+    if ('argsLen' in sw && sw.argsLen && sw.argsLen !== -1) {
+      const s1 = this.normalizeScript(script);
+      const s2 = this.normalizeScript(script);
+      return s1.code_hash === s2.code_hash && s1.hash_type === s2.hash_type;
+    }
+
+    return this.equalsLockScript(script, targetScript);
   }
 
   private equalsScript(
