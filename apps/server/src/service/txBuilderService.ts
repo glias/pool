@@ -660,9 +660,13 @@ export class TxBuilderService {
 
   // CKB => SUDT
   private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
+    if (req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY <= constants.SWAP_BUY_REQ_CAPACITY) {
+      ctx.throw('ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8', 400);
+    }
+
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
-    const minCapacity = req.tokenInAmount.getBalance() + constants.SWAP_BUY_REQ_CAPACITY + minCKBChangeCapacity + txFee;
+    const minCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY + minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
     if (collectedCells.inputCapacity < minCapacity) {
       ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
@@ -680,8 +684,9 @@ export class TxBuilderService {
     const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
 
     // Generate swap request output cell
+    const reqCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY;
     const reqOutput = {
-      capacity: constants.SWAP_BUY_REQ_CAPACITY.toString(),
+      capacity: reqCapacity.toString(),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -691,8 +696,7 @@ export class TxBuilderService {
     const outputs: Output[] = [reqOutput];
     const outputsData: string[] = [reqData];
 
-    const ckbChangeCapacity =
-      collectedCells.inputCapacity - constants.SWAP_BUY_REQ_CAPACITY - req.tokenInAmount.getBalance();
+    const ckbChangeCapacity = collectedCells.inputCapacity - reqCapacity;
     let ckbChangeOutput = {
       capacity: ckbChangeCapacity.toString(),
       lock: req.userLock,
