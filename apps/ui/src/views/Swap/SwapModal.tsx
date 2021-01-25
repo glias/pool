@@ -6,7 +6,7 @@ import { TableRow } from 'components/TableRow';
 import i18n from 'i18n';
 import React from 'react';
 import { useMemo } from 'react';
-import { SwapMode, useSwapContainer } from './hook';
+import { SwapMode, useSwapContainer } from './context';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';

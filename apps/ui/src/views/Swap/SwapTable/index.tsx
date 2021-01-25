@@ -8,18 +8,13 @@ import { InputNumber } from 'components/InputNumber';
 import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
-import { SwapMode, useSwapContainer } from './hook';
-import {
-  EthErc20AssetWithBalance,
-  GliaswapAssetWithBalance,
-  isCkbNativeAsset,
-  isEthNativeAsset,
-} from '@gliaswap/commons';
-import { useMemo, useEffect } from 'react';
+import { SwapMode, useSwapContainer } from '../context';
+import { EthErc20AssetWithBalance, GliaswapAssetWithBalance } from '@gliaswap/commons';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { useGliaswap } from 'contexts';
+import { useSwapTable } from './hooks';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -67,28 +62,12 @@ export const SwapTable: React.FC = () => {
     [form],
   );
 
-  const ethAsset = useMemo(() => {
-    return assets.value.find((a) => isEthNativeAsset(a));
-  }, [assets.value]);
-
-  const ckbAsset = useMemo(() => {
-    return assets.value.find((a) => isCkbNativeAsset(a));
-  }, [assets.value]);
-
-  // init pair
-  useEffect(() => {
-    setTokenA(ethAsset!);
-    setTokenB(ckbAsset!);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // reset when pair changes
-  useEffect(() => {
-    form.resetFields();
-    setPay('');
-    setReceive('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenA.symbol, tokenB.symbol]);
+  useSwapTable({
+    form,
+    tokenA,
+    tokenB,
+    assets,
+  });
 
   const swapCrossChain = useCallback(async () => {
     const balanceA = getBalance('pay', tokenA!);

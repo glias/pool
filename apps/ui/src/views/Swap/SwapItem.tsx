@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, List } from 'antd';
 import i18n from 'i18n';
-import { SwapOrder, GliaswapAssetWithBalance, SwapOrderType, isShadowAsset } from '@gliaswap/commons';
+import { SwapOrder, GliaswapAssetWithBalance, SwapOrderType, isShadowEthAsset } from '@gliaswap/commons';
 import styled from 'styled-components';
 import { TableRow } from 'components/TableRow';
 import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
@@ -9,7 +9,7 @@ import { AssetSymbol } from 'components/Asset';
 import { useMemo } from 'react';
 import { ReactComponent as InfoSvg } from 'assets/svg/info.svg';
 import { ReactComponent as ArrowSvg } from 'assets/svg/right-arrow.svg';
-import { useSwapContainer } from './hook';
+import { useSwapContainer } from './context';
 import { useCallback } from 'react';
 
 const RightArrow = styled.span`
@@ -65,7 +65,7 @@ export const Route = ({
   orderType: SwapOrderType;
 }) => {
   let shadowAsset = null;
-  if (orderType === SwapOrderType.CrossChainOrder && isShadowAsset(tokenA)) {
+  if (orderType === SwapOrderType.CrossChainOrder && isShadowEthAsset(tokenA)) {
     shadowAsset = <AssetSymbol asset={tokenA.shadowFrom} />;
   }
   return (
@@ -102,7 +102,7 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
   const receive = (
     <Balanced
       asset={
-        order.type === SwapOrderType.CrossChain && isShadowAsset(order.amountIn)
+        order.type === SwapOrderType.CrossChain && isShadowEthAsset(order.amountIn)
           ? { ...order.amountOut, balance: calcCrossIn(order.amountOut.balance) }
           : order.amountOut
       }

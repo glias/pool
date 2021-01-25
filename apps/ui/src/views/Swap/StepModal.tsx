@@ -1,7 +1,7 @@
 import i18n from 'i18n';
 import React from 'react';
 import { Steps } from 'antd';
-import { useSwapContainer } from './hook';
+import { useSwapContainer } from './context';
 import styled from 'styled-components';
 import { ModalContainer } from 'components/ModalContainer';
 import { useMemo } from 'react';

@@ -1,8 +1,8 @@
 import React from 'react';
 import { ViewContainer } from 'views/styled';
-import { SwapTable } from './SwapTable';
+import { SwapTable } from './SwapTable/index';
 import { SwapList } from './SwapList';
-import { SwapProvider } from './hook';
+import { SwapProvider } from './context';
 import { CancelModal } from './CancelModal';
 import { SwapModal } from './SwapModal';
 import { StepModal } from './StepModal';

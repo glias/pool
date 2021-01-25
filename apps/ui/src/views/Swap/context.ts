@@ -3,11 +3,11 @@ import {
   isCkbAsset,
   isCkbNativeAsset,
   isEthAsset,
-  isShadowAsset,
+  isShadowEthAsset,
   SwapOrder,
 } from '@gliaswap/commons';
 import { Transaction } from '@lay2/pw-core';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
 
@@ -25,8 +25,8 @@ const useSwap = () => {
   const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
-  const [tokenA, setTokenA] = useState<GliaswapAssetWithBalance>(Object.create(null));
-  const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null));
+  const [tokenA, setTokenA] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
+  const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
   const [pay, setPay] = useState('');
   const [receive, setReceive] = useState('');
   const swapMode = useMemo(() => {
@@ -36,7 +36,7 @@ const useSwap = () => {
     if (isEthAsset(tokenA)) {
       if (isCkbNativeAsset(tokenB)) {
         return SwapMode.CrossChainOrder;
-      } else if (isShadowAsset(tokenB)) {
+      } else if (isShadowEthAsset(tokenB)) {
         return SwapMode.CrossIn;
       }
     }
@@ -46,6 +46,11 @@ const useSwap = () => {
       }
     }
     return SwapMode.NormalOrder;
+  }, [tokenA, tokenB]);
+
+  const togglePair = useCallback(() => {
+    setTokenA(tokenB);
+    setTokenB(tokenA);
   }, [tokenA, tokenB]);
 
   return {
@@ -70,6 +75,7 @@ const useSwap = () => {
     receive,
     setPay,
     setReceive,
+    togglePair,
   };
 };
 

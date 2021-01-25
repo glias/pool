@@ -1,4 +1,4 @@
-import { GliaswapAssetWithBalance, isShadowAsset, SwapOrderType } from '@gliaswap/commons';
+import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
 import { Form } from 'antd';
 import { AssetSymbol } from 'components/Asset';
@@ -10,7 +10,7 @@ import React from 'react';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 import { displayBalance } from 'utils';
-import { useSwapContainer } from './hook';
+import { useSwapContainer } from './context';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
@@ -89,7 +89,7 @@ export const CancelModal = () => {
   }, [orderType]);
 
   const payAsset = useMemo(() => {
-    if (isCrossChainOrder && isShadowAsset(tokenA!)) {
+    if (isCrossChainOrder && isShadowEthAsset(tokenA!)) {
       return {
         ...tokenA.shadowFrom,
         balance: tokenA.balance,
