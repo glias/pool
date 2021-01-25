@@ -1,14 +1,14 @@
-import { Asset, AssetWithBalance, TransactionStatus } from '.';
+import { CkbAssetWithBalance, TransactionStatus } from '.';
 
-export type LiquidityAssetWithBalance = AssetWithBalance;
-export type LPTokenWithBalance = AssetWithBalance;
+export type LiquidityAssetWithBalance = CkbAssetWithBalance;
+export type LPTokenWithBalance = CkbAssetWithBalance;
 
 // the pool model
 export type PoolModel = 'UNISWAP';
 
 export interface PoolInfo {
   poolId: string;
-  assets: Asset[];
+  assets: CkbAssetWithBalance[];
   model: PoolModel;
 }
 
