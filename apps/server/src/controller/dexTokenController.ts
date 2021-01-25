@@ -1,13 +1,13 @@
-import { body, Context, request, summary, tags, description } from 'koa-swagger-decorator';
-import { TokenHolderFactory, Token, Script } from '../model';
-import { TokenCellCollectorService } from '../service';
 // import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
-
 import * as lumos from '@ckb-lumos/base';
-import * as pwCore from '@lay2/pw-core';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import * as commons from '@gliaswap/commons';
+import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { Primitive } from '@gliaswap/types';
+import * as pwCore from '@lay2/pw-core';
+import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
+import { Script, Token, TokenHolderFactory } from '../model';
+import { TokenCellCollectorService } from '../service';
 
 const tokenTag = tags(['Token']);
 
@@ -90,7 +90,7 @@ export default class DexTokenController {
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedCapacity.toUInt128LE(),
           ...ckbAsset,
-        });
+        } as CkbNativeAssetWithBalance);
       } else {
         listAssetBalance.push({
           typeHash: token.typeHash,
