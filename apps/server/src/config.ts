@@ -19,6 +19,7 @@ export const mysqlInfo: MySqlConnectionConfig = {
 export const env = process.env.NODE_ENV || 'development';
 
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
+export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE;
 
@@ -90,7 +91,7 @@ export const INFO_LOCK_DEP = {
 
 export const SUDT_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.SUDT_TYPE_DEP_TX_HASH || '0xc1b2ae129fad7465aaa9acc9785f842ba3e6e8b8051d899defa89f5508a77958',
+    txHash: process.env.SUDT_TYPE_DEP_TX_HASH,
     index: '0x0',
   },
   depType: 'code',

@@ -142,7 +142,7 @@ export class TxBuilderService {
 
     // Generate info type script
     const id = utils.blake2b([inputCells[0].outPoint.txHash, '0x00']);
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, 'type', id);
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
@@ -152,7 +152,7 @@ export class TxBuilderService {
       return utils.blake2b(hashes).slice(2);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, 'type', infoLockArgs);
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
@@ -252,7 +252,7 @@ export class TxBuilderService {
     // Generate info type script
     // For testnet, we use default hardcode id for each token pool
     const id = config.POOL_INFO_ID[reqToken.info.symbol];
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, 'type', id);
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
@@ -262,7 +262,7 @@ export class TxBuilderService {
       return utils.blake2b(hashes).slice(2);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, 'type', infoLockArgs);
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
@@ -366,7 +366,7 @@ export class TxBuilderService {
       const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
       return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate genesis request output cell
     const reqOutput = {
@@ -478,7 +478,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, tokenAmount, ckbAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     const reqOutput = {
@@ -583,7 +583,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, ckbAmount, tokenAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     const reqOutput = {
@@ -698,7 +698,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
@@ -791,7 +791,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY;
