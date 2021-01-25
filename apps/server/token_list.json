@@ -23,7 +23,7 @@
         "info": {
             "name": "Gliaswap Test Token",
             "symbol": "GLIA",
-            "decimal": 8,
+            "decimals": 18,
             "logoURI": "http://121.196.29.165:3040/token/glias.png",
             "address": "ckt1qyqppsrmkue95prhy4faekhqg7re5zxh8czq8w7sdn",
             "chainType":"Nervos"

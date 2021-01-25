@@ -84,14 +84,15 @@ export default class DexTokenController {
         new Script(lock.codeHash, lock.hashType, lock.args).toPwScript(),
       );
 
-      const amount = new pwCore.Amount('0', token.info.decimals);
-      const occupiedCapacity = new pwCore.Amount('0', token.info.decimals);
+
+      let amount = new pwCore.Amount('0x00', token.info.decimals);
+      let occupiedCapacity = new pwCore.Amount('0', token.info.decimals);
       for (const cell of cells) {
         if (token.typeHash === CKB_TYPE_HASH) {
-          occupiedCapacity.add(cell.occupiedCapacity());
-          amount.add(cell.capacity);
+          occupiedCapacity = occupiedCapacity.add(cell.occupiedCapacity());
+          amount = amount.add(cell.capacity);
         } else {
-          amount.add(new pwCore.Amount(lumos.utils.readBigUInt128LE(cell.getHexData()).toString()));
+          amount = amount.add(new pwCore.Amount(lumos.utils.readBigUInt128LE(cell.getHexData()).toString()));
         }
       }
 
