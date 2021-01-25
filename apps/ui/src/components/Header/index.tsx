@@ -46,6 +46,7 @@ export const AppHeader: React.FC = () => {
       </div>
       <div>
         <WalletConnectButton />
+        &nbsp;&nbsp;
         <GlobalSetting />
       </div>
     </HeaderWrapper>

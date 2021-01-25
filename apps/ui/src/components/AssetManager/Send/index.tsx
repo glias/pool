@@ -242,7 +242,6 @@ export const Send: React.FC = () => {
   }, [freeAmount, shouldSendAllCkb]);
 
   async function onAssetSelected(typeHash: string) {
-    debugger;
     replace(`/assets/${typeHash}/send`);
   }
 
