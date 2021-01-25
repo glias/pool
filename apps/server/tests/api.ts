@@ -74,7 +74,7 @@ const generateToken = (amount: bigint, symbol: string) => {
     balance: amount.toString(),
     typeHash: token.typeHash,
     typeScript: token.typeScript,
-    info: undefined,
+    info: token.info,
   };
 };
 
@@ -87,11 +87,17 @@ async function createTestPool(tokenSymbol: string) {
 
   console.log(req);
 
-  const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
-  const tx = commons.TransactionHelper.deserializeTransactionToSign(resp.data.tx);
-  console.log(tx);
-  console.log(resp.data.fee);
-  console.log(resp.data.lpToken);
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
+    const tx = commons.TransactionHelper.deserializeTransactionToSign(resp.data.tx);
+    console.log(tx);
+    console.log(resp.data.fee);
+    console.log(resp.data.lpToken);
+  } catch (e) {
+    console.log(e.response.status);
+    console.log(e.response.statusText);
+    console.log(e.response.data);
+  }
 }
 
 createTestPool('GLIA');

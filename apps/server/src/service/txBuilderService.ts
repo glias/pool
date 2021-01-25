@@ -142,7 +142,7 @@ export class TxBuilderService {
 
     // Generate info type script
     const id = utils.blake2b([inputCells[0].outPoint.txHash, '0x00']);
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, 'type', id);
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
@@ -152,10 +152,10 @@ export class TxBuilderService {
       return utils.blake2b(hashes).slice(2);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, 'type', infoLockArgs);
 
     // Generate liquidity provider token type script
-    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
+    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
     const lpTokenTypeHash = lpTokenType.toHash().slice(2);
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
@@ -174,7 +174,7 @@ export class TxBuilderService {
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
+    const poolData = `0x0`;
     const poolOutput = {
       capacity: constants.MIN_POOL_CAPACITY.toString(),
       lock: infoLock,
@@ -252,7 +252,7 @@ export class TxBuilderService {
     // Generate info type script
     // For testnet, we use default hardcode id for each token pool
     const id = config.POOL_INFO_ID[reqToken.info.symbol];
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, 'type', id);
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
@@ -262,10 +262,10 @@ export class TxBuilderService {
       return utils.blake2b(hashes).slice(2);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, 'type', infoLockArgs);
 
     // Generate liquidity provider token type script
-    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
+    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
     const lpTokenTypeHash = lpTokenType.toHash().slice(2);
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
@@ -284,7 +284,7 @@ export class TxBuilderService {
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
+    const poolData = `0x0`;
     const poolOutput = {
       capacity: constants.MIN_POOL_CAPACITY.toString(),
       lock: infoLock,

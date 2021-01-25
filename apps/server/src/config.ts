@@ -49,37 +49,17 @@ export const POOL_INFO_ID: Record<string, string> = {
 };
 
 export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
-  new dex.Script(
-    INFO_TYPE_CODE_HASH,
-    INFO_TYPE_HASH_TYPE,
-    process.env.GLIA_ID || '0x0000000000000000000000000000000000000000000000000000000000000011',
-  ),
-  new dex.Script(
-    INFO_TYPE_CODE_HASH,
-    INFO_TYPE_HASH_TYPE,
-    process.env.CKETH_ID || '0x0000000000000000000000000000000000000000000000000000000000000012',
-  ),
-  new dex.Script(
-    INFO_TYPE_CODE_HASH,
-    INFO_TYPE_HASH_TYPE,
-    process.env.CKDAI_ID || '0x0000000000000000000000000000000000000000000000000000000000000013',
-  ),
-  new dex.Script(
-    INFO_TYPE_CODE_HASH,
-    INFO_TYPE_HASH_TYPE,
-    process.env.CKUSDC_ID || '0x0000000000000000000000000000000000000000000000000000000000000014',
-  ),
-  new dex.Script(
-    INFO_TYPE_CODE_HASH,
-    INFO_TYPE_HASH_TYPE,
-    process.env.CKUSDT_ID || '0x0000000000000000000000000000000000000000000000000000000000000015',
-  ),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.GLIA_ID || POOL_INFO_ID['GLIA']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKETH_ID || POOL_INFO_ID['ckETH']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKDAI_ID || POOL_INFO_ID['ckDAI']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDC_ID || POOL_INFO_ID['ckUSDC']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDT_ID || POOL_INFO_ID['ckUSDT']),
 ];
 
 export const LIQUIDITY_ORDER_LOCK_DEP = {
   outPoint: {
     txHash: process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH,
-    index: '0x00',
+    index: '0x0',
   },
   depType: 'code',
 };
@@ -87,7 +67,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = {
 export const SWAP_ORDER_LOCK_DEP = {
   outPoint: {
     txHash: process.env.SWAP_ORDER_LOCK_DEP_TX_HASH,
-    index: '0x00',
+    index: '0x0',
   },
   depType: 'code',
 };
@@ -95,7 +75,7 @@ export const SWAP_ORDER_LOCK_DEP = {
 export const INFO_TYPE_DEP = {
   outPoint: {
     txHash: process.env.INFO_TYPE_DEP_TX_HASH,
-    index: '0x00',
+    index: '0x0',
   },
   depType: 'code',
 };
@@ -103,7 +83,7 @@ export const INFO_TYPE_DEP = {
 export const INFO_LOCK_DEP = {
   outPoint: {
     txHash: process.env.INFO_LOCK_DEP_TX_HASH,
-    index: '0x00',
+    index: '0x0',
   },
   depType: 'code',
 };
@@ -111,7 +91,7 @@ export const INFO_LOCK_DEP = {
 export const SUDT_TYPE_DEP = {
   outPoint: {
     txHash: process.env.SUDT_TYPE_DEP_TX_HASH || '0xc1b2ae129fad7465aaa9acc9785f842ba3e6e8b8051d899defa89f5508a77958',
-    index: '0x00',
+    index: '0x0',
   },
   depType: 'code',
 };
