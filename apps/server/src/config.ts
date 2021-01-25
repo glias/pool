@@ -18,6 +18,10 @@ export const mysqlInfo: MySqlConnectionConfig = {
 
 export const env = process.env.NODE_ENV || 'development';
 
+export const PW_LOCK_CODE_HASH = process.env.PW_LOCK_CODE_HASH;
+export const PW_LOCK_HASH_TYPE = process.env.PW_LOCK_HASH_TYPE;
+export const SECP256K1_LOCK_CODE_HASH = process.env.SECP256K1_LOCK_CODE_HASH;
+export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE;
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
 export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
@@ -56,6 +60,14 @@ export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
   new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDC_ID || POOL_INFO_ID['ckUSDC']),
   new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDT_ID || POOL_INFO_ID['ckUSDT']),
 ];
+
+export const PW_LOCK_DEP = {
+  outPoint: {
+    txHash: process.env.PW_LOCK_DEP_TX_HASH,
+    index: '0x0',
+  },
+  depType: 'code',
+};
 
 export const LIQUIDITY_ORDER_LOCK_DEP = {
   outPoint: {
@@ -96,6 +108,18 @@ export const SUDT_TYPE_DEP = {
   },
   depType: 'code',
 };
+
+export const SECP256K1_LOCK_DEP = {
+  outPoint: {
+    txHash: process.env.SECP256K1_LOCK_DEP_TX_HASH,
+    index: '0x0',
+  },
+  depType: 'code',
+};
+
+export const LOCK_DEPS = {};
+LOCK_DEPS[PW_LOCK_CODE_HASH] = PW_LOCK_DEP;
+LOCK_DEPS[SECP256K1_LOCK_CODE_HASH] = SECP256K1_LOCK_DEP;
 
 export const forceBridgeServerUrl = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://121.196.29.165:3003';
 

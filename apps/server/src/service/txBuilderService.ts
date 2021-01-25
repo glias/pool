@@ -195,20 +195,22 @@ export class TxBuilderService {
     const inputs = inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -305,20 +307,22 @@ export class TxBuilderService {
     const inputs = inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -409,20 +413,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -521,20 +527,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -626,20 +634,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -741,20 +751,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.SWAP_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -818,20 +830,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [userLockDeps];
+    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SWAP_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -919,20 +933,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
+    if (!config.LOCK_DEPS[userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
+    const witnessArgs = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -998,10 +1014,17 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
 
-    const cellDeps = [config.SWAP_ORDER_LOCK_DEP];
+    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
+    if (!config.LOCK_DEPS[userLock.codeHash]) {
+      ctx.throw(400, 'unknown user lock code hash');
+    }
+    const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
+    const witnessArgs = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
+
     const raw: RawTransaction = {
       version: '0x0',
       headerDeps: [],
@@ -1010,12 +1033,7 @@ export class TxBuilderService {
       outputs,
       outputsData,
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
