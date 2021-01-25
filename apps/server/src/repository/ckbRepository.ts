@@ -71,6 +71,8 @@ export class CkbRepository implements DexRepository {
     }
 
     return result;
+
+    return dexCells;
   }
 
   async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
