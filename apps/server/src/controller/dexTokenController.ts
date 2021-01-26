@@ -1,21 +1,20 @@
-// import { ScriptSchema, TokenInfoSchema } from './swaggerSchema';
-import * as lumos from '@ckb-lumos/base';
 import * as commons from '@gliaswap/commons';
 import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
-import { Primitive } from '@gliaswap/types';
-import * as pwCore from '@lay2/pw-core';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
-import { Script, Token, TokenHolderFactory } from '../model';
+import { Token, TokenHolderFactory, cellConver, CellInfoSerializationHolderFactory } from '../model';
+import { ckbRepository, DexRepository } from '../repository';
 import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
 
 const tokenTag = tags(['Token']);
 
 export default class DexTokenController {
   private readonly service: TokenCellCollectorService;
+  private readonly dexRepository: DexRepository;
 
   constructor() {
     this.service = new DefaultTokenCellCollectorService();
+    this.dexRepository = ckbRepository;
   }
 
   @request('post', '/v1/get-default-asset-list')
@@ -55,7 +54,7 @@ export default class DexTokenController {
   @description('Get Asset With Balance')
   @tokenTag
   public async getAssetsWithBalance(ctx: Context): Promise<void> {
-    const lock: commons.Script = ctx.request.body.lock;
+    const lock = cellConver.converScript(ctx.request.body.lock);
     const assets: commons.CkbAsset[] = ctx.request.body.assets;
 
     let tokens = TokenHolderFactory.getInstance().getTokens();
@@ -68,48 +67,45 @@ export default class DexTokenController {
     const listAssetBalance: commons.GliaswapAssetWithBalance[] = [];
 
     for (const token of tokens) {
-      const primitiveToken: Primitive.Token = {
-        balance: '0',
-        typeHash: token.typeHash,
-        typeScript: token.typeScript ? token.typeScript.toPwScript() : null,
-        info: {
-          name: token.info.name,
-          symbol: token.info.symbol,
-          decimals: token.info.decimals,
-          logo_uri: token.info.logoURI,
-        },
-      };
-      const cells = await this.service.collect(
-        primitiveToken,
-        new Script(lock.codeHash, lock.hashType, lock.args).toPwScript(),
-      );
-
-      const amount = new pwCore.Amount('0', token.info.decimals);
-      const occupiedCapacity = new pwCore.Amount('0', token.info.decimals);
-      for (const cell of cells) {
-        if (token.typeHash === CKB_TYPE_HASH) {
-          occupiedCapacity.add(cell.occupiedCapacity());
-          amount.add(cell.capacity);
-        } else {
-          amount.add(new pwCore.Amount(lumos.utils.readBigUInt128LE(cell.getHexData()).toString()));
-        }
-      }
-
-      const ckbAsset = toCKBAsset(token);
-
       if (token.typeHash === CKB_TYPE_HASH) {
+        const cells = await this.dexRepository.collectCells({
+          lock: lock.toLumosScript(),
+        });
+        const normalCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
+
+        const balance = normalCells.reduce((total, cell) => total + BigInt(cell.cellOutput.capacity), BigInt(0));
+
+        const occupiedCells = cells.filter((cell) => cell.data !== '0x' || cell.cellOutput.type);
+
+        const occupiedBalance = occupiedCells.reduce(
+          (total, cell) => total + BigInt(cell.cellOutput.capacity),
+          BigInt(0),
+        );
+
+        const ckbAsset = toCKBAsset(token);
         listAssetBalance.push({
-          typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          balance: amount.toUInt128LE(),
+          typeHash: CKB_TYPE_HASH,
+          balance: balance.toString(),
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
-          occupied: occupiedCapacity.toUInt128LE(),
+          occupied: occupiedBalance.toString(),
           ...ckbAsset,
         } as CkbNativeAssetWithBalance);
       } else {
+        const cells = await this.dexRepository.collectCells({
+          lock: lock.toLumosScript(),
+          type: token.typeScript.toLumosScript(),
+        });
+        let balance = BigInt(0);
+        cells.forEach((x) => {
+          balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);
+        });
+
+        const ckbAsset = toCKBAsset(token);
         listAssetBalance.push({
           typeHash: token.typeHash,
-          balance: amount.toUInt128LE(),
+          balance: balance.toString(),
           locked: '0',
+          ...token.info,
           ...ckbAsset,
         });
       }

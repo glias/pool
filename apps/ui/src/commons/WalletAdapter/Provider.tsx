@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { dummyAdapter, dummySigner, throwDisconnected } from './adapters/Web3ModalAdapter';
 import { ConnectStatus, Signer, WalletAdapter } from './types';
 

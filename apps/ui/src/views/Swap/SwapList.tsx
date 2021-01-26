@@ -48,7 +48,7 @@ export const SwapList: React.FC = () => {
   const { data, status } = useQuery(
     ['swap-list', currentUserLock],
     () => {
-      return api.getSwapOrders();
+      return api.getSwapOrders(currentUserLock as any);
     },
     {
       enabled: !!currentUserLock,

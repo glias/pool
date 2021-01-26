@@ -1,8 +1,19 @@
 import { Transaction } from '@lay2/pw-core';
-import { TransactionConfig } from 'web3-core';
 import { SwapOrder } from '../swap';
 import CKB from '@nervosnetwork/ckb-sdk-core';
-import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, PoolInfo, Script } from '../';
+import {
+  Asset,
+  ChainSpec,
+  CkbAssetWithBalance,
+  GliaswapAssetWithBalance,
+  LiquidityAssetWithBalance,
+  LiquidityInfo,
+  LiquidityOrderSummary,
+  Maybe,
+  PoolInfo,
+  Script,
+  SerializedTransactionToSignWithFee,
+} from '../';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
@@ -18,6 +29,20 @@ export interface LiquidityOrderSummaryFilter {
   lock: Script;
 }
 
+export interface GenerateAddLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+}
+
+export interface GenerateRemoveLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  // minimum receiving share
+  assets: CkbAssetWithBalance[];
+  lpToken: LiquidityAssetWithBalance;
+}
+
 export interface GliaswapAPI {
   ckb: CKB;
   /**
@@ -31,7 +56,7 @@ export interface GliaswapAPI {
   /**
    * Get assets with balances, if no `assets` is passed, the built-in AssetWithBalance is returned
    */
-  getAssetsWithBalance: (lock: Script, assets?: Asset[]) => Promise<GliaswapAssetWithBalance[]>;
+  getAssetsWithBalance: (lock: Script, assets?: ChainSpec[]) => Promise<GliaswapAssetWithBalance[]>;
   /**
    * get liquidity pools information
    */
@@ -53,20 +78,12 @@ export interface GliaswapAPI {
 
   swapNormalOrder: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<Transaction>;
 
-  swapCrossChainOrder: (
-    tokenA: GliaswapAssetWithBalance,
-    tokenB: GliaswapAssetWithBalance,
-  ) => Promise<TransactionConfig>;
-
-  /**
-   * eg. ETH -> ckETH
-   */
-  swapCrossIn: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<TransactionConfig>;
-
-  /**
-   * eg. ckETH -> ETH
-   */
-  swapCrossOut: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<Transaction>;
-
   // TODO generate transaction and the other data API
+  generateAddLiquidityTransaction: (
+    payload: GenerateAddLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateRemoveLiquidityTransaction: () => Promise<SerializedTransactionToSignWithFee>;
+
+  cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;
 }

@@ -7,5 +7,5 @@ export function useConstant<V>(thunk: () => V) {
     ref.current = thunk();
   }
 
-  return ref.current;
+  return ref.current!;
 }

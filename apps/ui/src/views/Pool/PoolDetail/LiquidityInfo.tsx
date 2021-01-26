@@ -1,9 +1,9 @@
-import { Spin, Tag } from 'antd';
-import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
+import { Skeleton, Tag } from 'antd';
+import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { exploreTypeHash } from 'envs';
-import { useQueryLiquidityInfo, useQueryLiquidityWithShare } from 'hooks/useQueryLiquidity';
+import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
 import i18n from 'i18n';
 import React from 'react';
 import { truncateMiddle } from 'utils';
@@ -13,16 +13,18 @@ interface LiquidityInfoProps {
 }
 
 export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
-  const { data: poolLiquidity } = useQueryLiquidityInfo(poolId);
-  const { data: liquidity, isLoading } = useQueryLiquidityWithShare(poolId);
+  const { poolLiquidityQuery, lockLiquidityQuery } = useLiquidityQuery();
 
-  if (isLoading) {
+  if (poolLiquidityQuery.isLoading) {
     return (
       <Section>
-        <Spin />
+        <Skeleton active />
       </Section>
     );
   }
+
+  const poolLiquidity = poolLiquidityQuery.data;
+  const lockLiquidity = lockLiquidityQuery.data;
 
   return (
     <Section>
@@ -30,7 +32,7 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
         <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
           <PoolAssetSymbol assets={poolLiquidity?.assets ?? []} />
         </div>
-        <Tag style={{ marginRight: 0 }}>{poolLiquidity?.model ?? '-'}</Tag>
+        <Tag style={{ marginRight: 0 }}>{poolLiquidity?.model + '-MODEL' ?? '-'}</Tag>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool ID')}</div>
@@ -43,17 +45,21 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Your LP Token')}</div>
         <div>
-          {liquidity?.lpToken ? <HumanizeBalance asset={liquidity.lpToken} value={liquidity.lpToken.balance} /> : '-'}
+          {lockLiquidity?.lpToken ? (
+            <HumanizeBalance asset={lockLiquidity.lpToken} value={lockLiquidity.lpToken.balance} />
+          ) : (
+            '-'
+          )}
         </div>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool Share')}</div>
-        <div>{liquidity?.share ? liquidity.share * 100 : '-'}%</div>
+        <div>{lockLiquidity?.share ? (lockLiquidity.share * 100).toFixed(2) + ' %' : '-'} </div>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Your Liquidity')}</div>
         <div>
-          <AssetBalanceList assets={liquidity?.assets ?? []} hideSymbolIcon />
+          <AssetBalanceList assets={lockLiquidity?.assets ?? []} hideSymbolIcon />
         </div>
       </SpaceBetweenRow>
     </Section>
