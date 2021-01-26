@@ -200,7 +200,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -312,7 +315,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -418,7 +424,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -532,7 +541,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -639,7 +651,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -756,7 +771,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -835,7 +853,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [userLockDeps];
-    const witnessArgs = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -938,7 +959,10 @@ export class TxBuilderService {
       ctx.throw(400, 'unknown user lock code hash');
     }
     const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
-    const witnessArgs = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
       cellDeps,
@@ -1022,7 +1046,10 @@ export class TxBuilderService {
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
-    const witnessArgs = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_WITNESS_ARGS.Secp256k1] : [];
+    const witnessArgs =
+      userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
     const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
 
     const raw: RawTransaction = {
