@@ -82,14 +82,12 @@ export default class DexTokenController {
           BigInt(0),
         );
 
-        const ckbAsset = toCKBAsset(token);
+        token.balance = balance.toString();
         listAssetBalance.push({
-          typeHash: CKB_TYPE_HASH,
-          balance: balance.toString(),
+          ...token,
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedBalance.toString(),
-          ...ckbAsset,
-        } as CkbNativeAssetWithBalance);
+        });
       } else {
         const cells = await this.dexRepository.collectCells({
           lock: lock.toLumosScript(),
@@ -100,7 +98,10 @@ export default class DexTokenController {
           balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);
         });
         token.balance = balance.toString();
-        listAssetBalance.push(token.toAsset());
+        listAssetBalance.push({
+          ...token.toAsset(),
+          locked: '0', // TODO(@zjh): fix it when implementing lp pool.
+        });
       }
     }
 
