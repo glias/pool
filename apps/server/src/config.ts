@@ -114,7 +114,7 @@ export const SECP256K1_LOCK_DEP = {
     txHash: process.env.SECP256K1_LOCK_DEP_TX_HASH,
     index: '0x0',
   },
-  depType: 'code',
+  depType: 'dep_group',
 };
 
 export const LOCK_DEPS = {};

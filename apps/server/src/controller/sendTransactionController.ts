@@ -33,7 +33,16 @@ export default class SendTransactionController {
     const reqBody = <{ signedTx: CKBComponents.RawTransaction }>ctx.request.body;
 
     try {
-      ckbToolkit.transformers.TransformTransaction(reqBody.signedTx);
+      const cellDeps = reqBody.signedTx.cellDeps.map((cellDep) => {
+        return {
+          depType: cellDep.depType == 'code' ? 'code' : 'dep_group',
+          outPoint: cellDep.outPoint,
+        };
+      });
+      ckbToolkit.transformers.TransformTransaction({
+        ...reqBody.signedTx,
+        cellDeps,
+      });
     } catch (e) {
       ctx.throw(400, e);
     }

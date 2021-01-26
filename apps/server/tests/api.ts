@@ -84,13 +84,13 @@ async function createTestPool(tokenSymbol: string) {
   try {
     const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
     const tx = deserializeTransactionToSign(resp.data.tx);
-    // console.log(tx);
+    // console.log(JSON.stringify(tx, null, 2));
     console.log(resp.data.fee);
     console.log(resp.data.lpToken);
 
     // console.log(tx.witnesses);
     const signedTx = ckb.signTransaction(USER_PRIV_KEY)(tx);
-    // console.log(signedTx);
+    // console.log(JSON.stringify(signedTx, null, 2));
 
     const sendTxReq = {
       signedTx: signedTx,
