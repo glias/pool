@@ -150,14 +150,17 @@ export class TxBuilderService {
     // For testnet, we use default hardcode id for each token pool
     const id = config.POOL_INFO_ID[reqToken.info.symbol];
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
+    console.log(`pool id: ${infoType.toHash()}`);
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
-      return utils.blake2b(hashes).slice(2);
+      console.log(`token ${token.typeHash}`);
+      return utils.blake2b(token.typeHash.slice(2)).slice(2);
     })();
+    console.log(`pairhash ${pairHash}`);
     const infoLockArgs = `0x${pairHash}${typeHash}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
@@ -259,7 +262,8 @@ export class TxBuilderService {
     }
 
     // Generate info type script
-    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
+    // const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
+    const id = utils.blake2b(inputCells[0].outPoint.txHash.slice(2));
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
@@ -267,7 +271,7 @@ export class TxBuilderService {
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
-      return utils.blake2b(hashes).slice(2);
+      return utils.blake2b(token.typeHash.slice(2)).slice(2);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
