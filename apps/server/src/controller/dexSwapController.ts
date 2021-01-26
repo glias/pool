@@ -1,5 +1,5 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { Script, TokenHolderFactory } from '../model';
+import { Script } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 import { cellConver, Token } from '../model';
@@ -55,8 +55,8 @@ export default class DexSwapController {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     ethAddress: { type: 'string', required: true },
-    limit: { type: 'number', required: true },
-    skip: { type: 'number', required: true },
+    limit: { type: 'number', required: false },
+    skip: { type: 'number', required: false },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
     const req = ctx.request.body;

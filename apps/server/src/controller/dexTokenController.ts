@@ -64,7 +64,7 @@ export default class DexTokenController {
       });
     }
 
-    const listAssetBalance: commons.GliaswapAssetWithBalance[] = [];
+    const listAssetBalance = [];
 
     for (const token of tokens) {
       if (token.typeHash === CKB_TYPE_HASH) {
@@ -82,14 +82,12 @@ export default class DexTokenController {
           BigInt(0),
         );
 
-        const ckbAsset = toCKBAsset(token);
+        token.balance = balance.toString();
         listAssetBalance.push({
-          typeHash: CKB_TYPE_HASH,
-          balance: balance.toString(),
+          ...token.toAsset(),
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedBalance.toString(),
-          ...ckbAsset,
-        } as CkbNativeAssetWithBalance);
+        });
       } else {
         const cells = await this.dexRepository.collectCells({
           lock: lock.toLumosScript(),
@@ -99,14 +97,10 @@ export default class DexTokenController {
         cells.forEach((x) => {
           balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);
         });
-
-        const ckbAsset = toCKBAsset(token);
+        token.balance = balance.toString();
         listAssetBalance.push({
-          typeHash: token.typeHash,
-          balance: balance.toString(),
-          locked: '0',
-          ...token.info,
-          ...ckbAsset,
+          ...token.toAsset(),
+          locked: '0', // TODO(@zjh): fix it when implementing lp pool.
         });
       }
     }
