@@ -1,5 +1,6 @@
 import {
   Asset,
+  Balanced,
   GliaswapAssetWithBalance,
   isCkbNativeAsset,
   isCkbSudtAsset,
@@ -35,3 +36,24 @@ export function calcTotalBalance(asset: Asset | GliaswapAssetWithBalance): BigNu
   }
   return BN(0);
 }
+
+export function createAssetWithBalance<T extends Asset>(asset: T, balance: BigNumber.Value): T & Balanced {
+  return {
+    ...asset,
+    balance: BN(balance).toString(),
+  };
+}
+
+export function inputToAssetBalance(input: string, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
+  return BN(input)
+    .times(10 ** asset.decimals)
+    .decimalPlaces(decimalPlaces, BigNumber.ROUND_DOWN);
+}
+
+export function assetBalanceToInput(balance: BigNumber.Value, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
+  return BN(balance)
+    .times(10 ** -asset.decimals)
+    .decimalPlaces(decimalPlaces, BigNumber.ROUND_DOWN);
+}
+
+export { BalanceWithoutDecimal, BalanceWithDecimal } from './helper/AssetBalance';

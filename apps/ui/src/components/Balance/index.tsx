@@ -35,6 +35,15 @@ export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
   const { value, asset, showSuffix, maxToFormat, ...otherProps } = props;
 
   const balanceNum = new BigNumber(value).div(10 ** asset.decimals);
+
+  if (balanceNum.isNaN()) {
+    return (
+      <BalanceWrapper {...otherProps}>
+        <span className="balance-integer">0</span>
+      </BalanceWrapper>
+    );
+  }
+
   const decimalPlaces = balanceNum.decimalPlaces();
   const balance: string = (() => {
     if (maxToFormat !== undefined) return balanceNum.toFormat(Math.min(maxToFormat, decimalPlaces));

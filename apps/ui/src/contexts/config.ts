@@ -1,10 +1,11 @@
+import { GliaswapAPI } from '@gliaswap/commons';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { useConstant } from 'commons/use-constant';
 import { Web3ModalAdapter } from 'commons/WalletAdapter';
-import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
+import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
 
 export function useGlobalConfig() {
-  const api = useConstant(() => new DummyGliaswapAPI());
+  const api: GliaswapAPI = useConstant(() => new ServerGliaswapAPI());
 
   const adapter = useConstant(
     () =>

@@ -1,6 +1,6 @@
-import { LiquidityInfo } from '@gliaswap/commons';
+import { PoolInfo } from '@gliaswap/commons';
 import { Empty } from 'antd';
-import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
+import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import i18n from 'i18next';
 import React from 'react';
@@ -28,7 +28,7 @@ const LiquidityListWrapper = styled.div`
 `;
 
 interface LiquidityListProps {
-  pools: LiquidityInfo[];
+  pools: PoolInfo[];
 }
 
 export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
@@ -44,9 +44,9 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
         </SpaceBetweenRow>
       </Section>
 
-      {pools.length <= 0 && <Empty>{i18n.t('No liquidity found. Go to Explore Pool to add liquidity')}</Empty>}
-
-      {pools.length &&
+      {pools.length <= 0 ? (
+        <Empty style={{ color: '#fff' }}>{i18n.t('No liquidity found. Go to Explore Pool to add liquidity')}</Empty>
+      ) : (
         pools.map(({ assets, poolId }) => (
           <Section key={poolId} className="liquidity-item" onClick={() => history.push(`/pool/${poolId}`)}>
             <SpaceBetweenRow>
@@ -56,7 +56,8 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
               <AssetBalanceList assets={assets} />
             </SpaceBetweenRow>
           </Section>
-        ))}
+        ))
+      )}
     </LiquidityListWrapper>
   );
 };

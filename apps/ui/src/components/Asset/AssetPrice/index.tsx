@@ -27,8 +27,8 @@ export const AssetBaseQuotePrices: React.FC<AssetPriceProps> = (props) => {
   return (
     <>
       {assets.map((asset, i) => (
-        <span>
-          <HumanizeBalance key={i} asset={asset} value={quotedPrice[i]} showSuffix />
+        <span key={i}>
+          <HumanizeBalance asset={asset} value={quotedPrice[i]} showSuffix />
           {i < assets.length - 1 && <SwapIcon />}
         </span>
       ))}
