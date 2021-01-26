@@ -88,9 +88,15 @@ async function createTestPool(tokenSymbol: string) {
     console.log(resp.data.fee);
     console.log(resp.data.lpToken);
 
-    console.log(tx.witnesses);
+    // console.log(tx.witnesses);
     const signedTx = ckb.signTransaction(USER_PRIV_KEY)(tx);
-    console.log(signedTx);
+    // console.log(signedTx);
+
+    const sendTxReq = {
+      signedTx: signedTx,
+    };
+    const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
+    console.log(sendResp.data.txHash);
   } catch (e) {
     if (axios.isAxiosError(e)) {
       if (e.response) {
@@ -98,7 +104,7 @@ async function createTestPool(tokenSymbol: string) {
         console.log(e.response.statusText);
         console.log(e.response.data);
       } else {
-        console.log(e.toJSON());
+        console.log(e.message);
       }
     } else {
       console.log(e);
@@ -108,6 +114,6 @@ async function createTestPool(tokenSymbol: string) {
 
 const ckb = new CKB(config.ckbConfig.nodeUrl);
 const address = ckb.utils.privateKeyToAddress(USER_PRIV_KEY, { prefix: AddressPrefix.Testnet });
-console.log(`testNetAddrss: ${address}`);
+console.log(`use address: ${address}`);
 
 createTestPool('GLIA');
