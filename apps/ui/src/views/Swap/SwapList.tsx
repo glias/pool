@@ -42,13 +42,13 @@ export function isSameTxHash(hash1?: string, hash2?: string) {
 }
 
 export const SwapList: React.FC = () => {
-  const { currentUserLock } = useGliaswap();
+  const { currentUserLock, currentEthAddress } = useGliaswap();
   const { api } = useGlobalConfig();
   const { setAndCacheCrossChainOrders, crossChainOrders } = useSwapContainer();
   const { data, status } = useQuery(
-    ['swap-list', currentUserLock],
+    ['swap-list', currentUserLock, currentEthAddress],
     () => {
-      return api.getSwapOrders(currentUserLock as any);
+      return api.getSwapOrders(currentUserLock!, currentEthAddress);
     },
     {
       enabled: !!currentUserLock,
@@ -66,6 +66,9 @@ export const SwapList: React.FC = () => {
   );
 
   const orderList = useMemo(() => {
+    if (data) {
+      return [...crossChainOrders, ...(data ?? [])];
+    }
     return [...crossChainOrders, ...(data ?? [])];
   }, [data, crossChainOrders]);
 

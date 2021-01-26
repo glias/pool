@@ -62,7 +62,6 @@ export const Provider: React.FC<ProviderProps> = (props) => {
 
 export function useWalletAdapter<T extends WalletAdapter>(): AdapterContextState<T> {
   const context = useContext(AdapterContext);
-
   if (context == null) {
     return {
       connect: throwDisconnected(),

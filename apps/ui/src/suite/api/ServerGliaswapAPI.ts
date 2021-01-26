@@ -1,8 +1,9 @@
 import {
   Asset,
-  ChainSpec,
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
+  EthErc20Asset,
+  EthNativeAssetWithBalance,
   getCkbChainSpec,
   GliaswapAPI,
   GliaswapAssetWithBalance,
@@ -18,13 +19,16 @@ import {
   SerializedTransactionToSignWithFee,
   ShadowOfEthWithBalance,
   SwapOrder,
+  EthErc20AssetWithBalance,
+  isEthNativeAsset,
+  isEthErc20Asset,
+  EthAsset,
 } from '@gliaswap/commons';
 import Axios, { AxiosInstance } from 'axios';
 import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
 import Web3 from 'web3';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import { CKB_NODE_URL } from 'suite/constants';
-import { swapOrders } from 'mock/order-list';
 import { Transaction } from '@lay2/pw-core';
 
 const api = new DummyGliaswapAPI();
@@ -65,22 +69,65 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve([]);
   }
 
-  async getAssetsWithBalance(lock: Script, assets?: ChainSpec[]): Promise<GliaswapAssetWithBalance[]> {
+  async getAssetsWithBalance(
+    lock: Script,
+    assets?: Asset[],
+    ethAddr?: string,
+    web3?: Web3,
+  ): Promise<GliaswapAssetWithBalance[]> {
     if (!assets) {
       const res = await this.axios.post('/get-asset-with-balance', { lock });
       return res.data;
     }
 
+    // @ts-ignore
     const nervosChainSpecs = assets.filter(isCkbChainSpec).map(getCkbChainSpec);
-    const res = await this.axios.post<(CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowOfEthWithBalance)[]>(
-      '/get-asset-with-balance',
-      {
-        lock,
-        assets: nervosChainSpecs,
-      },
-    );
+    const ckbAssets = await this.axios.post<
+      (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowOfEthWithBalance)[]
+    >('/get-asset-with-balance', {
+      lock,
+      assets: nervosChainSpecs,
+    });
 
-    return res.data;
+    const ethAsset: EthAsset = assets.find(isEthNativeAsset)!;
+    const erc20Assets: EthErc20Asset[] = assets.filter(isEthErc20Asset);
+    try {
+      const ethAssets = await Promise.all([
+        this.getEthBalance(web3!, ethAddr!, ethAsset),
+        ...erc20Assets.map((a) => this.getErc20Balance(web3!, ethAddr!, a)),
+      ]);
+      return [...ckbAssets.data, ...ethAssets] as GliaswapAssetWithBalance[];
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getEthBalance(web3: Web3, ethAddr: string, asset: Asset) {
+    const balance = await web3.eth.getBalance(ethAddr);
+    return {
+      ...asset,
+      balance,
+    } as EthNativeAssetWithBalance;
+  }
+
+  async getErc20Balance(web3: Web3, ethAddr: string, asset: EthErc20Asset) {
+    const contract = new web3.eth.Contract(
+      [
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+      ],
+      asset.address,
+    );
+    const balance = await contract.methods.balanceOf(ethAddr).call();
+    return {
+      ...asset,
+      balance,
+    } as EthErc20AssetWithBalance;
   }
 
   getDefaultAssetList(): Asset[] {
@@ -99,8 +146,15 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve([]);
   }
 
-  getSwapOrders(): Promise<SwapOrder[]> {
-    return Promise.resolve(swapOrders);
+  async getSwapOrders(lock: Script, ethAddress: string): Promise<SwapOrder[]> {
+    const res = await this.axios.post('/swap/orders', {
+      lock,
+      ethAddress,
+      limit: 0,
+      skip: 0,
+    });
+
+    return res.data;
   }
 
   cancelSwapOrders(): Promise<Transaction> {

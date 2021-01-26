@@ -1,9 +1,9 @@
 import { Transaction } from '@lay2/pw-core';
 import { SwapOrder } from '../swap';
 import CKB from '@nervosnetwork/ckb-sdk-core';
+import Web3 from 'web3';
 import {
   Asset,
-  ChainSpec,
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
   LiquidityAssetWithBalance,
@@ -56,7 +56,12 @@ export interface GliaswapAPI {
   /**
    * Get assets with balances, if no `assets` is passed, the built-in AssetWithBalance is returned
    */
-  getAssetsWithBalance: (lock: Script, assets?: ChainSpec[]) => Promise<GliaswapAssetWithBalance[]>;
+  getAssetsWithBalance: (
+    lock: Script,
+    assets?: Asset[],
+    ethAddr?: string,
+    web3?: Web3,
+  ) => Promise<GliaswapAssetWithBalance[]>;
   /**
    * get liquidity pools information
    */
@@ -72,7 +77,7 @@ export interface GliaswapAPI {
 
   getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
-  getSwapOrders: (lock: Script) => Promise<SwapOrder[]>;
+  getSwapOrders: (lock: Script, ethAddress: string) => Promise<SwapOrder[]>;
 
   cancelSwapOrders: (txHash: string, lock: Script) => Promise<Transaction>;
 

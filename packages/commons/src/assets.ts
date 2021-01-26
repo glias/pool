@@ -54,7 +54,6 @@ export type EthErc20AssetWithBalance = EthErc20Asset & Balanced;
 export type GliaswapAssetWithBalance =
   | CkbNativeAssetWithBalance
   | CkbSudtAssetWithBalance
-  | ShadowOfEthAsset
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
