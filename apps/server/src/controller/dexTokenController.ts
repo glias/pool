@@ -64,7 +64,7 @@ export default class DexTokenController {
       });
     }
 
-    const listAssetBalance: commons.GliaswapAssetWithBalance[] = [];
+    const listAssetBalance = [];
 
     for (const token of tokens) {
       if (token.typeHash === CKB_TYPE_HASH) {
@@ -99,15 +99,8 @@ export default class DexTokenController {
         cells.forEach((x) => {
           balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);
         });
-
-        const ckbAsset = toCKBAsset(token);
-        listAssetBalance.push({
-          typeHash: token.typeHash,
-          balance: balance.toString(),
-          locked: '0',
-          ...token.info,
-          ...ckbAsset,
-        });
+        token.balance = balance.toString();
+        listAssetBalance.push(token.toAsset());
       }
     }
 
