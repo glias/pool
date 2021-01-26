@@ -14,8 +14,13 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
     return infoCellData;
   }
 
+  // FIXME
   encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash: string): string {
-    const data = this.getStructDefine();
+    const data = createFixedStruct()
+      .field('ckbReserve', U128LE)
+      .field('sudtReserve', U128LE)
+      .field('totalLiquidity', U128LE);
+
     return `0x${data
       .encode({
         ckbReserve,
@@ -26,7 +31,10 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
   }
 
   decodeData(dataHex: string): InfoCellData {
-    const data = this.getStructDefine();
+    const data = createFixedStruct()
+      .field('ckbReserve', U128LE)
+      .field('sudtReserve', U128LE)
+      .field('totalLiquidity', U128LE);
     const structObj = data.decode(Buffer.from(dataHex.slice(2, 98), 'hex'));
 
     const infoCellData: InfoCellData = {

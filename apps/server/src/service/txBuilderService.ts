@@ -181,7 +181,10 @@ export class TxBuilderService {
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
+    const poolData = (() => {
+      const encoder = this.codec.getSudtCellSerialization().encodeData;
+      return encoder(0n);
+    })();
     const poolOutput = {
       capacity: TxBuilderService.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
@@ -289,7 +292,10 @@ export class TxBuilderService {
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
+    const poolData = (() => {
+      const encoder = this.codec.getSudtCellSerialization().encodeData;
+      return encoder(0n);
+    })();
     const poolOutput = {
       capacity: TxBuilderService.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
