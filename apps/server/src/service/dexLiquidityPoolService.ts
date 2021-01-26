@@ -9,7 +9,7 @@ import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactor
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockCkEthPoolInfo, mockGliaPoolInfo } from '../tests/mock_data';
+import { mockCkEthPoolInfo, mockGliaPoolInfo, mockUserLiquidityCells } from '../tests/mock_data';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
@@ -91,29 +91,29 @@ export class DexLiquidityPoolService {
         lock: lock.toLumosScript(),
         type: new Script(poolInfo.tokenB.typeHash, 'type', script.toHash()).toLumosScript(),
       };
-      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
+      // const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
 
-      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      // mock
-      //   .mockCollectCells()
-      //   .resolves([])
-      //   .withArgs({
-      //     lock: queryOptions.lock,
-      //     type: new Script(
-      //       TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-      //       'type',
-      //       new Script(
-      //         INFO_LOCK_CODE_HASH,
-      //         'type',
-      //         CellInfoSerializationHolderFactory.getInstance()
-      //           .getInfoCellSerialization()
-      //           .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
-      //       ).toHash(),
-      //     ).toLumosScript(),
-      //   })
-      //   .resolves(mockUserLiquidityCells);
+      const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      mock
+        .mockCollectCells()
+        .resolves([])
+        .withArgs({
+          lock: queryOptions.lock,
+          type: new Script(
+            TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
+            'type',
+            new Script(
+              INFO_LOCK_CODE_HASH,
+              'type',
+              CellInfoSerializationHolderFactory.getInstance()
+                .getInfoCellSerialization()
+                .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
+            ).toHash(),
+          ).toLumosScript(),
+        })
+        .resolves(mockUserLiquidityCells);
 
-      // const userLiquidityCells = await mock.collectCells(queryOptions);
+      const userLiquidityCells = await mock.collectCells(queryOptions);
 
       if (userLiquidityCells.length === 0) {
         continue;
