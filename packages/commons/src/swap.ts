@@ -23,3 +23,28 @@ export interface SwapOrder {
   };
   type: SwapOrderType;
 }
+
+export function buildPendingSwapOrder(
+  tokenA: GliaswapAssetWithBalance,
+  tokenB: GliaswapAssetWithBalance,
+  txHash: string,
+  swapType: SwapOrderType,
+): SwapOrder {
+  return {
+    timestamp: Date.now().toString(),
+    transactionHash: txHash,
+    amountIn: tokenA,
+    amountOut: tokenB,
+    stage: {
+      status: 'pending',
+      steps: [
+        {
+          transactionHash: txHash,
+          index: '',
+          errorMessage: '',
+        },
+      ],
+    },
+    type: swapType,
+  };
+}

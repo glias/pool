@@ -13,8 +13,12 @@ import { ckbNativeAsset, ckbSudtGlia } from '../placeholder/assets';
 
 import { swapOrders } from 'mock/order-list';
 import { assetList } from 'mock/asset-list';
+import CKB from '@nervosnetwork/ckb-sdk-core';
+import { CKB_NODE_URL } from 'suite/constants';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
+  ckb = new CKB(CKB_NODE_URL);
+
   getDefaultAssetList() {
     return assetList;
   }

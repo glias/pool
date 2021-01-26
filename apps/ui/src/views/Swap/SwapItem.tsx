@@ -103,7 +103,11 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     <Balanced
       asset={
         order.type === SwapOrderType.CrossChain && isShadowEthAsset(order.amountIn)
-          ? { ...order.amountOut, balance: calcCrossIn(order.amountOut.balance) }
+          ? {
+              ...order.amountOut,
+              balance:
+                order.stage.status !== 'pending' ? calcCrossIn(order.amountOut.balance) : order.amountOut.balance,
+            }
           : order.amountOut
       }
     />

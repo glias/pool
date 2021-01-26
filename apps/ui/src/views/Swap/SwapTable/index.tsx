@@ -9,7 +9,7 @@ import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { EthErc20AssetWithBalance, GliaswapAssetWithBalance } from '@gliaswap/commons';
+import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
@@ -97,12 +97,9 @@ export const SwapTable: React.FC = () => {
       );
       setCurrentEthTx(data);
     } else {
-      const { data } = await bridgeAPI.shadowAssetCrossOut(
-        newTokenA as EthErc20AssetWithBalance,
-        ckbAddress,
-        ethAddress,
-      );
-      setCurrentTx(data);
+      const { data } = await bridgeAPI.shadowAssetCrossOut(newTokenA as ShadowOfEthWithBalance, ckbAddress, ethAddress);
+      const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
+      setCurrentTx(tx);
     }
     setReviewModalVisable(true);
   }, [
@@ -123,17 +120,14 @@ export const SwapTable: React.FC = () => {
 
   const onSubmit = useCallback(async () => {
     setIsFetchingOrder(true);
-    if (swapMode === SwapMode.CrossIn || swapMode === SwapMode.CrossOut) {
-      await swapCrossChain();
-    }
     try {
       if (swapMode === SwapMode.CrossIn || swapMode === SwapMode.CrossOut) {
         await swapCrossChain();
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        throw new Error(error);
-      }
+      // if (process.env.NODE_ENV === 'development') {
+      //   throw new Error(error);
+      // }
       Modal.error({
         title: 'Build Transaction',
         content: error.message,

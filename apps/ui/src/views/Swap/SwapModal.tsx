@@ -1,11 +1,11 @@
-import { isEthAsset } from '@gliaswap/commons';
+import { isEthAsset, buildPendingSwapOrder, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
-import { Form } from 'antd';
+import { Form, Modal } from 'antd';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { TableRow } from 'components/TableRow';
 import i18n from 'i18n';
 import React from 'react';
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { SwapMode, useSwapContainer } from './context';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
@@ -13,9 +13,23 @@ import { Trans } from 'react-i18next';
 import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
 import { SWAP_CELL_ASK_CAPACITY } from 'suite/constants';
+import { useGliaswap } from 'contexts';
 
 export const SwapModal = () => {
-  const { reviewModalVisable, currentCkbTx, setReviewModalVisable, tokenA, tokenB, swapMode } = useSwapContainer();
+  const {
+    reviewModalVisable,
+    currentCkbTx,
+    setReviewModalVisable,
+    tokenA,
+    tokenB,
+    swapMode,
+    currentEthTx,
+    sendEthTransaction,
+    setAndCacheCrossChainOrders,
+  } = useSwapContainer();
+  const { adapter } = useGliaswap();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
   const txFee = useMemo(() => {
     const fee = currentCkbTx ? Builder.calcFee(currentCkbTx).toString() : '0';
     return `${fee} CKB`;
@@ -50,6 +64,46 @@ export const SwapModal = () => {
         return 'order';
     }
   }, [swapMode]);
+
+  const placeCrossIn = useCallback(async () => {
+    if (currentEthTx) {
+      const txHash = await sendEthTransaction(currentEthTx);
+      const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
+      setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
+    }
+  }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders]);
+
+  const placeCrossOut = useCallback(async () => {
+    if (currentCkbTx) {
+      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
+      setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
+    }
+  }, [currentCkbTx, adapter.raw.pw, tokenA, tokenB, setAndCacheCrossChainOrders]);
+
+  const placeOrder = useCallback(async () => {
+    setIsPlacingOrder(true);
+    try {
+      switch (swapMode) {
+        case SwapMode.CrossIn:
+          await placeCrossIn();
+          break;
+        case SwapMode.CrossOut:
+          await placeCrossOut();
+          break;
+        default:
+          break;
+      }
+      setReviewModalVisable(false);
+    } catch (error) {
+      Modal.error({
+        title: 'Build Transaction',
+        content: error.message,
+      });
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  }, [swapMode, placeCrossIn, placeCrossOut, setReviewModalVisable]);
 
   return (
     <Container
@@ -97,7 +151,7 @@ export const SwapModal = () => {
               ) : null}
             </MetaContainer>
           ) : (
-            <CrossMeta isBid={false} pureCross={swapMode === SwapMode.CrossOut} />
+            <CrossMeta isBid={false} swapMode={swapMode} />
           )}
         </Form.Item>
         {currentCkbTx ? (
@@ -108,7 +162,12 @@ export const SwapModal = () => {
           />
         ) : null}
         <Form.Item className="submit">
-          <ConfirmButton text={i18n.t('swap.swap-modal.confirm')} />
+          <ConfirmButton
+            text={i18n.t('swap.swap-modal.confirm')}
+            loading={isPlacingOrder}
+            disabled={isPlacingOrder}
+            onClick={placeOrder}
+          />
         </Form.Item>
       </Form>
     </Container>

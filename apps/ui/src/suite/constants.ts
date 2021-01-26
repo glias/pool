@@ -14,4 +14,6 @@ export const EXPLORER_URL = process.env.REACT_APP_EXPLORER_URL! || 'https://expl
 
 export const ETHER_SCAN_URL = process.env.REACT_APP_ETHER_SCAN_URL! || 'https://ropsten.etherscan.io/';
 
-export const FORCE_BRIDGER_SERVER_URL = process.env.FORCE_BRIDGER_SERVER_URL! || 'http://47.56.233.149:3003';
+export const FORCE_BRIDGER_SERVER_URL = process.env.REACT_APP_FORCE_BRIDGER_SERVER_URL! || 'http://47.56.233.149:3003';
+
+export const CKB_NODE_URL = process.env.REACT_APP_CKB_NODE_URL! || 'http://121.196.29.165:8114/rpc';

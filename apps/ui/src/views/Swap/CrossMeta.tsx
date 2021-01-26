@@ -3,8 +3,12 @@ import { MetaContainer } from 'components/MetaContainer';
 import Gift from 'assets/img/gift.png';
 import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY, README_URL } from 'suite/constants';
 import i18n from 'i18n';
+import { SwapMode } from './context';
 
-export const CrossMeta = ({ pureCross, isBid }: { pureCross: boolean; isBid: boolean }) => {
+export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: boolean }) => {
+  if (swapMode === SwapMode.CrossOut) {
+    return null;
+  }
   return (
     <MetaContainer>
       <div className="meta">
@@ -13,7 +17,7 @@ export const CrossMeta = ({ pureCross, isBid }: { pureCross: boolean; isBid: boo
         </div>
         <div>
           {i18n.t('swap.swap-modal.cross-meta', {
-            amount: pureCross ? '142' : isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY,
+            amount: swapMode === SwapMode.CrossIn ? '142' : isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY,
           })}
           <a
             href={`${README_URL}#why-lock-my-addtional-ckb-when-i-place-an-order`}

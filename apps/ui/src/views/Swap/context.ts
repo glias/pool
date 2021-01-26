@@ -7,12 +7,13 @@ import {
   isShadowEthAsset,
   SwapOrder,
 } from '@gliaswap/commons';
-import { Transaction } from '@lay2/pw-core';
+import PWCore, { Transaction } from '@lay2/pw-core';
 import { useGliaswap } from 'contexts';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
 import { useGlobalConfig } from 'contexts/config';
+import { crossChainOrdersCache } from 'cache/index';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -28,6 +29,8 @@ export enum ApproveStatus {
   Finish = 'Finish',
 }
 
+export type crossChainOrdersUpdateFn<T = Array<SwapOrder>> = (_: T) => T;
+
 const useSwap = () => {
   const [cancelModalVisable, setCancelModalVisable] = useState(false);
   const [reviewModalVisable, setReviewModalVisable] = useState(false);
@@ -39,7 +42,19 @@ const useSwap = () => {
   const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
   const [pay, setPay] = useState('');
   const [receive, setReceive] = useState('');
-  const { currentEthAddress: ethAddress, adapter } = useGliaswap();
+  const { currentEthAddress: ethAddress, adapter, currentCkbAddress } = useGliaswap();
+  const [crossChainOrders, setCrossChainOrders] = useState<Array<SwapOrder>>(
+    crossChainOrdersCache.get(currentCkbAddress),
+  );
+
+  useEffect(() => {
+    if (adapter.status === 'connected' && currentCkbAddress) {
+      setCrossChainOrders(crossChainOrdersCache.get(currentCkbAddress));
+    } else {
+      setCrossChainOrders([]);
+    }
+  }, [adapter.status, currentCkbAddress]);
+
   const { bridgeAPI } = useGlobalConfig();
   const { web3 } = adapter.raw;
   const swapMode = useMemo(() => {
@@ -146,6 +161,54 @@ const useSwap = () => {
     }
   }, [setERC20ApproveStatus, web3, currentERC20, bridgeAPI, ethAddress]);
 
+  const sendEthTransaction = useCallback(
+    (tx: TransactionConfig, cb?: (txHash: string) => Promise<void>): Promise<string> => {
+      if (!web3 || !ethAddress) {
+        return Promise.resolve('');
+      }
+      delete tx.gasPrice;
+      delete tx.nonce;
+
+      return new Promise((resolve, reject) => {
+        web3.eth
+          .sendTransaction({
+            ...tx,
+            from: ethAddress,
+          })
+          .once('transactionHash', async (txHash) => {
+            await cb?.(txHash);
+            resolve(txHash);
+          })
+          .on('error', (err) => reject(err));
+      });
+    },
+    [web3, ethAddress],
+  );
+
+  const isWalletNotConnected = useMemo(() => {
+    return adapter.status !== 'connected';
+  }, [adapter.status]);
+
+  const setAndCacheCrossChainOrders = useCallback(
+    (updateFn: crossChainOrdersUpdateFn) => {
+      if (isWalletNotConnected) {
+        return;
+      }
+      setCrossChainOrders((orders) => {
+        const latestAddress = PWCore.provider?.address?.toCKBAddress?.();
+        // If address is not equal to the latest address
+        // it is likely that this function was called before the wallet switch.
+        if (latestAddress !== currentCkbAddress) {
+          return orders;
+        }
+        const newOrders = updateFn(orders);
+        crossChainOrdersCache.set(currentCkbAddress, newOrders);
+        return newOrders;
+      });
+    },
+    [currentCkbAddress, setCrossChainOrders, isWalletNotConnected],
+  );
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -173,6 +236,9 @@ const useSwap = () => {
     approveERC20,
     approveText,
     isApproving,
+    sendEthTransaction,
+    setAndCacheCrossChainOrders,
+    crossChainOrders,
   };
 };
 

@@ -1,6 +1,7 @@
 import { Transaction } from '@lay2/pw-core';
 import { TransactionConfig } from 'web3-core';
 import { SwapOrder } from '../swap';
+import CKB from '@nervosnetwork/ckb-sdk-core';
 import { Asset, GliaswapAssetWithBalance, LiquidityInfo, LiquidityOrderSummary, Maybe, PoolInfo, Script } from '../';
 
 export interface LiquidityPoolFilter {
@@ -18,6 +19,7 @@ export interface LiquidityOrderSummaryFilter {
 }
 
 export interface GliaswapAPI {
+  ckb: CKB;
   /**
    * get the default asset list, used as a placeholder
    */
