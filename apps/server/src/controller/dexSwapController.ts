@@ -1,5 +1,5 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { Script, TokenHolderFactory } from '../model';
+import { Script } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 import { cellConver, Token } from '../model';
