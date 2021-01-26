@@ -1,4 +1,5 @@
 import { body, Context, request, responses, summary, description } from 'koa-swagger-decorator';
+import * as ckbToolkit from 'ckb-js-toolkit';
 
 import { sendTransactionService, SendTransactionService } from '../service';
 import { SignedTransactionSchema } from './swaggerSchema';
@@ -29,8 +30,15 @@ export default class SendTransactionController {
     signedTx: { type: 'object', properties: (SignedTransactionSchema as any).swaggerDocument },
   })
   public async getSwapOrders(ctx: Context): Promise<void> {
-    const signedTx = <CKBComponents.RawTransaction>ctx.request.body;
-    const txHash = await this.service.sendTransaction(signedTx);
+    const reqBody = <{ signedTx: CKBComponents.RawTransaction }>ctx.request.body;
+
+    try {
+      ckbToolkit.transformers.TransformTransaction(reqBody.signedTx);
+    } catch (e) {
+      ctx.throw(400, e);
+    }
+
+    const txHash = await this.service.sendTransaction(reqBody.signedTx);
 
     ctx.status = 200;
     ctx.body = { txHash };
