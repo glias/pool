@@ -7,7 +7,9 @@ import { TokenHolderFactory } from '../src/model';
 import * as config from '../src/config';
 import CKBComponents from '@nervosnetwork/ckb-sdk-core/lib';
 import CKB from '@nervosnetwork/ckb-sdk-core';
+import { AddressPrefix } from '@nervosnetwork/ckb-sdk-utils';
 
+const USER_PRIV_KEY = process.env.USER_PRIV_KEY;
 const USER_LOCK: CKBComponents.Script = {
   codeHash: config.SECP256K1_LOCK_CODE_HASH,
   hashType: 'type',
@@ -77,19 +79,35 @@ async function createTestPool(tokenSymbol: string) {
     userLock: USER_LOCK,
   };
 
-  console.log(req);
+  // console.log(req);
 
   try {
     const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
     const tx = deserializeTransactionToSign(resp.data.tx);
-    console.log(tx);
+    // console.log(tx);
     console.log(resp.data.fee);
     console.log(resp.data.lpToken);
+
+    console.log(tx.witnesses);
+    const signedTx = ckb.signTransaction(USER_PRIV_KEY)(tx);
+    console.log(signedTx);
   } catch (e) {
-    console.log(e.response.status);
-    console.log(e.response.statusText);
-    console.log(e.response.data);
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.toJSON());
+      }
+    } else {
+      console.log(e);
+    }
   }
 }
+
+const ckb = new CKB(config.ckbConfig.nodeUrl);
+const address = ckb.utils.privateKeyToAddress(USER_PRIV_KEY, { prefix: AddressPrefix.Testnet });
+console.log(`testNetAddrss: ${address}`);
 
 createTestPool('GLIA');

@@ -124,6 +124,7 @@ LOCK_DEPS[SECP256K1_LOCK_CODE_HASH] = SECP256K1_LOCK_DEP;
 export const forceBridgeServerUrl = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://121.196.29.165:3003';
 
 export const TX_VERSION = '0x0';
+export const FEE_RATE = 1000;
 
 export const PW_WITNESS_ARGS = {
   Secp256k1: {
@@ -137,6 +138,9 @@ export const PW_WITNESS_ARGS = {
     outputType: '',
   },
 };
-
 export const PW_ECDSA_WITNESS_LEN = 172;
-export const FEE_RATE = 1000;
+export const SECP256K1_WITNESS_ARGS = {
+  lock: '',
+  inputType: '',
+  outputType: '',
+};
