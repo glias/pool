@@ -17,3 +17,4 @@ export * from './tokens';
 export * from './bridge';
 export * from './pool';
 export * from './scriptBuilder';
+export * from './filter';
