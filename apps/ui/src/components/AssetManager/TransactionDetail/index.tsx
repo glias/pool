@@ -7,7 +7,7 @@ import { Balance } from 'components/AssetManager/Balance';
 import { TransactionStatusIcon } from 'components/AssetManager/components/TransactionStatus';
 import { useAssetManager } from 'components/AssetManager/hooks';
 import { HumanizeBalance } from 'components/Balance';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import { exploreBlock, exploreTransaction } from 'envs';
 import i18n from 'i18n';
 import React from 'react';

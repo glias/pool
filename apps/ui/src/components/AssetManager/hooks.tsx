@@ -8,7 +8,7 @@ import {
 import { Transaction } from '@lay2/pw-core';
 import { useConstant } from 'commons/use-constant';
 import { DummyAssetManagerAPI } from 'components/AssetManager/suite/api/DummyAssetManagerFetcher';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import { useCallback, useMemo, useState } from 'react';
 import { CKB_NATIVE_TYPE_HASH, Placeholder } from 'suite';
 import { createContainer } from 'unstated-next';

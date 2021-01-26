@@ -1,6 +1,6 @@
 import { LiquidityPoolFilter } from '@gliaswap/commons';
 import { Radio, Skeleton } from 'antd';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import React, { useMemo } from 'react';
 import { useQuery } from 'react-query';
 import { useHistory, useLocation } from 'react-router-dom';

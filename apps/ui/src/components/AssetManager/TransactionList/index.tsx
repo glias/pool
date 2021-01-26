@@ -5,7 +5,7 @@ import { TransactionStatusIcon } from 'components/AssetManager/components/Transa
 import { useAssetManager } from 'components/AssetManager/hooks';
 import { TransactionDirection } from 'components/AssetManager/suite';
 import { HumanizeBalance } from 'components/Balance';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import i18n from 'i18next';
 import React, { useMemo, useState } from 'react';
 import { useQuery } from 'react-query';

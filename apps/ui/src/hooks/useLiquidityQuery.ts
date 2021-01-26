@@ -1,6 +1,6 @@
 import { LiquidityInfo, Maybe } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import { QueryObserverResult, useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 
