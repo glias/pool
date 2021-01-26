@@ -167,10 +167,10 @@ export class TxBuilderService {
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
-    const ckbReserve = '0x00'.slice(2);
-    const tokenReserve = '0x00'.slice(2);
-    const totalLiquidity = '0x00'.slice(2);
-    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
+    const infoData = (() => {
+      const encoder = this.codec.getInfoCellSerialization().encodeData;
+      return encoder(0n, 0n, 0n, lpTokenTypeHash);
+    })();
 
     // Finally, generate info output cell
     const infoOutput = {
@@ -275,10 +275,10 @@ export class TxBuilderService {
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
-    const ckbReserve = '0x00'.slice(2);
-    const tokenReserve = '0x00'.slice(2);
-    const totalLiquidity = '0x00'.slice(2);
-    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
+    const infoData = (() => {
+      const encoder = this.codec.getInfoCellSerialization().encodeData;
+      return encoder(0n, 0n, 0n, lpTokenTypeHash);
+    })();
 
     // Finally, generate info output cell
     const infoOutput = {
