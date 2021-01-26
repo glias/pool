@@ -67,7 +67,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     const nervosChainSpecs = assets.filter(isCkbChainSpec).map(getCkbChainSpec);
     const res = await this.axios.post<
       (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowFromEthWithBalance)[]
-      >('/get-asset-with-balance', {
+    >('/get-asset-with-balance', {
       lock,
       assets: nervosChainSpecs,
     });
