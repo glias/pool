@@ -21,14 +21,14 @@ import {
 
 export class DummyGliaswapAPI implements GliaswapAPI {
   async generateAddLiquidityTransaction(
-    payload: GenerateAddLiquidityTransactionPayload,
+    _payload: GenerateAddLiquidityTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
   async generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
-  async cancelOperation(txHash: string, lock: CKBComponents.Script): Promise<SerializedTransactionToSignWithFee> {
+  async cancelOperation(_txHash: string, _lock: CKBComponents.Script): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
   getDefaultAssetList() {

@@ -42,7 +42,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  cancelOperation(txHash: string, lock: Script): Promise<SerializedTransactionToSignWithFee> {
+  cancelOperation(_txHash: string, _lock: Script): Promise<SerializedTransactionToSignWithFee> {
     return Promise.resolve({} as any);
   }
 
@@ -54,7 +54,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve({} as any);
   }
 
-  getAddLiquidityOrderSummaries(filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
+  getAddLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
     return Promise.resolve([]);
   }
 
@@ -79,15 +79,15 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return [];
   }
 
-  getLiquidityInfo(filter: LiquidityInfoFilter): Promise<Maybe<LiquidityInfo>> {
+  getLiquidityInfo(_filter: LiquidityInfoFilter): Promise<Maybe<LiquidityInfo>> {
     return api.getLiquidityInfo();
   }
 
-  getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
+  getLiquidityPools(_filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
     return api.getLiquidityPools();
   }
 
-  getRemoveLiquidityOrderSummaries(filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
+  getRemoveLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
     return Promise.resolve([]);
   }
 }
