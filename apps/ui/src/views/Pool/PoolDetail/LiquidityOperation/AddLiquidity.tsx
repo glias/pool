@@ -5,7 +5,7 @@ import BigNumber from 'bignumber.js';
 import { AssetBalanceList, AssetBaseQuotePrices, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { SpaceBetweenRow } from 'components/Layout';
-import { useGliaswapAssets } from 'contexts';
+import { useGliaswapAssets } from 'hooks';
 import { Formik, FormikProps } from 'formik';
 import { Form, Input, SubmitButton } from 'formik-antd';
 import i18n from 'i18n';
