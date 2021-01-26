@@ -2,7 +2,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import { DexRepository, txHash } from '.';
-import { ckbConfig, forceBridgeServerUrl, SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
+import { ckbConfig, forceBridgeServerUrl } from '../config';
 import {
   BridgeInfo,
   Cell,
@@ -145,35 +145,21 @@ export class CkbRepository implements DexRepository {
     return block[0].header.timestamp;
   }
 
-  /**
-   *
-   * @param lock  user lock
-   * @param pureCross  If pureCross = true, then it is a cross chain order, otherwise it is an cross chain order + place order
-   */
   async getForceBridgeHistory(
     lock: Script,
     ethAddress: string,
-    pureCross: boolean,
   ): Promise<{
     eth_to_ckb: BridgeInfo[];
     ckb_to_eth: BridgeInfo[];
   }> {
     try {
       const userLock = lock.toPwScript();
-      const orderLock = new Script(
-        SWAP_ORDER_LOCK_CODE_HASH,
-        SWAP_ORDER_LOCK_HASH_TYPE,
-        userLock.toHash(),
-      ).toPwScript();
-
       const QueryOptions = {
         url: `${forceBridgeServerUrl}/get_crosschain_history`,
         method: 'POST',
         body: {
-          ckb_recipient_lockscript_addr: pureCross
-            ? userLock.toAddress().toCKBAddress()
-            : orderLock.toAddress().toCKBAddress(),
-          eth_recipient_addr: ethAddress,
+          lock_sender_addr: userLock.args.slice(2, 42),
+          eth_recipient_addr: ethAddress.slice(2, 42),
         },
         json: true,
       };

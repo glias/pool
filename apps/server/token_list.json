@@ -30,11 +30,11 @@
         }
     },
     {
-        "typeHash": "0x5e4229de7f1a6304099385638e4ef3e85ab7a02b0ed4d4a95783ebd982edb691",
+        "typeHash": "0xc6c3add6d90a3d1eab9ec478bfa0647012989fb7ccf4a01b9dc0ed0910585a2b",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
-            "args": "0x8462b20277bcbaa30d821790b852fb322d55c2b12e750ea91ad7059bc98dda4b"
+            "args": "0x17d4dd69794ba8074ab69718ab569a98ad89ab806f4b2ad95ef760595235ade6"
         },
         "shadowFromType": "erc20",
         "shadowFromAddress": "0x0000000000000000000000000000000000000000",
@@ -48,11 +48,11 @@
         }
     },
     {
-        "typeHash": "0x76d0d81adcddf23114746e28ed8846bfc664fafb54051c7a79fb02b41f9e7932",
+        "typeHash": "0x56e1540572f0ecfc824defe5b119f1343d825b5fe16e90f94560ba6fd834b6b6",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
-            "args": "0xe18b390fbeffbe7c7a03119b54a6493d29ea428d2e1dda3efa016110c0cc1125"
+            "args": "0x68f3851ff18c61218a67707b48cf8ed772973353a83693eb23ca7e7885032884"
         },
         "shadowFromType": "erc20",
         "shadowFromAddress": "0xC4401D8D5F05B958e6f1b884560F649CdDfD9615",
@@ -66,11 +66,11 @@
         }
     },
     {
-        "typeHash": "0xdbfd8e50c62549e24ced774e012b1ea34559ee5e1676fddc63ebd7e3618b3e2c",
+        "typeHash": "0x742774e54066350cb82d791b2ae88e397f1eb1810c7f746731588c44d567b789",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
-            "args": "0x9c3da505eac9e15cb7986c064728a130e75ab746416be0debf593e9e54f19464"
+            "args": "0xd15bc6b88eebbb4e5c62de9e8349e2ec54ca1a7ee36a5b5288f0045ef3d00b98"
         },
         "shadowFromType": "erc20",
         "shadowFromAddress": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
@@ -84,11 +84,11 @@
         }
     },
     {
-        "typeHash": "0xf61662cec7118a0373c62b45c9e73cfc2e36cc0606857e36cc539cc179d04deb",
+        "typeHash": "0x71c0e6d4140695d734e92b099687a2277c1f5ee6dac6766c0de17653fe2c1813",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
-            "args": "0x1e9d753bd0e2ef727cc32f31daa6d4f93c0130833dd7b176ce79eaa5442d32ec"
+            "args": "0x2a24421f1ca1b3f90aaadd8e4906f44dcb573f66e0469021ca4da0ed3487d857"
         },
         "shadowFromType": "erc20",
         "shadowFromAddress": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
