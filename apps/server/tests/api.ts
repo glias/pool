@@ -16,6 +16,9 @@ const USER_LOCK: CKBComponents.Script = {
   args: process.env.USER_LOCK_ARGS,
 };
 const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
+const POOL_IDS = {
+  GLIA: '0xeff0c7b3706be915f6a1ec798db16c673b7c683a39af099305a5fd467b993251',
+};
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
 
 const ckbToken = (amount: bigint) => {
@@ -112,8 +115,49 @@ async function createTestPool(tokenSymbol: string) {
   }
 }
 
+async function createGenesisTx(tokenSymbol: string) {
+  const req = {
+    tokenAAmount: ckbToken(100n),
+    tokenBAmount: generateToken(100n, tokenSymbol),
+    poolId: POOL_IDS[tokenSymbol],
+    userLock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  console.log(req);
+
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/orders/genesis-liquidity', req);
+    const tx = deserializeTransactionToSign(resp.data.tx);
+    // console.log(JSON.stringify(tx, null, 2));
+    // console.log(resp.data.fee);
+
+    const signedTx = ckb.signTransaction(USER_PRIV_KEY)(tx);
+    // console.log(JSON.stringify(signedTx, null, 2));
+
+    const sendTxReq = {
+      signedTx: signedTx,
+    };
+    const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
+    console.log(sendResp.data.txHash);
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.message);
+      }
+    } else {
+      console.log(e);
+    }
+  }
+}
+
 const ckb = new CKB(config.ckbConfig.nodeUrl);
 const address = ckb.utils.privateKeyToAddress(USER_PRIV_KEY, { prefix: AddressPrefix.Testnet });
 console.log(`use address: ${address}`);
 
-createTestPool('GLIA');
+// createTestPool('GLIA');
+createGenesisTx('GLIA');

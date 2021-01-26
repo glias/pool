@@ -361,7 +361,7 @@ export class TxBuilderService {
       ctx.throw('token/token pool isnt support yet', 400);
     }
     if (req.tokenAAmount.getBalance() == 0n || req.tokenBAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
+      ctx.throw(400, 'token amount is zero');
     }
 
     const token = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenBAmount : req.tokenAAmount;
