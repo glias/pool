@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { useGliaswap } from 'contexts';
 import { useSwapTable } from './hooks';
+import { getValidBalanceString } from 'utils';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -62,6 +63,7 @@ export const SwapTable: React.FC = () => {
   } = useGliaswap();
 
   const [isFetchingOrder, setIsFetchingOrder] = useState(false);
+
   const { web3 } = adapter.raw;
 
   const getBalance = useCallback(
@@ -73,14 +75,21 @@ export const SwapTable: React.FC = () => {
     [form],
   );
 
-  const { onReceiveSelect, onPaySelectAsset, receiveSelectorDisabledKeys, isPairToggleable, changePair } = useSwapTable(
-    {
-      form,
-      tokenA,
-      tokenB,
-      assets,
-    },
-  );
+  const {
+    onReceiveSelect,
+    onPaySelectAsset,
+    receiveSelectorDisabledKeys,
+    isPairToggleable,
+    changePair,
+    setIsPayInvalid,
+    setIsReceiveInvalid,
+    disabled,
+  } = useSwapTable({
+    form,
+    tokenA,
+    tokenB,
+    assets,
+  });
 
   const swapCrossChain = useCallback(async () => {
     const balanceA = getBalance('pay', tokenA!);
@@ -147,11 +156,15 @@ export const SwapTable: React.FC = () => {
         setPay(val);
         form.setFieldsValue({ receive: val });
       } else if (swapMode === SwapMode.CrossOut) {
-        setPay(val);
-        form.setFieldsValue({ receive: new BigNumber(val).times(1 - CROSS_CHAIN_FEE) });
+        const v = getValidBalanceString(new BigNumber(val).times(1 - CROSS_CHAIN_FEE), tokenA.decimals);
+        setPay(v);
+        form.setFieldsValue({
+          receive: v,
+        });
       }
+      form.validateFields(['receive']);
     },
-    [setPay, swapMode, form],
+    [setPay, swapMode, form, tokenA.decimals],
   );
 
   const payOnChange = useCallback(
@@ -166,19 +179,87 @@ export const SwapTable: React.FC = () => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       if (swapMode === SwapMode.CrossIn) {
-        setReceive(e.target.value);
+        setReceive(val);
         form.setFieldsValue({ pay: val });
       } else if (swapMode === SwapMode.CrossOut) {
-        setReceive(e.target.value);
-        form.setFieldsValue({ pay: new BigNumber(val).div(1 - CROSS_CHAIN_FEE) });
+        const v = getValidBalanceString(new BigNumber(val).div(1 - CROSS_CHAIN_FEE), tokenA.decimals);
+        setReceive(v);
+        form.setFieldsValue({
+          pay: v,
+        });
       }
+      form.validateFields(['pay']);
     },
-    [setReceive, swapMode, form],
+    [setReceive, swapMode, form, tokenA.decimals],
+  );
+
+  const checkPay = useCallback(
+    (_: unknown, value: string) => {
+      const val = new BigNumber(value);
+
+      if (val.isLessThanOrEqualTo(0)) {
+        setIsPayInvalid(true);
+        return Promise.reject(i18n.t('validation.lte-zero'));
+      }
+
+      if (val.isNaN()) {
+        setIsPayInvalid(true);
+        return Promise.reject(i18n.t('validation.invalid-number'));
+      }
+
+      if (!val.decimalPlaces(tokenA.decimals).isEqualTo(val)) {
+        setIsPayInvalid(true);
+        return Promise.reject(i18n.t('validation.decimal', { decimal: tokenA.decimals }));
+      }
+
+      if (val.gt(payMax)) {
+        setIsPayInvalid(true);
+        return Promise.reject(i18n.t('validation.gt-max'));
+      }
+
+      setIsPayInvalid(false);
+
+      return Promise.resolve();
+    },
+    [tokenA.decimals, payMax, setIsPayInvalid],
+  );
+
+  const checkReceive = useCallback(
+    (_: unknown, value: string) => {
+      const val = new BigNumber(value);
+
+      if (val.isLessThanOrEqualTo(0)) {
+        setIsReceiveInvalid(true);
+        return Promise.reject(i18n.t('validation.lte-zero'));
+      }
+
+      if (val.isNaN()) {
+        setIsReceiveInvalid(true);
+        return Promise.reject(i18n.t('validation.invalid-number'));
+      }
+
+      if (!val.decimalPlaces(tokenB.decimals).isEqualTo(val)) {
+        setIsReceiveInvalid(true);
+        return Promise.reject(i18n.t('validation.decimal', { decimal: tokenB.decimals }));
+      }
+
+      setIsReceiveInvalid(false);
+
+      return Promise.resolve();
+    },
+    [tokenB.decimals, setIsReceiveInvalid],
   );
 
   return (
     <Block>
-      <FormContainer form={form} layout="vertical">
+      <FormContainer
+        form={form}
+        layout="vertical"
+        onChange={() => {
+          const err = form.getFieldsError(['pay', 'receive']);
+          console.log(err, 'fuck');
+        }}
+      >
         <InputNumber
           label={i18n.t('swap.order-table.you-pay')}
           name="pay"
@@ -192,12 +273,7 @@ export const SwapTable: React.FC = () => {
           formItemProps={{
             rules: [
               {
-                validator: (_, val: string) => {
-                  if (new BigNumber(val).isLessThan(1)) {
-                    return Promise.reject('some error');
-                  }
-                  return Promise.resolve();
-                },
+                validator: checkPay,
               },
             ],
           }}
@@ -218,6 +294,13 @@ export const SwapTable: React.FC = () => {
           inputProps={{
             onChange: receiveOnChange,
           }}
+          formItemProps={{
+            rules: [
+              {
+                validator: checkReceive,
+              },
+            ],
+          }}
           renderKeys={(a) => a.symbol}
           selectorProps={{
             selectedKey: tokenB?.symbol,
@@ -234,6 +317,7 @@ export const SwapTable: React.FC = () => {
               htmlType="submit"
               onClick={onSubmit}
               loading={isFetchingOrder}
+              disabled={disabled}
             />
           ) : (
             <ConfirmButton

@@ -49,6 +49,12 @@
     },
     "common": {
       "max": "Max"
+    },
+    "validation": {
+      "lte-zero": "The value must be bigger than 0",
+      "invalid-number": "Please fill in a valid number",
+      "decimal": "The value is up to {{decimal}} decimal places",
+      "gt-max": "The value should be less than Max"
     }
   }
 }

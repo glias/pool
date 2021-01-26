@@ -35,6 +35,11 @@ export function displayBalance(asset: GliaswapAssetWithBalance) {
   return removeTrailingZero(balance.toString());
 }
 
+export function getValidBalanceString(n: BigNumber, decimal: number) {
+  const balance = n.toFixed(decimal, BigNumber.ROUND_DOWN);
+  return removeTrailingZero(balance);
+}
+
 export function calcCrossIn(amount: string) {
   return new BigNumber(amount).times(1 - CROSS_CHAIN_FEE).toString();
 }

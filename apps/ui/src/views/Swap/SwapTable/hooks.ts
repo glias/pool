@@ -10,6 +10,7 @@ import {
 import { FormInstance } from 'antd/lib/form';
 import { useGliaswapAssets } from 'contexts';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
+import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
 import { useSwapContainer } from '../context';
 
@@ -26,6 +27,12 @@ export const useSwapTable = ({
 }) => {
   const { setTokenA, setTokenB, setPay, setReceive, togglePair } = useSwapContainer();
   const { ckbNativeAsset, ethNativeAsset } = useGliaswapAssets();
+  const [isPayInvalid, setIsPayInvalid] = useState(true);
+  const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
+
+  const disabled = useMemo(() => {
+    return isPayInvalid || isReceiveInvalid;
+  }, [isPayInvalid, isReceiveInvalid]);
 
   // init pair
   useEffect(() => {
@@ -39,6 +46,8 @@ export const useSwapTable = ({
     form.resetFields();
     setPay('');
     setReceive('');
+    setIsPayInvalid(true);
+    setIsReceiveInvalid(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenA.symbol, tokenB.symbol]);
 
@@ -152,5 +161,8 @@ export const useSwapTable = ({
     receiveSelectorDisabledKeys,
     isPairToggleable: isPairTogglable,
     changePair,
+    setIsPayInvalid,
+    setIsReceiveInvalid,
+    disabled,
   };
 };
