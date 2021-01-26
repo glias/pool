@@ -1,18 +1,21 @@
-import { DownOutlined } from '@ant-design/icons';
 import { Asset } from '@gliaswap/commons';
 import { AssetSymbol } from 'components/Asset';
 import React, { Key, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { AssetListProps } from './AssetList';
 import { AssetSelectorModal } from './AssetSelectorModal';
+import { ReactComponent as TriangleSvg } from 'assets/svg/triangle.svg';
 
 interface WrapperProps {
   selectable?: boolean;
+  bold?: boolean;
 }
 
 const TokenSelectorWrapper = styled.span<WrapperProps>`
   display: inline-flex;
   align-items: center;
+  font-weight: ${(props) => (props.bold ? 'bold' : 'normal')};
+  color: rgba(0, 0, 0, 0.85);
 
   ${(props) =>
     props.selectable &&
@@ -23,7 +26,7 @@ const TokenSelectorWrapper = styled.span<WrapperProps>`
       background: ${props.theme.primary || '#eee'};
     }`}
   .action {
-    margin-left: 4px;
+    margin-left: 8px;
   }
 `;
 
@@ -34,6 +37,8 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
   selectedKey?: K;
 
   group?: (asset: T) => string;
+
+  bold?: boolean;
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
@@ -64,7 +69,7 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
       return (
         <>
           <AssetSymbol asset={selectedAsset} />
-          <DownOutlined className="action" />
+          <TriangleSvg className="action" />
         </>
       );
     }

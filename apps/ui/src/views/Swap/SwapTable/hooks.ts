@@ -4,11 +4,11 @@ import {
   isCkbNativeAsset,
   isCkbSudtAsset,
   isEthAsset,
-  isEthNativeAsset,
   isShadowEthAsset,
   ShadowOfEthWithBalance,
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
+import { useGliaswapAssets } from 'contexts';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useMemo, useEffect, useCallback } from 'react';
 import { useSwapContainer } from '../context';
@@ -25,18 +25,12 @@ export const useSwapTable = ({
   tokenB: GliaswapAssetWithBalance;
 }) => {
   const { setTokenA, setTokenB, setPay, setReceive, togglePair } = useSwapContainer();
-  const ethAsset = useMemo(() => {
-    return assets.value.find((a) => isEthNativeAsset(a));
-  }, [assets.value]);
-
-  const ckbAsset = useMemo(() => {
-    return assets.value.find((a) => isCkbNativeAsset(a));
-  }, [assets.value]);
+  const { ckbNativeAsset, ethNativeAsset } = useGliaswapAssets();
 
   // init pair
   useEffect(() => {
-    setTokenA(ethAsset!);
-    setTokenB(ckbAsset!);
+    setTokenA(ethNativeAsset!);
+    setTokenB(ckbNativeAsset!);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -61,7 +55,7 @@ export const useSwapTable = ({
     (_: unknown, selectedAsset: GliaswapAssetWithBalance) => {
       if (selectedAsset.symbol === tokenB.symbol) {
         if (isCkbNativeAsset(selectedAsset) && isEthAsset(tokenA)) {
-          // setTokenA() // ckb
+          setTokenA(ckbNativeAsset!); // ckb
           setTokenB(findShadowAsset(tokenA)!);
         } else {
           togglePair();
@@ -69,7 +63,7 @@ export const useSwapTable = ({
       } else if (isCkbNativeAsset(selectedAsset)) {
         if (isEthAsset(tokenB)) {
           setTokenA(tokenB);
-          // setTokenB() // ckb
+          setTokenB(ckbNativeAsset!);
         } else {
           setTokenA(selectedAsset);
         }
@@ -77,6 +71,7 @@ export const useSwapTable = ({
         const shadowAsset = findShadowAsset(selectedAsset);
         if (shadowAsset?.shadowFrom?.address === selectedAsset.address || isCkbNativeAsset(tokenB)) {
           setTokenA(selectedAsset);
+          setTokenB(ckbNativeAsset!);
         } else {
           setTokenA(selectedAsset);
         }
@@ -85,18 +80,18 @@ export const useSwapTable = ({
           setTokenA(selectedAsset);
         } else {
           setTokenA(selectedAsset);
-          // setTokenB() // ckb
+          setTokenB(ckbNativeAsset!);
         }
       } else if (isCkbSudtAsset(selectedAsset)) {
         if (isCkbNativeAsset(tokenB)) {
           setTokenA(selectedAsset);
         } else {
           setTokenA(selectedAsset);
-          // setTokenB() // ckb
+          setTokenB(ckbNativeAsset!); // ckb
         }
       }
     },
-    [setTokenA, tokenB, setTokenB, tokenA, findShadowAsset, togglePair],
+    [setTokenA, tokenB, setTokenB, tokenA, findShadowAsset, togglePair, ckbNativeAsset],
   );
 
   const onReceiveSelect = useCallback(
@@ -138,10 +133,24 @@ export const useSwapTable = ({
     return assets.value.filter((e) => !receiveAssetFilter(e)).map((a) => a.symbol);
   }, [assets.value, receiveAssetFilter]);
 
+  const isPairTogglable = useMemo(() => {
+    if (isEthAsset(tokenA) && isCkbNativeAsset(tokenB)) {
+      return false;
+    }
+    return true;
+  }, [tokenA, tokenB]);
+
+  const changePair = useCallback(() => {
+    if (isPairTogglable) {
+      togglePair();
+    }
+  }, [isPairTogglable, togglePair]);
+
   return {
     onPaySelectAsset,
     onReceiveSelect,
-    receiveAssetFilter,
     receiveSelectorDisabledKeys,
+    isPairToggleable: isPairTogglable,
+    changePair,
   };
 };

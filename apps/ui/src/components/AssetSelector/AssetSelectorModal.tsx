@@ -11,7 +11,6 @@ const AssetSelectorModalWrapper = styled.div`
   .title {
     font-weight: bold;
     text-align: center;
-    padding: 8px;
   }
 `;
 

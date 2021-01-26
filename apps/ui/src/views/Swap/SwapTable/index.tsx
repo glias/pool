@@ -25,6 +25,12 @@ const FormContainer = styled(Form)`
     text-align: center;
     margin-bottom: 16px;
     height: 22px;
+    &.clickable {
+      cursor: pointer;
+    }
+    &.unclickable {
+      cursor: not-allowed;
+    }
   }
 `;
 
@@ -62,12 +68,14 @@ export const SwapTable: React.FC = () => {
     [form],
   );
 
-  const { onReceiveSelect, onPaySelectAsset, receiveSelectorDisabledKeys } = useSwapTable({
-    form,
-    tokenA,
-    tokenB,
-    assets,
-  });
+  const { onReceiveSelect, onPaySelectAsset, receiveSelectorDisabledKeys, isPairToggleable, changePair } = useSwapTable(
+    {
+      form,
+      tokenA,
+      tokenB,
+      assets,
+    },
+  );
 
   const swapCrossChain = useCallback(async () => {
     const balanceA = getBalance('pay', tokenA!);
@@ -187,9 +195,10 @@ export const SwapTable: React.FC = () => {
             selectedKey: tokenA?.symbol,
             onSelected: onPaySelectAsset,
             group: (a) => a.chainType,
+            bold: true,
           }}
         />
-        <div className="swap">
+        <div className={`swap ${isPairToggleable ? 'clickable' : 'unclickable'}`} onClick={changePair}>
           <SwapSvg />
         </div>
         <InputNumber
@@ -206,6 +215,7 @@ export const SwapTable: React.FC = () => {
             onSelected: onReceiveSelect,
             disabledKeys: receiveSelectorDisabledKeys,
             group: (a) => a.chainType,
+            bold: true,
           }}
         />
         <Form.Item className="submit">
