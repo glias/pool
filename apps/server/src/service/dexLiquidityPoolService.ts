@@ -8,6 +8,8 @@ import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
+import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
+import { mockCkEthPoolInfo, mockGliaPoolInfo } from '../tests/mock_data';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
@@ -144,30 +146,31 @@ export class DexLiquidityPoolService {
           script: {
             code_hash: INFO_LOCK_CODE_HASH,
             hash_type: 'type',
-            args: '',
+            args: '0x',
           },
           argsLen: 'any',
         },
         type: type.toLumosScript(),
       };
 
-      const poolCell = await this.dexRepository.collectCells(queryOptions);
+      // const poolCell = await this.dexRepository.collectCells(queryOptions);
 
-      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      // mock
-      //   .mockCollectCells()
-      //   .withArgs({
-      //     lock: queryOptions.lock,
-      //     type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
-      //   })
-      //   .resolves(mockGliaPoolInfo)
-      //   .withArgs({
-      //     lock: queryOptions.lock,
-      //     type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
-      //   })
-      //   .resolves(mockCkEthPoolInfo);
+      const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      mock
+        .mockCollectCells()
+        .resolves([])
+        .withArgs({
+          lock: queryOptions.lock,
+          type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
+        })
+        .resolves(mockGliaPoolInfo)
+        .withArgs({
+          lock: queryOptions.lock,
+          type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
+        })
+        .resolves(mockCkEthPoolInfo);
 
-      // const poolCell = await mock.collectCells(queryOptions);
+      const poolCell = await mock.collectCells(queryOptions);
 
       if (poolCell.length === 0) {
         continue;
