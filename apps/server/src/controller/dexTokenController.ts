@@ -84,7 +84,7 @@ export default class DexTokenController {
 
         token.balance = balance.toString();
         listAssetBalance.push({
-          ...token,
+          ...token.toAsset(),
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedBalance.toString(),
         });
