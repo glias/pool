@@ -12,6 +12,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
+import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -56,7 +57,7 @@ export class DexSwapService {
     ethAddress: string,
     bridgeInfoMatch: BridgeInfoMatchChain,
   ): Promise<DexOrderChain[]> {
-    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, true);
+    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
     const txs: TransactionWithStatus[] = [];
     for (const tx of pureCrossTxs.ckb_to_eth) {
       if (tx.status !== 'success') {
@@ -89,9 +90,9 @@ export class DexSwapService {
   }
 
   private async getBridgeInfoMatch(lock: Script, ethAddress: string): Promise<BridgeInfoMatchChain> {
-    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, true);
-    const crossChainOrderTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, false);
-    return BridgeInfoMatchChainFactory.getInstance(pureCrossTxs, crossChainOrderTxs);
+    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    // const crossChainOrderTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    return BridgeInfoMatchChainFactory.getInstance(pureCrossTxs);
   }
 
   private async getOrders(

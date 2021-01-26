@@ -1,6 +1,5 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-
-import { Script } from '../model';
+import { Script, TokenHolderFactory } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 import { cellConver, Token } from '../model';
@@ -64,9 +63,6 @@ export default class DexSwapController {
     const { lock, ethAddress, limit, skip } = req;
     const result = await this.service.orders(cellConver.converScript(lock), ethAddress, limit, skip);
     ctx.status = 200;
-
-    // console.log(result);
-
     ctx.body = result.map((x) => {
       return {
         transactionHash: x.transactionHash,

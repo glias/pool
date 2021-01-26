@@ -1,3 +1,6 @@
+import { Script } from '@ckb-lumos/base';
+import { SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
+
 export interface BridgeInfo {
   id: number;
   eth_tx_hash: string;
@@ -6,6 +9,8 @@ export interface BridgeInfo {
   sort: string;
   amount: string;
   token_addr: string;
+  recipient_addr?: string;
+  recipient_lockscript: Script;
 }
 
 export class BridgeInfoMatchResult {
@@ -70,14 +75,29 @@ export class ChainHandle {
 
 export class BridgeInfoMatchChainFactory {
   static getInstance(
-    pureCrossTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
-    crossChainOrderTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
+    crossTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
+    // crossChainOrderTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
   ): BridgeInfoMatchChain {
     const handels: ChainHandle[] = [];
-    handels.push(new ChainHandle(false, false, pureCrossTxs.ckb_to_eth));
-    handels.push(new ChainHandle(false, true, pureCrossTxs.eth_to_ckb));
-    handels.push(new ChainHandle(true, false, crossChainOrderTxs.ckb_to_eth));
-    handels.push(new ChainHandle(true, true, crossChainOrderTxs.eth_to_ckb));
+    // isOrder = false， isIn = false
+    handels.push(new ChainHandle(false, false, crossTxs.ckb_to_eth));
+    // isOrder = false， isIn = true
+    handels.push(
+      new ChainHandle(
+        false,
+        true,
+        crossTxs.eth_to_ckb.filter((x) => x.recipient_lockscript.code_hash !== SWAP_ORDER_LOCK_CODE_HASH),
+      ),
+    );
+    // handels.push(new ChainHandle(true, false, crossTxs.ckb_to_eth));
+    // isOrder = true， is = true
+    handels.push(
+      new ChainHandle(
+        true,
+        true,
+        crossTxs.eth_to_ckb.filter((x) => x.recipient_lockscript.code_hash === SWAP_ORDER_LOCK_CODE_HASH),
+      ),
+    );
 
     return new BridgeInfoMatchChain(handels);
   }
