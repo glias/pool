@@ -39,7 +39,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
 
   const { data, status } = useQuery(
     ['getAssetsWithBalance', api, lockScript],
-    () => api.getAssetsWithBalance(lockScript!),
+    () => api.getAssetsWithBalance(lockScript!, assetList),
     { refetchInterval: 3000, enabled: lockScript != null },
   );
 

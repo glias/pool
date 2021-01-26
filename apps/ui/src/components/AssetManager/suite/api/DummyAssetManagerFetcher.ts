@@ -1,4 +1,4 @@
-import { AssetManagerAPI, SerializedTransactionWithFee, TransferDetail } from '@gliaswap/commons';
+import { AssetManagerAPI, SerializedTransactionToSignWithFee, TransferDetail } from '@gliaswap/commons';
 
 export class DummyAssetManagerAPI implements AssetManagerAPI {
   async getTransactionSummaries() {
@@ -18,7 +18,7 @@ export class DummyAssetManagerAPI implements AssetManagerAPI {
     });
   }
 
-  async generateTransferTransaction(): Promise<SerializedTransactionWithFee> {
-    return Promise.resolve({ fee: '0' } as SerializedTransactionWithFee);
+  async generateTransferTransaction(): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({ fee: '0' } as SerializedTransactionToSignWithFee);
   }
 }

@@ -1,4 +1,12 @@
-import { Asset, GliaswapAPI, LiquidityInfo, LiquidityOrderSummary, LiquidityPoolFilter } from '@gliaswap/commons';
+import {
+  Asset,
+  GenerateAddLiquidityTransactionPayload,
+  GliaswapAPI,
+  LiquidityInfo,
+  LiquidityOrderSummary,
+  LiquidityPoolFilter,
+  SerializedTransactionToSignWithFee,
+} from '@gliaswap/commons';
 
 import {
   ckbNativeAsset,
@@ -12,6 +20,17 @@ import {
 } from '../placeholder/assets';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
+  async generateAddLiquidityTransaction(
+    payload: GenerateAddLiquidityTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    return ({} as any) as SerializedTransactionToSignWithFee;
+  }
+  async generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
+    return ({} as any) as SerializedTransactionToSignWithFee;
+  }
+  async cancelOperation(txHash: string, lock: CKBComponents.Script): Promise<SerializedTransactionToSignWithFee> {
+    return ({} as any) as SerializedTransactionToSignWithFee;
+  }
   getDefaultAssetList() {
     return [ckbNativeAsset];
   }
@@ -39,10 +58,10 @@ export class DummyGliaswapAPI implements GliaswapAPI {
       {
         poolId: '0x1',
         assets: [
-          { ...ckbNativeAsset, balance: '1234567890' },
-          { ...ckbSudtGlia, balance: '9876543210' },
+          { ...ckbNativeAsset, balance: '9876543210' },
+          { ...ckbSudtGlia, balance: '1234567890' },
         ],
-        lpToken: { ...ckbSudtGlia, balance: '9876543210' },
+        lpToken: { ...ckbSudtGlia, balance: '654312789' },
         model: 'UNISWAP',
       },
     ];
@@ -52,10 +71,10 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     return Promise.resolve({
       poolId: '0x1',
       assets: [
-        { ...ckbNativeAsset, balance: '1234567890' },
-        { ...ckbSudtGlia, balance: '9876543210' },
+        { ...ckbNativeAsset, balance: '9876543210' },
+        { ...ckbSudtGlia, balance: '1234567890' },
       ],
-      lpToken: { ...ckbSudtGlia, balance: '9876543210' },
+      lpToken: { ...ckbSudtGlia, balance: '654312789' },
       model: 'UNISWAP',
     });
   }

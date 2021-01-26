@@ -1,3 +1,4 @@
+import { LiquidityPoolFilter } from '@gliaswap/commons';
 import { Radio, Skeleton } from 'antd';
 import { useGliaswap } from 'contexts';
 import React, { useMemo } from 'react';
@@ -13,12 +14,12 @@ const LiquidityExplorer = () => {
   const { api, currentUserLock } = useGliaswap();
   const history = useHistory();
 
-  const poolFilter = useMemo(() => {
+  const poolFilter = useMemo<LiquidityPoolFilter | undefined>(() => {
     if (pathname !== '/pool/explorer/mine') return undefined;
-    return currentUserLock;
+    return { lock: currentUserLock };
   }, [pathname, currentUserLock]);
 
-  const { data, status } = useQuery(['liquidity', api, poolFilter], () => api.getLiquidityPools({ lock: poolFilter }));
+  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], () => api.getLiquidityPools(poolFilter));
 
   return (
     <LiquidityExplorerWrapper>

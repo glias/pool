@@ -14,7 +14,7 @@ import {
   isEthNativeAsset,
   isShadowEthAsset,
   Script,
-  ShadowOfEthWithBalance,
+  ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
 import { ConnectStatus, Provider as AdapterProvider, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { AdapterContextState } from 'commons/WalletAdapter/Provider';
@@ -25,7 +25,7 @@ import { useGlobalConfig } from './config';
 
 export const GliaswapProvider: React.FC = (props) => {
   const { api, adapter } = useGlobalConfig();
-  const [assetList, setAssetList] = useState<Asset[]>(api.getDefaultAssetList());
+  const [assetList, setAssetList] = useState<Asset[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -92,7 +92,7 @@ export interface GliaswapAssets {
   ckbNativeAsset: CkbNativeAssetWithBalance | undefined;
   ckbSudtAssets: CkbSudtAssetWithBalance[];
 
-  shadowEthAssets: ShadowOfEthWithBalance[];
+  shadowEthAssets: ShadowFromEthWithBalance[];
 
   ethAssets: (EthNativeAssetWithBalance | EthErc20AssetWithBalance)[];
   ethNativeAsset: EthNativeAssetWithBalance | undefined;

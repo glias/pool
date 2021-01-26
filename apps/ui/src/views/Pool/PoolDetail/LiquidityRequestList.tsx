@@ -1,5 +1,5 @@
 import { LiquidityOrderSummary } from '@gliaswap/commons';
-import { Divider, Skeleton } from 'antd';
+import { Divider, Empty, Skeleton } from 'antd';
 import { AssetBalanceList } from 'components/Asset/AssetBlanaceList';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { useGliaswap } from 'contexts';
@@ -56,7 +56,7 @@ const LiquidityOrderListWrapper = styled(Section)`
   }
 `;
 
-export const LiquidityOrderList: React.FC<LiquidityOrderListProps> = (props) => {
+export const LiquidityRequestList: React.FC<LiquidityOrderListProps> = (props) => {
   const { api, currentUserLock } = useGliaswap();
   const poolId = props.poolId;
   const { data: summaries, isLoading } = useQuery(
@@ -79,9 +79,11 @@ export const LiquidityOrderList: React.FC<LiquidityOrderListProps> = (props) => 
     <LiquidityOrderListWrapper>
       <SpaceBetweenRow className="title">{i18n.t('My Pending Request')}</SpaceBetweenRow>
       <Divider style={{ margin: '4px 0 0' }} />
-      {summaries.map((summary) => (
-        <LiquidityOrderSummarySection key={summary.txHash} summary={summary} />
-      ))}
+      {summaries.length <= 0 ? (
+        <Empty />
+      ) : (
+        summaries.map((summary) => <LiquidityOrderSummarySection key={summary.txHash} summary={summary} />)
+      )}
     </LiquidityOrderListWrapper>
   );
 };
