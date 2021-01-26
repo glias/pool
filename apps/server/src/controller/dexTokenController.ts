@@ -113,15 +113,6 @@ export default class DexTokenController {
 
     ctx.body = listAssetBalance;
   }
-
-  readBigUInt128LE(leHex: string): bigint {
-    if (leHex.length !== 34 || !leHex.startsWith('0x')) {
-      throw new Error('leHex format error');
-    }
-    const buf = Buffer.from(leHex.slice(2), 'hex');
-
-    return (buf.readBigUInt64LE(8) << BigInt(64)) + buf.readBigUInt64LE(0);
-  }
 }
 
 function toCKBAsset(token: Token): commons.CkbAsset {
