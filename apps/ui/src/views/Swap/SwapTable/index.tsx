@@ -51,6 +51,7 @@ export const SwapTable: React.FC = () => {
     approveERC20,
     approveText,
     isApproving,
+    payMax,
   } = useSwapContainer();
   const { bridgeAPI } = useGlobalConfig();
   const {
@@ -137,18 +138,28 @@ export const SwapTable: React.FC = () => {
     }
   }, [swapCrossChain, swapMode, setIsFetchingOrder]);
 
-  const payOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+  const fillFormWithPay = useCallback(
+    (val: string, setSelf = false) => {
+      if (setSelf) {
+        form.setFieldsValue({ pay: val });
+      }
       if (swapMode === SwapMode.CrossIn) {
-        setPay(e.target.value);
+        setPay(val);
         form.setFieldsValue({ receive: val });
       } else if (swapMode === SwapMode.CrossOut) {
-        setPay(e.target.value);
+        setPay(val);
         form.setFieldsValue({ receive: new BigNumber(val).times(1 - CROSS_CHAIN_FEE) });
       }
     },
     [setPay, swapMode, form],
+  );
+
+  const payOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      fillFormWithPay(val);
+    },
+    [fillFormWithPay],
   );
 
   const receiveOnChange = useCallback(
@@ -171,8 +182,9 @@ export const SwapTable: React.FC = () => {
         <InputNumber
           label={i18n.t('swap.order-table.you-pay')}
           name="pay"
-          max="0.1"
+          max={payMax}
           assets={assets.value}
+          setMax={(max) => fillFormWithPay(max, true)}
           renderKeys={(a) => a.symbol}
           inputProps={{
             onChange: payOnChange,
@@ -202,7 +214,6 @@ export const SwapTable: React.FC = () => {
         <InputNumber
           label={i18n.t('swap.order-table.you-receive')}
           name="receive"
-          max="0.1"
           assets={assets.value}
           inputProps={{
             onChange: receiveOnChange,

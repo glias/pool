@@ -2,6 +2,7 @@ import {
   GliaswapAssetWithBalance,
   isCkbAsset,
   isCkbNativeAsset,
+  isCkbSudtAsset,
   isEthAsset,
   isEthErc20Asset,
   isShadowEthAsset,
@@ -14,6 +15,8 @@ import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
 import { useGlobalConfig } from 'contexts/config';
 import { crossChainOrdersCache } from 'cache/index';
+import BigNumber from 'bignumber.js';
+import { MAX_TRANSACTION_FEE, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -42,7 +45,7 @@ const useSwap = () => {
   const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
   const [pay, setPay] = useState('');
   const [receive, setReceive] = useState('');
-  const { currentEthAddress: ethAddress, adapter, currentCkbAddress } = useGliaswap();
+  const { currentEthAddress: ethAddress, adapter, currentCkbAddress, realtimeAssets } = useGliaswap();
   const [crossChainOrders, setCrossChainOrders] = useState<Array<SwapOrder>>(
     crossChainOrdersCache.get(currentCkbAddress),
   );
@@ -209,6 +212,28 @@ const useSwap = () => {
     [currentCkbAddress, setCrossChainOrders, isWalletNotConnected],
   );
 
+  const payMax = useMemo(() => {
+    const decimal = new BigNumber(10).pow(tokenA.decimals);
+    const token = realtimeAssets.value.find((a) => a.symbol === tokenA.symbol) ?? tokenA;
+    const balance = new BigNumber(token.balance).div(decimal);
+    if (balance.isNaN() || balance.isEqualTo(0)) {
+      return '0';
+    }
+    if (isCkbNativeAsset(token)) {
+      return balance.minus(SWAP_CELL_BID_CAPACITY).minus(MAX_TRANSACTION_FEE).toString();
+    } else if (isCkbSudtAsset(token)) {
+      return balance.toString();
+    } else if (isEthAsset(token)) {
+      const max = balance.minus(0.1);
+      if (max.isNaN() || max.isEqualTo(0)) {
+        return '0';
+      }
+      return max.toString();
+    }
+
+    return balance.toString();
+  }, [tokenA, realtimeAssets]);
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -239,6 +264,7 @@ const useSwap = () => {
     sendEthTransaction,
     setAndCacheCrossChainOrders,
     crossChainOrders,
+    payMax,
   };
 };
 

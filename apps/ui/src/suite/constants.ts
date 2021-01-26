@@ -8,6 +8,8 @@ export const SWAP_CELL_ASK_CAPACITY = 227;
 
 export const CROSS_CHAIN_FEE = 0.001;
 
+export const MAX_TRANSACTION_FEE = 0.01;
+
 export const README_URL = '';
 
 export const EXPLORER_URL = process.env.REACT_APP_EXPLORER_URL! || 'https://explorer.nervos.org/aggron/';
