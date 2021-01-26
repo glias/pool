@@ -4,12 +4,25 @@ import BigNumber from 'bignumber.js';
 import { CROSS_CHAIN_FEE, FORCE_BRIDGER_SERVER_URL } from 'suite/constants';
 import Web3 from 'web3';
 import axios from 'axios';
+import { APPROVE_ABI, BRIDGE_SETTINGS } from './abi';
 
 const toHexString = (str: string | number) => {
   return `0x${new BigNumber(str).toString(16)}`;
 };
 
+const uint256Max = `0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`;
+
 export class BridgeAPI {
+  public bridgeSettings = BRIDGE_SETTINGS;
+
+  constructor() {
+    this.init();
+  }
+
+  async init() {
+    this.bridgeSettings = await this.getForceBridgeSettings();
+  }
+
   async shadowAssetCrossOut(asset: EthErc20AssetWithBalance, ckbAddress: string, ethAddress: string) {
     const payWithDecimal = new BigNumber(asset.balance);
     const amount = `0x${payWithDecimal.toString(16)}`;
@@ -34,7 +47,7 @@ export class BridgeAPI {
                   capacity,
                   AmountUnit.shannon,
                 ).toString()} CKB to complete this transaction.`
-              : `You don't have enough CKB to complete this transaction.`,
+              : msg,
           ),
         );
       });
@@ -54,5 +67,33 @@ export class BridgeAPI {
       nonce: toHexString(nonce),
       sender: ethAddress,
     });
+  }
+
+  async getForceBridgeSettings(): Promise<typeof BRIDGE_SETTINGS> {
+    return fetch(`${FORCE_BRIDGER_SERVER_URL}/settings`).then((res) => res.json());
+  }
+
+  async approveERC20ToBridge(ethAddress: string, erc20Address: string, web3: Web3, confirmCallback: () => void) {
+    const contract = new web3.eth.Contract(APPROVE_ABI, erc20Address);
+    return new Promise((resolve, reject) => {
+      contract.methods
+        .approve(this.bridgeSettings.eth_token_locker_addr, uint256Max)
+        .send({ from: ethAddress })
+        .once('transactionHash', () => {
+          confirmCallback();
+        })
+        .once('receipt', (r: any) => {
+          resolve(r);
+        })
+        .on('error', (err: any) => {
+          reject(err);
+        });
+    });
+  }
+
+  async getAllowanceForTarget(ethAddress: string, erc20Address: string, web3: Web3) {
+    const contract = new web3.eth.Contract(APPROVE_ABI, erc20Address);
+    console.log(erc20Address, ethAddress);
+    return contract.methods.allowance(ethAddress, this.bridgeSettings.eth_token_locker_addr).call();
   }
 }

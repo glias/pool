@@ -47,6 +47,10 @@ export const SwapTable: React.FC = () => {
     tokenB,
     setCurrentEthTx,
     setCurrentTx,
+    shouldApprove,
+    approveERC20,
+    approveText,
+    isApproving,
   } = useSwapContainer();
   const { bridgeAPI } = useGlobalConfig();
   const {
@@ -219,12 +223,22 @@ export const SwapTable: React.FC = () => {
           }}
         />
         <Form.Item className="submit">
-          <ConfirmButton
-            text={i18n.t('swap.order-table.swap')}
-            htmlType="submit"
-            onClick={onSubmit}
-            loading={isFetchingOrder}
-          />
+          {!shouldApprove ? (
+            <ConfirmButton
+              text={i18n.t('swap.order-table.swap')}
+              htmlType="submit"
+              onClick={onSubmit}
+              loading={isFetchingOrder}
+            />
+          ) : (
+            <ConfirmButton
+              htmlType="button"
+              text={approveText}
+              loading={isApproving}
+              disabled={isApproving}
+              onClick={approveERC20}
+            />
+          )}
         </Form.Item>
       </FormContainer>
     </Block>
