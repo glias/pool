@@ -262,13 +262,13 @@ export class TxBuilderService {
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
-    const typeHash = infoType.toHash().slice(2);
+    const typeHash = infoType.toHash();
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
       return utils.blake2b(hashes);
     })();
-    const infoLockArgs = `0x${pairHash}${typeHash}`;
+    const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
