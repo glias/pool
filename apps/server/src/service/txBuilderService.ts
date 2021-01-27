@@ -156,15 +156,13 @@ export class TxBuilderService {
     }
 
     // Generate info lock script
-    const typeHash = infoType.toHash().slice(2);
+    const typeHash = infoType.toHash();
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
-      console.log(`token ${token.typeHash}`);
-      return utils.blake2b(token.typeHash.slice(2)).slice(2);
+      return utils.blake2b(hashes);
     })();
-    console.log(`pairhash ${pairHash}`);
-    const infoLockArgs = `0x${pairHash}${typeHash}`;
+    const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
@@ -265,8 +263,8 @@ export class TxBuilderService {
     }
 
     // Generate info type script
-    // const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
-    const id = utils.blake2b(inputCells[0].outPoint.txHash.slice(2));
+    // FIXME: index should be u64 to_le_bytes
+    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
@@ -274,7 +272,7 @@ export class TxBuilderService {
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
-      return utils.blake2b(token.typeHash.slice(2)).slice(2);
+      return utils.blake2b(hashes);
     })();
     const infoLockArgs = `0x${pairHash}${typeHash}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
