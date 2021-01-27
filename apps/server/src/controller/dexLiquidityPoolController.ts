@@ -300,12 +300,9 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
-    assetsWithDesiredAmount: {
-      type: 'array',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
-      length: 2,
-    },
+    // prettier-ignore
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    assetsWithDesiredAmount: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     assetsWithMinAmount: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
