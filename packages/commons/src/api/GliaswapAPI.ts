@@ -28,15 +28,15 @@ export interface LiquidityOrderSummaryFilter {
 export interface GenerateAddLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  assets: CkbAssetWithBalance[];
-  slippage: number;
+  assetsWithDesiredAmount: CkbAssetWithBalance[];
+  assetsWithMinAmount: CkbAssetWithBalance[];
 }
 
 export interface GenerateRemoveLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  assets: CkbAssetWithBalance[];
-  slippage: number;
+  assetsWithDesiredAmount: CkbAssetWithBalance[];
+  assetsWithMinAmount: CkbAssetWithBalance[];
 }
 
 export interface GliaswapAPI {

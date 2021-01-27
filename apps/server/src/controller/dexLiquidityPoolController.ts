@@ -1,9 +1,9 @@
 import { GenerateAddLiquidityTransactionPayload } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
-import BigNumber from 'bignumber.js';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
+import { TokenFromAsset } from '../suite';
 import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
@@ -300,37 +300,29 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
+    assetsWithDesiredAmount: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+      length: 2,
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // poolId: { type: 'string', required: true },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-
-    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
-    slippage: { type: 'number', required: true, description: 'a number between (0, 0.5)' },
+    assetsWithMinAmount: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = ctx.request.body as GenerateAddLiquidityTransactionPayload;
-    const { assets, lock, poolId, slippage } = reqBody;
-    const [assetA, assetB] = assets;
+    const { assetsWithDesiredAmount, assetsWithMinAmount, lock, poolId } = reqBody;
 
-    const calcMinAmount = (balance: string) => new BigNumber(balance).times(1 - slippage).toString();
+    const [assetAWithDesiredAmount, assetBWithDesiredAmount] = assetsWithDesiredAmount;
+    const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
 
-    const tokenADesiredAmount = new Token(assetA.typeHash, undefined, undefined, undefined, assetA.balance);
-    const tokenAMinAmount = new Token(assetB.typeHash, undefined, undefined, undefined, calcMinAmount(assetA.balance));
-    const tokenBDesiredAmount = new Token(assetB.typeHash, undefined, undefined, undefined, assetB.balance);
-    const tokenBMinAmount = new Token(assetB.typeHash, undefined, undefined, undefined, calcMinAmount(assetB.balance));
+    const tokenADesiredAmount = TokenFromAsset(assetAWithDesiredAmount);
+    const tokenAMinAmount = TokenFromAsset(assetAWithMinAmount);
+    const tokenBDesiredAmount = TokenFromAsset(assetBWithDesiredAmount);
+    const tokenBMinAmount = TokenFromAsset(assetBWithMinAmount);
 
     const req = {
       tokenADesiredAmount,
