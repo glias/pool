@@ -730,8 +730,8 @@ export class TxBuilderService {
         : config.SWAP_ORDER_LOCK_CODE_HASH;
 
     const idx = transaction.outputs.findIndex((output: Output) => output.lock.codeHash == requestLockCodeHash);
-    if (!idx) {
-      ctx.throw(404, `transaction ${txHash} not found`);
+    if (idx == -1) {
+      ctx.throw(404, `request not found in transaction ${txHash}`);
     }
     if (!transaction.outputs[idx].type) {
       ctx.throw(400, `${txHash}'s request cell doesnt have type script`);
