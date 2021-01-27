@@ -1,6 +1,9 @@
-import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
+import { GenerateAddLiquidityTransactionPayload, GenerateRemoveLiquidityTransactionPayload } from '@gliaswap/commons';
+import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
+import { TokenFromAsset } from '../suite';
+import { CommonsBody } from './helper';
 import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
@@ -297,30 +300,27 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assetsWithDesiredAmount: CommonsBody.assets,
+    assetsWithMinAmount: CommonsBody.assets,
+    lock: CommonsBody.script,
     poolId: { type: 'string', required: true },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tips: CommonsBody.asset,
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.AddLiquidityRequest>ctx.request.body;
+    const reqBody = ctx.request.body as GenerateAddLiquidityTransactionPayload;
+    const { assetsWithDesiredAmount, assetsWithMinAmount, lock, poolId, tips } = reqBody;
+
+    const [assetAWithDesiredAmount, assetBWithDesiredAmount] = assetsWithDesiredAmount;
+    const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
+
     const req = {
-      tokenADesiredAmount: Token.deserialize(reqBody.tokenADesiredAmount),
-      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
-      tokenBDesiredAmount: Token.deserialize(reqBody.tokenBDesiredAmount),
-      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      tokenADesiredAmount: TokenFromAsset(assetAWithDesiredAmount),
+      tokenAMinAmount: TokenFromAsset(assetAWithMinAmount),
+      tokenBDesiredAmount: TokenFromAsset(assetBWithDesiredAmount),
+      tokenBMinAmount: TokenFromAsset(assetBWithMinAmount),
+      poolId,
+      userLock: Script.deserialize(lock),
+      tips: TokenFromAsset(tips),
     };
     const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
 
@@ -346,27 +346,24 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lpTokenAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assetsWithMinAmount: CommonsBody.assets,
+    lpToken: CommonsBody.asset,
+    lock: CommonsBody.script,
+    tips: CommonsBody.asset,
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.RemoveLiquidityRequest>ctx.request.body;
+    const reqBody = ctx.request.body as GenerateRemoveLiquidityTransactionPayload;
+    const { assetsWithMinAmount, lock, lpToken, poolId, tips } = reqBody;
+    const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
+
     const req = {
-      lpTokenAmount: Token.deserialize(reqBody.lpTokenAmount),
-      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
-      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      lpTokenAmount: TokenFromAsset(lpToken),
+      tokenAMinAmount: TokenFromAsset(assetAWithMinAmount),
+      tokenBMinAmount: TokenFromAsset(assetBWithMinAmount),
+      poolId: poolId,
+      userLock: Script.deserialize(lock),
+      tips: TokenFromAsset(tips),
     };
     const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
 

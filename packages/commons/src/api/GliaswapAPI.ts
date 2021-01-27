@@ -3,9 +3,9 @@ import {
   ChainSpec,
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
-  LiquidityAssetWithBalance,
   LiquidityInfo,
   LiquidityOrderSummary,
+  LPTokenWithBalance,
   Maybe,
   PoolInfo,
   Script,
@@ -29,15 +29,17 @@ export interface LiquidityOrderSummaryFilter {
 export interface GenerateAddLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  assets: CkbAssetWithBalance[];
+  assetsWithDesiredAmount: CkbAssetWithBalance[];
+  assetsWithMinAmount: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
 }
 
 export interface GenerateRemoveLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  // minimum receiving share
-  assets: CkbAssetWithBalance[];
-  lpToken: LiquidityAssetWithBalance;
+  assetsWithMinAmount: CkbAssetWithBalance[];
+  lpToken: LPTokenWithBalance;
+  tips: CkbAssetWithBalance;
 }
 
 export interface GliaswapAPI {
@@ -72,7 +74,9 @@ export interface GliaswapAPI {
     payload: GenerateAddLiquidityTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
-  generateRemoveLiquidityTransaction: () => Promise<SerializedTransactionToSignWithFee>;
+  generateRemoveLiquidityTransaction: (
+    payload: GenerateRemoveLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
 
   cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;
 }
