@@ -47,9 +47,13 @@ export default class SendTransactionController {
       ctx.throw(400, e);
     }
 
-    const txHash = await this.service.sendTransaction(reqBody.signedTx);
+    try {
+      const txHash = await this.service.sendTransaction(reqBody.signedTx);
 
-    ctx.status = 200;
-    ctx.body = { txHash };
+      ctx.status = 200;
+      ctx.body = { txHash };
+    } catch (e) {
+      ctx.throw(400, e.toJson());
+    }
   }
 }
