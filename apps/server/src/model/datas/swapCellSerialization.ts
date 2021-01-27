@@ -8,14 +8,14 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
     this.tipsArgsSerialization = tipsArgsSerialization;
   }
 
-  encodeArgs(
+  encodeArgs = (
     userlockHash: string,
     version: number,
     amountOutMin: bigint,
     sudtTypeHash: string,
     tips: bigint,
     tipsSudt: bigint,
-  ): string {
+  ): string => {
     const data = this.getStructDefine();
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
 
@@ -25,9 +25,9 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
         amountOutMin,
       })
       .toString('hex')}${sudtTypeHash.slice(2)}${tipsArgs}`;
-  }
+  };
 
-  decodeArgs(argsHex: string): SwapOrderCellArgs {
+  decodeArgs = (argsHex: string): SwapOrderCellArgs => {
     const args = this.getStructDefine();
 
     const dataLength = 66 + 2 + 32;
@@ -43,15 +43,15 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
       sudtTypeHash,
       ...tips,
     };
-  }
+  };
 
-  encodeData(sudtAmount: bigint): string {
+  encodeData = (sudtAmount: bigint): string => {
     return this.serialization.encodeData(sudtAmount);
-  }
+  };
 
-  decodeData(dataHex: string): bigint {
+  decodeData = (dataHex: string): bigint => {
     return this.serialization.decodeData(dataHex);
-  }
+  };
 
   private getStructDefine() {
     return createFixedStruct().field('version', U8).field('amountOutMin', U128LE);

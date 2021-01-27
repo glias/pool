@@ -29,7 +29,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
       .toString('hex')}${infoTypeHash.slice(2, 66)}${tipsArgs}`;
   };
 
-  decodeArgs(argsHex: string): LiquidityOrderCellArgs {
+  decodeArgs = (argsHex: string): LiquidityOrderCellArgs => {
     const args = this.getStructDefine();
     const decodeLenght = 66 + 2 + 32 + 32;
 
@@ -45,15 +45,15 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
       infoTypeHash,
       ...tips,
     };
-  }
+  };
 
-  encodeData(sudtAmount: bigint): string {
+  encodeData = (sudtAmount: bigint): string => {
     return this.serialization.encodeData(sudtAmount);
-  }
+  };
 
-  decodeData(dataHex: string): bigint {
+  decodeData = (dataHex: string): bigint => {
     return this.serialization.decodeData(dataHex);
-  }
+  };
 
   private getStructDefine() {
     return createFixedStruct().field('version', U8).field('sudtMin', U128LE).field('ckbMin', U128LE);

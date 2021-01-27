@@ -2,24 +2,25 @@ import { createFixedStruct, U128LE } from 'easy-byte';
 import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 
 export class DefaultInfoCellSerialization implements InfoCellSerialization {
-  encodeArgs(hash: string, infoTypeHash: string): string {
+  encodeArgs = (hash: string, infoTypeHash: string): string => {
     return `0x${hash.slice(2, 66)}${infoTypeHash.slice(2, 66)}`;
-  }
+  };
 
-  decodeArgs(argsHex: string): InfoCellArgs {
+  decodeArgs = (argsHex: string): InfoCellArgs => {
     const infoCellData: InfoCellArgs = {
       hash: argsHex.slice(0, 66),
       infoTypeHash: `0x${argsHex.slice(66, argsHex.length)}`,
     };
     return infoCellData;
-  }
+  };
 
-  // FIXME
-  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash: string): string {
-    const data = createFixedStruct()
-      .field('ckbReserve', U128LE)
-      .field('sudtReserve', U128LE)
-      .field('totalLiquidity', U128LE);
+  encodeData = (
+    ckbReserve: bigint,
+    sudtReserve: bigint,
+    totalLiquidity: bigint,
+    liquiditySudtTypeHash: string,
+  ): string => {
+    const data = this.getStructDefine();
 
     return `0x${data
       .encode({
@@ -28,13 +29,10 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
         totalLiquidity,
       })
       .toString('hex')}${liquiditySudtTypeHash.slice(2, 66)}`;
-  }
+  };
 
-  decodeData(dataHex: string): InfoCellData {
-    const data = createFixedStruct()
-      .field('ckbReserve', U128LE)
-      .field('sudtReserve', U128LE)
-      .field('totalLiquidity', U128LE);
+  decodeData = (dataHex: string): InfoCellData => {
+    const data = this.getStructDefine();
     const structObj = data.decode(Buffer.from(dataHex.slice(2, 98), 'hex'));
 
     const infoCellData: InfoCellData = {
@@ -43,7 +41,7 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
     };
 
     return infoCellData;
-  }
+  };
 
   private getStructDefine() {
     return createFixedStruct().field('ckbReserve', U128LE).field('sudtReserve', U128LE).field('totalLiquidity', U128LE);
