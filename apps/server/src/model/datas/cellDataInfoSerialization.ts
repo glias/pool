@@ -79,7 +79,7 @@ export interface SwapCellSerialization {
 export interface InfoCellSerialization {
   encodeArgs(hash: string, infoTypeHash: string): string;
   decodeArgs(argsHex: string): InfoCellArgs;
-  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash20: string): string;
+  encodeData(ckbReserve: bigint, sudtReserve: bigint, totalLiquidity: bigint, liquiditySudtTypeHash: string): string;
   decodeData(dataHex: string): InfoCellData;
 }
 

@@ -11,7 +11,7 @@ import {
   POOL_INFO_TYPE_SCRIPT,
   INFO_LOCK_CODE_HASH,
   INFO_LOCK_HASH_TYPE,
-  POOL_INFO_ID,
+  POOL_INFO_TYPE_ARGS,
 } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 
@@ -172,23 +172,23 @@ export class DexLiquidityPoolService {
 
   private getSudtSymbol(poolCell: Cell) {
     let sudtType = '';
-    if (POOL_INFO_ID['GLIA'] === poolCell.cellOutput.type.args) {
+    if (POOL_INFO_TYPE_ARGS['GLIA'] === poolCell.cellOutput.type.args) {
       sudtType = 'GLIA';
     }
 
-    if (POOL_INFO_ID['ckETH'] === poolCell.cellOutput.type.args) {
+    if (POOL_INFO_TYPE_ARGS['ckETH'] === poolCell.cellOutput.type.args) {
       sudtType = 'ckETH';
     }
 
-    if (POOL_INFO_ID['ckDAI'] === poolCell.cellOutput.type.args) {
+    if (POOL_INFO_TYPE_ARGS['ckDAI'] === poolCell.cellOutput.type.args) {
       sudtType = 'ckDAI';
     }
 
-    if (POOL_INFO_ID['ckUSDC'] === poolCell.cellOutput.type.args) {
+    if (POOL_INFO_TYPE_ARGS['ckUSDC'] === poolCell.cellOutput.type.args) {
       sudtType = 'ckUSDC';
     }
 
-    if (POOL_INFO_ID['ckUSDT'] === poolCell.cellOutput.type.args) {
+    if (POOL_INFO_TYPE_ARGS['ckUSDT'] === poolCell.cellOutput.type.args) {
       sudtType = 'ckUSDT';
     }
     return sudtType;

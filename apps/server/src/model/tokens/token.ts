@@ -50,10 +50,10 @@ export class Token {
       const typeScript = Script.deserialize({
         ...value.typeScript,
       });
-      return new Token(value.typeHash, typeScript, value.info, value.balance);
+      return new Token(value.typeHash, typeScript, value.info, undefined, value.balance);
     }
 
-    return new Token(value.typeHash);
+    return new Token(value.typeHash, undefined, value.info, undefined, value.balance);
   }
 
   toAsset(): AssetSchema {
