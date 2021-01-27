@@ -17,6 +17,14 @@ export class Token {
     this.balance = balance;
   }
 
+  toERC20Token(): Token {
+    if (!this.shadowFrom) {
+      return null;
+    }
+
+    return new Token(null, null, this.shadowFrom, null, null);
+  }
+
   getBalance(): bigint {
     if (!this.balance) {
       return 0n;
@@ -107,6 +115,15 @@ export class TokenHolder {
 
   getTokenBySymbol(symbol: string): Token {
     const token = this.toknes.find((x) => x.info.symbol === symbol);
+    if (!token) {
+      return null;
+    }
+
+    return new Token(token.typeHash, token.typeScript, token.info, token.shadowFrom, null);
+  }
+
+  getTokenByShadowFromAddress(address: string): Token {
+    const token = this.toknes.find((x) => x.shadowFrom && address.toLowerCase() === x.shadowFrom.address.toLowerCase());
     if (!token) {
       return null;
     }
