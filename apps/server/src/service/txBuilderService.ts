@@ -166,7 +166,7 @@ export class TxBuilderService {
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
-    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
+    const lpTokenTypeHash = lpTokenType.toHash();
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
@@ -278,7 +278,7 @@ export class TxBuilderService {
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
-    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
+    const lpTokenTypeHash = lpTokenType.toHash();
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
