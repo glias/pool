@@ -1,3 +1,4 @@
+import * as constants from '@gliaswap/constants';
 import { HashType } from '@ckb-lumos/base';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -42,7 +43,7 @@ export const CKB_STR_TO_HASH =
   process.env.CKB_STR_TO_HASH ||
   '0x636b6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
-export const CKB_TOKEN_TYPE_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const CKB_TOKEN_TYPE_HASH = constants.CKB_TYPE_HASH;
 
 // TODO: refactor to PoolHolder, <Symbol, TypeArgs>
 export const POOL_INFO_TYPE_ARGS: Record<string, string> = {
