@@ -8,7 +8,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     this.tipsArgsSerialization = tipsArgsSerialization;
   }
 
-  encodeArgs(
+  encodeArgs = (
     userlockHash: string,
     version: number,
     sudtMin: bigint,
@@ -16,7 +16,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     infoTypeHash: string,
     tips: bigint,
     tipsSudt: bigint,
-  ): string {
+  ) => {
     const data = this.getStructDefine();
 
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
@@ -27,7 +27,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
         ckbMin,
       })
       .toString('hex')}${infoTypeHash.slice(2, 66)}${tipsArgs}`;
-  }
+  };
 
   decodeArgs(argsHex: string): LiquidityOrderCellArgs {
     const args = this.getStructDefine();
