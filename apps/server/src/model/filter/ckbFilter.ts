@@ -82,7 +82,6 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
       if (this.alreadyHash.has(x.transaction.hash)) {
         return;
       }
-      console.log(x.transaction.hash);
 
       for (let i = 0; i < x.transaction.inputs.length; i++) {
         const key = this.genKey(x.transaction.inputs[i].previousOutput);
