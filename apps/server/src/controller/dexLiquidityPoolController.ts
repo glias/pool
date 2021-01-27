@@ -383,7 +383,7 @@ export default class DexLiquidityPoolController {
     ctx.body = txWithFee.serialize();
   }
 
-  @request('post', '/v1/liquidity-pool/liquidity/remove-liquidity')
+  @request('post', '/v1/liquidity-pool/orders/remove-liquidity')
   @summary('Create remove liquidity order tx')
   @description('Create remove liquidity order tx')
   @liquidityTag
@@ -451,6 +451,7 @@ export default class DexLiquidityPoolController {
     if (!lpTokenAmount.typeScript) {
       const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
       const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(ctx, token);
+      console.log(lpTokenTypeScript.toHash());
       lpTokenAmount.typeScript = lpTokenTypeScript;
     }
 
