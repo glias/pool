@@ -124,7 +124,6 @@ export default class DexSwapController {
     if (assetInWithAmount.balance == undefined || BigInt(assetInWithAmount) == 0n) {
       ctx.throw(400, 'assetInWithAmount balance is zero');
     }
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
@@ -165,6 +164,7 @@ export default class DexSwapController {
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
     const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
+
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }

@@ -145,7 +145,6 @@ export default class DexLiquidityPoolController {
         ctx.throw(400, 'create pool dont need asset balance');
       }
     });
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
@@ -256,13 +255,12 @@ export default class DexLiquidityPoolController {
     }
     assets.forEach((asset, idx) => {
       if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
+        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
       }
       if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
         ctx.throw(400, 'asset balance is zero');
       }
     });
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
@@ -331,13 +329,12 @@ export default class DexLiquidityPoolController {
         ctx.throw(400, `asset ${idx} type hash mismatch, desired: ${assetDesire.typeHash}, min: ${assetMin.typeHash}`);
       }
       if (!this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash)) {
-        ctx.throw(400, `unknown asset ${idx} type hash: ${assetDesire.typeHash}`);
+        ctx.throw(400, `asset ${idx} type hash: ${assetDesire.typeHash} not in token list`);
       }
       if (assetDesire.balance == undefined || BigInt(assetDesire.balance) == 0n) {
         ctx.throw(400, 'asset balance is zero');
       }
     });
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
@@ -404,14 +401,12 @@ export default class DexLiquidityPoolController {
     }
     assetsWithMinAmount.forEach((asset, idx) => {
       if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
+        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
       }
     });
-
     if (lpToken.balance == undefined || BigInt(lpToken.balance) == 0n) {
       ctx.throw(400, 'lp token balance is zero');
     }
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
@@ -459,6 +454,7 @@ export default class DexLiquidityPoolController {
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
     const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
+
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
