@@ -26,6 +26,18 @@ export interface LiquidityOrderSummaryFilter {
   lock: Script;
 }
 
+export interface GenerateCreateLiquidityPoolTransactionPayload {
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+}
+
+export interface GenerateGenesisLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
+}
+
 export interface GenerateAddLiquidityTransactionPayload {
   poolId: string;
   lock: Script;

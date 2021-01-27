@@ -451,13 +451,6 @@ export class TxBuilderService {
   }
 
   public async buildAddLiquidity(ctx: Context, req: AddLiquidityRequest, txFee = 0n): Promise<TransactionWithFee> {
-    if (req.tokenADesiredAmount.typeHash != CKB_TYPE_HASH && req.tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-    if (req.tokenADesiredAmount.getBalance() == 0n || req.tokenBDesiredAmount.getBalance() == 0n) {
-      ctx.throw(400, 'token amount is zero');
-    }
-
     const tokenDesired =
       req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenBDesiredAmount : req.tokenADesiredAmount;
     const ckbDesired =
