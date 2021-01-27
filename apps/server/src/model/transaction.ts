@@ -83,11 +83,17 @@ export class TransactionToSign {
         data: this.raw.outputsData[idx],
       };
     });
+    const cellDeps = this.raw.cellDeps.map((cellDep) => {
+      return {
+        outPoint: cellDep.outPoint,
+        depType: cellDep.depType == 'code' ? 'code' : 'depGroup',
+      };
+    });
 
     return {
       inputCells,
       outputCells,
-      cellDeps: this.raw.cellDeps,
+      cellDeps,
       headerDeps: this.raw.headerDeps,
       version: this.raw.version,
 
