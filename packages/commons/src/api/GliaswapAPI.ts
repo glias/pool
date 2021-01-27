@@ -54,6 +54,11 @@ export interface GenerateRemoveLiquidityTransactionPayload {
   tips: CkbAssetWithBalance;
 }
 
+export interface GenerateCancelRequestTransactionPayload {
+  txHash: string;
+  lock: Script;
+}
+
 export interface GliaswapAPI {
   /**
    * get the default asset list, used as a placeholder
