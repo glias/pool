@@ -143,7 +143,7 @@ export default class DexLiquidityPoolController {
 
     const [tokenA, tokenB] = assets.map(
       (asset, idx): Token => {
-        if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
+        if (asset.balance != undefined && BigInt(asset.balance) != 0n) {
           ctx.throw(400, 'create pool dont need asset balance');
         }
 
