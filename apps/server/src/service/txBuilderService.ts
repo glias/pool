@@ -6,7 +6,6 @@ import * as constants from '@gliaswap/constants';
 import { ckbRepository, DexRepository } from '../repository';
 import * as utils from '../utils';
 import { Cell, Script, Token, RawTransaction, cellConver, Output, TransactionToSign } from '../model';
-import { TokenHolderFactory } from '../model';
 import { CellInfoSerializationHolderFactory, CellInfoSerializationHolder } from '../model';
 import * as config from '../config';
 
