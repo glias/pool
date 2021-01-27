@@ -125,7 +125,7 @@ export class TxBuilderService {
     txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
     if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
 
     // Collect enough free ckb to generate liquidity pool cells
@@ -244,7 +244,7 @@ export class TxBuilderService {
     txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
     if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
 
     // Collect enough free ckb to generate liquidity pool cells
@@ -253,7 +253,7 @@ export class TxBuilderService {
     const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
     const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
     if (!inputCells[0].outPoint) {
-      ctx.throw('create pool failed, first input donest have outpoint', 500);
+      ctx.throw(500, 'create pool failed, first input donest have outpoint');
     }
 
     // Generate info type script
@@ -452,10 +452,10 @@ export class TxBuilderService {
 
   public async buildAddLiquidity(ctx: Context, req: AddLiquidityRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenADesiredAmount.typeHash != CKB_TYPE_HASH && req.tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
     if (req.tokenADesiredAmount.getBalance() == 0n || req.tokenBDesiredAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
+      ctx.throw(400, 'token amount is zero');
     }
 
     const tokenDesired =
@@ -567,10 +567,10 @@ export class TxBuilderService {
     txFee = 0n,
   ): Promise<TransactionWithFee> {
     if (req.tokenAMinAmount.typeHash != CKB_TYPE_HASH && req.tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
     if (req.lpTokenAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
+      ctx.throw(400, 'token amount is zero');
     }
 
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
@@ -667,7 +667,7 @@ export class TxBuilderService {
 
   public async buildSwap(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenInAmount.typeHash != CKB_TYPE_HASH && req.tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
 
     if (req.tokenInAmount.typeHash == CKB_TYPE_HASH) {
@@ -782,7 +782,7 @@ export class TxBuilderService {
   // CKB => SUDT
   private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY <= constants.SWAP_BUY_REQ_CAPACITY) {
-      ctx.throw('ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8', 400);
+      ctx.throw(400, 'ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8');
     }
 
     // Collect free ckb and free token cells
@@ -867,10 +867,10 @@ export class TxBuilderService {
 
     const idx = transaction.outputs.findIndex((output: Output) => output.lock.codeHash == requestLockCodeHash);
     if (!idx) {
-      ctx.throw('transaction not found', 404, { txHash: txHash });
+      ctx.throw(404, `transaction ${txHash} not found`);
     }
     if (!transaction.outputs[idx].type) {
-      ctx.throw('order cell doesnt have type script', 400, { txHash: txHash });
+      ctx.throw(400, `${txHash}'s request cell doesnt have type script`);
     }
 
     const output = transaction.outputs[idx];
@@ -897,7 +897,7 @@ export class TxBuilderService {
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (liquidityArgs.userLockHash != userLock.toHash()) {
-      ctx.throw('user lock hash not match', 400);
+      ctx.throw(400, 'user lock hash not match');
     }
 
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(userLock);
@@ -972,7 +972,7 @@ export class TxBuilderService {
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (swapArgs.userLockHash != userLock.toHash()) {
-      ctx.throw('user lock hash not match', 400);
+      ctx.throw(400, 'user lock hash not match');
     }
 
     // Sell sudt, split swap cell into free token cell and free ckb cell
