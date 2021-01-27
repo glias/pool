@@ -1,4 +1,7 @@
-import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
+import { GenerateAddLiquidityTransactionPayload } from '@gliaswap/commons';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import BigNumber from 'bignumber.js';
+import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 import { cellConver, Script, Token } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
@@ -298,29 +301,45 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    // poolId: { type: 'string', required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+
+    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
+    slippage: { type: 'number', required: true, description: 'a number between (0, 0.5)' },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.AddLiquidityRequest>ctx.request.body;
+    const reqBody = ctx.request.body as GenerateAddLiquidityTransactionPayload;
+    const { assets, lock, poolId, slippage } = reqBody;
+    const [assetA, assetB] = assets;
+
+    const calcMinAmount = (balance: string) => new BigNumber(balance).times(1 - slippage).toString();
+
+    const tokenADesiredAmount = new Token(assetA.typeHash, undefined, undefined, undefined, assetA.balance);
+    const tokenAMinAmount = new Token(assetB.typeHash, undefined, undefined, undefined, calcMinAmount(assetA.balance));
+    const tokenBDesiredAmount = new Token(assetB.typeHash, undefined, undefined, undefined, assetB.balance);
+    const tokenBMinAmount = new Token(assetB.typeHash, undefined, undefined, undefined, calcMinAmount(assetB.balance));
+
     const req = {
-      tokenADesiredAmount: Token.deserialize(reqBody.tokenADesiredAmount),
-      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
-      tokenBDesiredAmount: Token.deserialize(reqBody.tokenBDesiredAmount),
-      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      tokenADesiredAmount,
+      tokenAMinAmount,
+      tokenBDesiredAmount,
+      tokenBMinAmount,
+      poolId,
+      userLock: Script.deserialize(lock),
+      tips: new Token(CKB_TYPE_HASH),
     };
     const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
 
