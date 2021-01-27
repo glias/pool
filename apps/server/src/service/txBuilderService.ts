@@ -519,10 +519,6 @@ export class TxBuilderService {
   }
 
   public async buildSwap(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
-    if (req.tokenInAmount.typeHash != CKB_TYPE_HASH && req.tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-
     if (req.tokenInAmount.typeHash == CKB_TYPE_HASH) {
       return await this.buildSwapToken(ctx, req, txFee);
     } else {
@@ -677,9 +673,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -858,9 +851,6 @@ export class TxBuilderService {
     });
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    if (!config.LOCK_DEPS[userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);

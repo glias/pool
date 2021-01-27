@@ -54,6 +54,13 @@ export interface GenerateRemoveLiquidityTransactionPayload {
   tips: CkbAssetWithBalance;
 }
 
+export interface GenerateSwapTransactionPayload {
+  assetInWithAmount: CkbAssetWithBalance;
+  assetOutWithMinAmount: CkbAssetWithBalance;
+  lock: Script;
+  tips: CkbAssetWithBalance;
+}
+
 export interface GenerateCancelRequestTransactionPayload {
   txHash: string;
   lock: Script;
