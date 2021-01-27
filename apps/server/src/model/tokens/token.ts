@@ -17,6 +17,10 @@ export class Token {
     this.balance = balance;
   }
 
+  clone(): Token {
+    return new Token(this.typeHash, this.typeScript, this.info, this.shadowFrom, this.balance);
+  }
+
   toERC20Token(): Token {
     if (!this.shadowFrom) {
       return null;

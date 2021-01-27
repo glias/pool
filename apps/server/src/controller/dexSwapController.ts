@@ -112,24 +112,22 @@ export default class DexSwapController {
     const reqBody = ctx.request.body as commons.GenerateSwapTransactionPayload;
     const { assetInWithAmount, assetOutWithMinAmount, lock, tips } = reqBody;
 
-    if (assetInWithAmount.balance == undefined || BigInt(assetInWithAmount) == 0n) {
-      ctx.throw(400, 'assetInWithAmount balance is zero');
-    }
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
 
     const [tokenInAmount, tokenOutMinAmount] = [assetInWithAmount, assetOutWithMinAmount].map((asset) => {
-      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
+      if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
+        ctx.throw(400, `asset type hash ${asset.typeHash}'s balance is zero`);
       }
 
-      const token = Token.fromAsset(asset as AssetSchema);
-      if (!token.typeScript) {
-        return token.setTypeScript(this.tokenHolder.getTokenByTypeHash(asset.typeHash).typeScript);
-      } else {
-        return token;
+      const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+      if (!token) {
+        ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
       }
+      token.balance = asset.balance;
+
+      return token;
     });
     if (tokenInAmount.typeHash != CKB_TYPE_HASH || tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
