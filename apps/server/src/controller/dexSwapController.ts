@@ -129,7 +129,7 @@ export default class DexSwapController {
 
       return token;
     });
-    if (tokenInAmount.typeHash != CKB_TYPE_HASH || tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
+    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
     }
 
