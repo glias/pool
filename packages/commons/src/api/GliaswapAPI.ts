@@ -5,6 +5,7 @@ import {
   GliaswapAssetWithBalance,
   LiquidityInfo,
   LiquidityOrderSummary,
+  LPTokenWithBalance,
   Maybe,
   PoolInfo,
   Script,
@@ -30,13 +31,15 @@ export interface GenerateAddLiquidityTransactionPayload {
   lock: Script;
   assetsWithDesiredAmount: CkbAssetWithBalance[];
   assetsWithMinAmount: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
 }
 
 export interface GenerateRemoveLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  assetsWithDesiredAmount: CkbAssetWithBalance[];
   assetsWithMinAmount: CkbAssetWithBalance[];
+  lpToken: LPTokenWithBalance;
+  tips: CkbAssetWithBalance;
 }
 
 export interface GliaswapAPI {
