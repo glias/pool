@@ -139,7 +139,7 @@ export default class DexLiquidityPoolController {
     }
     assets.forEach((asset, idx) => {
       if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
+        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
       }
       if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
         ctx.throw(400, 'create pool dont need asset balance');
@@ -151,62 +151,10 @@ export default class DexLiquidityPoolController {
     }
 
     const [assetA, assetB] = assets;
-    const req = {
-      tokenA: Token.fromAsset(assetA as AssetSchema),
-      tokenB: Token.fromAsset(assetB as AssetSchema),
-      userLock: Script.deserialize(lock),
-    };
-    const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
-
-    ctx.status = 200;
-    ctx.body = resp.serialize();
-  }
-
-  @request('post', '/v1/liquidity-pool/create-test')
-  @summary('Create test liquidity pool tx')
-  @description('Create test liquidity pool tx')
-  @liquidityTag
-  @responses({
-    200: {
-      description: 'success',
-      schema: {
-        type: 'object',
-        properties: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
-          fee: { type: 'string', required: true },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          lpToken: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-        },
-      },
-    },
-  })
-  @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-  })
-  public async createTestLiquidityPool(ctx: Context): Promise<void> {
-    const { assets, lock } = ctx.request.body as commons.GenerateCreateLiquidityPoolTransactionPayload;
-
-    if (assets.length != 2) {
-      ctx.throw(400, 'only support create pool with two liquidity assets now');
-    }
-    assets.forEach((asset, idx) => {
-      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
-      }
-      if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
-        ctx.throw(400, 'create pool dont need asset balance');
-      }
-    });
-
-    if (!config.LOCK_DEPS[lock.codeHash]) {
-      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    if (assetA.typeHash != CKB_TYPE_HASH && assetB.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
-    const [assetA, assetB] = assets;
     const req = {
       tokenA: Token.fromAsset(assetA as AssetSchema),
       tokenB: Token.fromAsset(assetB as AssetSchema),
@@ -320,6 +268,9 @@ export default class DexLiquidityPoolController {
     }
 
     const [assetAAmount, assetBAmount] = assets;
+    if (assetAAmount.typeHash != CKB_TYPE_HASH && assetBAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
 
     const req = {
       tokenAAmount: Token.fromAsset(assetAAmount as AssetSchema),
@@ -466,6 +417,9 @@ export default class DexLiquidityPoolController {
     }
 
     const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
+    if (assetAWithMinAmount.typeHash != CKB_TYPE_HASH && assetBWithMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
 
     const req = {
       lpTokenAmount: Token.fromAsset(lpToken as AssetSchema),

@@ -124,10 +124,6 @@ export class TxBuilderService {
     req: CreateLiquidityPoolRequest,
     txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
-    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-
     // Collect enough free ckb to generate liquidity pool cells
     // Ensure we always have change output cell to simplify tx fee calculation
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
@@ -137,14 +133,9 @@ export class TxBuilderService {
       ctx.throw(500, 'create pool failed, first input donest have outpoint');
     }
 
-    const tokenHolder = TokenHolderFactory.getInstance();
-    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
-    if (!tokenHolder.getTokenByTypeHash(reqToken.typeHash)) {
-      ctx.throw(400, `token not in token list, token type hash: ${reqToken.typeHash}`);
-    }
-
     // Generate info type script
     // For testnet, we use default hardcode id for each token pool
+    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
     const id = config.POOL_INFO_TYPE_ARGS[reqToken.info.symbol];
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
     const infoTypeHash = infoType.toHash();
@@ -207,9 +198,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -243,10 +231,6 @@ export class TxBuilderService {
     req: CreateLiquidityPoolRequest,
     txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
-    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-
     // Collect enough free ckb to generate liquidity pool cells
     // Ensure we always have change output cell to simplify tx fee calculation
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
@@ -316,9 +300,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -352,13 +333,6 @@ export class TxBuilderService {
     req: GenesisLiquidityRequest,
     txFee = 0n,
   ): Promise<TransactionWithFee> {
-    if (req.tokenAAmount.typeHash != CKB_TYPE_HASH && req.tokenBAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-    if (req.tokenAAmount.getBalance() == 0n || req.tokenBAmount.getBalance() == 0n) {
-      ctx.throw(400, 'token amount is zero');
-    }
-
     const token = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenBAmount : req.tokenAAmount;
     const ckb = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenAAmount : req.tokenBAmount;
 
@@ -419,9 +393,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -523,9 +494,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -559,13 +527,6 @@ export class TxBuilderService {
     req: RemoveLiquidityRequest,
     txFee = 0n,
   ): Promise<TransactionWithFee> {
-    if (req.tokenAMinAmount.typeHash != CKB_TYPE_HASH && req.tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'token/token pool isnt support yet');
-    }
-    if (req.lpTokenAmount.getBalance() == 0n) {
-      ctx.throw(400, 'token amount is zero');
-    }
-
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, req.lpTokenAmount.typeScript);
     const minCapacity = constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
@@ -627,9 +588,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -741,9 +699,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    if (!config.LOCK_DEPS[req.userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
@@ -923,9 +878,6 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    if (!config.LOCK_DEPS[userLock.codeHash]) {
-      ctx.throw(400, 'unknown user lock code hash');
-    }
     const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
     const witnessArgs =
       userLock.codeHash == config.PW_LOCK_CODE_HASH
