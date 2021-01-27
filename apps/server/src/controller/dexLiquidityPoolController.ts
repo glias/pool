@@ -183,18 +183,34 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createTestLiquidityPool(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CreateLiquidityPoolRequest>ctx.request.body;
+    const { assets, lock } = ctx.request.body as commons.GenerateCreateLiquidityPoolTransactionPayload;
+
+    if (assets.length != 2) {
+      ctx.throw(400, 'only support create pool with two liquidity assets now');
+    }
+    assets.forEach((asset, idx) => {
+      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
+        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
+      }
+      if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
+        ctx.throw(400, 'create pool dont need asset balance');
+      }
+    });
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [assetA, assetB] = assets;
     const req = {
-      tokenA: Token.deserialize(reqBody.tokenA),
-      tokenB: Token.deserialize(reqBody.tokenB),
-      userLock: Script.deserialize(reqBody.userLock),
+      tokenA: Token.fromAsset(assetA as AssetSchema),
+      tokenB: Token.fromAsset(assetB as AssetSchema),
+      userLock: Script.deserialize(lock),
     };
     const resp = await this.service.buildCreateTestLiquidityPoolTx(ctx, req);
 
