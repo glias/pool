@@ -153,16 +153,20 @@ export default class DexSwapController {
   @body({
     txHash: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CancelOrderRequest>ctx.request.body;
-    const req: txBuilder.CancelOrderRequest = {
-      txHash: reqBody.txHash,
-      userLock: Script.deserialize(reqBody.userLock),
+    const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const req = {
+      txHash,
+      userLock: Script.deserialize(lock),
       requestType: txBuilder.CancelRequestType.Swap,
     };
-
     const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
 
     ctx.status = 200;
