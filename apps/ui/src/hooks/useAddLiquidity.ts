@@ -38,10 +38,10 @@ export function useAddLiquidity(): UseAddLiquidityState {
     return price
       .getAddLiquidityReceiveLPAmount(
         readyToAddLiquidity[0].value,
-        BalanceWithoutDecimal.fromAssetWithBalance(poolAssets[0]).value,
-        BalanceWithoutDecimal.fromAssetWithBalance(poolLiquidity.lpToken).value,
+        BalanceWithoutDecimal.fromAsset(poolAssets[0]).value,
+        BalanceWithoutDecimal.fromAsset(poolLiquidity.lpToken).value,
       )
-      .div(BalanceWithoutDecimal.fromAssetWithBalance(poolAssets[0]).value)
+      .div(BalanceWithoutDecimal.fromAsset(poolAssets[0]).value)
       .toNumber();
   }, [poolAssets, poolLiquidity, readyToAddLiquidity]);
 
@@ -56,7 +56,7 @@ export function useAddLiquidity(): UseAddLiquidityState {
       readyToAddLiquidity[inputIndex].assetDecimals,
     ).withoutDecimal();
 
-    const inputPoolReserve = BalanceWithoutDecimal.fromAssetWithBalance(poolLiquidity.assets[inputIndex]);
+    const inputPoolReserve = BalanceWithoutDecimal.fromAsset(poolLiquidity.assets[inputIndex]);
 
     const newReady = zip(readyToAddLiquidity, poolLiquidity.assets).map(([ready, poolAsset], i) => {
       if (i === inputIndex) return inputAmount;

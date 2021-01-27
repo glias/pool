@@ -17,8 +17,8 @@ export class BalanceWithDecimal extends CommonsBalance {
     return new BalanceWithDecimal(value, assetDecimals);
   }
 
-  static fromAssetWithBalance(asset: AssetWithBalance): BalanceWithDecimal {
-    return BalanceWithoutDecimal.fromAssetWithBalance(asset).withDecimal();
+  static fromAsset(asset: AssetWithBalance): BalanceWithDecimal {
+    return BalanceWithoutDecimal.fromAsset(asset).withDecimal();
   }
 
   newValue(this: BalanceWithDecimal, value: BigNumber.Value): BalanceWithDecimal {
@@ -39,7 +39,7 @@ export class BalanceWithoutDecimal extends CommonsBalance {
     return new BalanceWithoutDecimal(value, assetDecimals);
   }
 
-  static fromAssetWithBalance(asset: AssetWithBalance): BalanceWithoutDecimal {
+  static fromAsset(asset: AssetWithBalance): BalanceWithoutDecimal {
     return new BalanceWithoutDecimal(asset.balance, asset.decimals);
   }
 
