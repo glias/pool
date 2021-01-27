@@ -157,7 +157,6 @@ export default class DexSwapController {
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
     const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
-
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
