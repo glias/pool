@@ -16,7 +16,7 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     infoTypeHash: string,
     tips: bigint,
     tipsSudt: bigint,
-  ) => {
+  ): string => {
     const data = this.getStructDefine();
 
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
