@@ -304,7 +304,7 @@ export default class DexLiquidityPoolController {
     const { assets, lock, poolId, tips } = ctx.request.body as commons.GenerateGenesisLiquidityTransactionPayload;
 
     if (assets.length != 2) {
-      ctx.throw(400, 'only support adding two liquidity assets now');
+      ctx.throw(400, 'only support adding liquidity to pool with two assets now');
     }
     assets.forEach((asset, idx) => {
       if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
@@ -372,7 +372,7 @@ export default class DexLiquidityPoolController {
     const reqBody = ctx.request.body as commons.GenerateAddLiquidityTransactionPayload;
     const { assetsWithDesiredAmount, assetsWithMinAmount, lock, poolId, tips } = reqBody;
     if (assetsWithDesiredAmount.length != 2 || assetsWithMinAmount.length != 2) {
-      ctx.throw(400, 'only support adding two liquidity assets now');
+      ctx.throw(400, 'only support adding liquidity to pool with two assets now');
     }
     assetsWithDesiredAmount.forEach((assetDesire, idx) => {
       const assetMin = assetsWithMinAmount[idx];
@@ -431,24 +431,49 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
+    assetsWithMinAmount: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
-    assetsWithMinAmount: CommonsBody.assets,
-    lpToken: CommonsBody.asset,
-    lock: CommonsBody.script,
-    tips: CommonsBody.asset,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = ctx.request.body as GenerateRemoveLiquidityTransactionPayload;
+    const reqBody = ctx.request.body as commons.GenerateRemoveLiquidityTransactionPayload;
     const { assetsWithMinAmount, lock, lpToken, poolId, tips } = reqBody;
+
+    if (assetsWithMinAmount.length != 2) {
+      ctx.throw(400, 'only support removing from pool with two assets now');
+    }
+    assetsWithMinAmount.forEach((asset, idx) => {
+      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
+        ctx.throw(400, `unknown asset ${idx} type hash: ${asset.typeHash}`);
+      }
+    });
+
+    if (lpToken.balance == undefined || BigInt(lpToken.balance) == 0n) {
+      ctx.throw(400, 'lp token balance is zero');
+    }
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
     const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
 
     const req = {
-      lpTokenAmount: TokenFromAsset(lpToken),
-      tokenAMinAmount: TokenFromAsset(assetAWithMinAmount),
-      tokenBMinAmount: TokenFromAsset(assetBWithMinAmount),
+      lpTokenAmount: Token.fromAsset(lpToken as AssetSchema),
+      tokenAMinAmount: Token.fromAsset(assetAWithMinAmount as AssetSchema),
+      tokenBMinAmount: Token.fromAsset(assetBWithMinAmount as AssetSchema),
       poolId: poolId,
       userLock: Script.deserialize(lock),
-      tips: TokenFromAsset(tips),
+      tips: Token.fromAsset(tips as AssetSchema),
     };
     const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
 
