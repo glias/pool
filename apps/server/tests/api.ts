@@ -17,13 +17,17 @@ const USER_LOCK: CKBComponents.Script = {
 };
 // const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
+const LP_TOKEN_TYPE_HASH = {
+  GLIA: '0x0addc3b7a6e0f3cb4416f3f80fabfe8d6499e0efb6ef7cc51f2b8852dbd6387c',
+};
 
 const ckbToken = (amount: bigint) => {
+  const token = TOKEN_HOLDER.getTokenBySymbol('CKB');
+
   return {
     balance: amount.toString(),
     typeHash: CKB_TYPE_HASH,
-    typeScript: undefined,
-    info: undefined,
+    ...token.info,
   };
 };
 
@@ -33,8 +37,18 @@ const generateToken = (amount: bigint, symbol: string) => {
   return {
     balance: amount.toString(),
     typeHash: token.typeHash,
-    typeScript: token.typeScript,
-    info: token.info,
+    ...token.info,
+  };
+};
+
+// FIXME: LP token info
+const generateLPToken = (amount: bigint, symbol: string) => {
+  const token = TOKEN_HOLDER.getTokenBySymbol(symbol);
+
+  return {
+    balance: amount.toString(),
+    typeHash: LP_TOKEN_TYPE_HASH[symbol],
+    ...token.info,
   };
 };
 
@@ -79,15 +93,14 @@ async function createTestPool(tokenSymbol: string) {
   console.log(`create ${tokenSymbol} pool, id: ${config.POOL_ID[tokenSymbol]}`);
 
   const req = {
-    tokenA: ckbToken(0n),
-    tokenB: generateToken(0n, tokenSymbol),
-    userLock: USER_LOCK,
+    assets: [ckbToken(0n), generateToken(0n, tokenSymbol)],
+    lock: USER_LOCK,
   };
 
   // console.log(req);
 
   try {
-    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create-test', req);
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/create', req);
     const tx = deserializeTransactionToSign(resp.data.tx);
     // console.log(JSON.stringify(tx, null, 2));
     console.log(resp.data.fee);
@@ -100,8 +113,8 @@ async function createTestPool(tokenSymbol: string) {
     const sendTxReq = {
       signedTx: signedTx,
     };
-    const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
-    console.log(sendResp.data.txHash);
+    // const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
+    // console.log(sendResp.data.txHash);
   } catch (e) {
     if (axios.isAxiosError(e)) {
       if (e.response) {
@@ -124,10 +137,9 @@ async function createGenesisTx(tokenSymbol: string) {
   console.log(`create ${tokenSymbol} genesis, id: ${config.POOL_ID[tokenSymbol]}`);
 
   const req = {
-    tokenAAmount: ckbToken(10n * CKB_DECIMAL),
-    tokenBAmount: generateToken(10n, tokenSymbol),
+    assets: [ckbToken(10n * CKB_DECIMAL), generateToken(10n, tokenSymbol)],
     poolId: config.POOL_ID[tokenSymbol],
-    userLock: USER_LOCK,
+    lock: USER_LOCK,
     tips: ckbToken(0n),
   };
 
@@ -145,8 +157,145 @@ async function createGenesisTx(tokenSymbol: string) {
     const sendTxReq = {
       signedTx: signedTx,
     };
-    const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
-    console.log(sendResp.data.txHash);
+    // const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
+    // console.log(sendResp.data.txHash);
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.message);
+      }
+    } else {
+      console.log(e);
+    }
+  }
+}
+
+async function createAddLiquidityTx(tokenSymbol: string) {
+  if (!config.POOL_ID[tokenSymbol]) {
+    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+  }
+  console.log(`create ${tokenSymbol} add liquidity, id: ${config.POOL_ID[tokenSymbol]}`);
+
+  const req = {
+    assetsWithDesiredAmount: [ckbToken(20n * CKB_DECIMAL), generateToken(20n, tokenSymbol)],
+    assetsWithMinAmount: [ckbToken(10n * CKB_DECIMAL), generateToken(10n, tokenSymbol)],
+    poolId: config.POOL_ID[tokenSymbol],
+    lock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  // console.log(req);
+
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/orders/add-liquidity', req);
+    const tx = deserializeTransactionToSign(resp.data.tx);
+    // console.log(JSON.stringify(tx, null, 2));
+    // console.log(resp.data.fee);
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.message);
+      }
+    } else {
+      console.log(e);
+    }
+  }
+}
+
+async function createRemoveLiquidityTx(tokenSymbol: string) {
+  if (!config.POOL_ID[tokenSymbol]) {
+    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+  }
+  console.log(`create ${tokenSymbol} remove liquidity, id: ${config.POOL_ID[tokenSymbol]}`);
+
+  const req = {
+    assetsWithMinAmount: [ckbToken(10n * CKB_DECIMAL), generateToken(10n, tokenSymbol)],
+    lpToken: generateLPToken(10n, tokenSymbol),
+    poolId: config.POOL_ID[tokenSymbol],
+    lock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  // console.log(req);
+
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/orders/remove-liquidity', req);
+    const tx = deserializeTransactionToSign(resp.data.tx);
+    // console.log(JSON.stringify(tx, null, 2));
+    // console.log(resp.data.fee);
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.message);
+      }
+    } else {
+      console.log(e);
+    }
+  }
+}
+
+async function createCancelLiquidityTx(txHash: string) {
+  console.log(`create cancel liquidity, txHash: ${txHash}`);
+
+  const req = {
+    txHash,
+    lock: USER_LOCK,
+  };
+
+  // console.log(req);
+
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/orders/cancel', req);
+    const tx = deserializeTransactionToSign(resp.data.tx);
+    // console.log(JSON.stringify(tx, null, 2));
+    // console.log(resp.data.fee);
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      if (e.response) {
+        console.log(e.response.status);
+        console.log(e.response.statusText);
+        console.log(e.response.data);
+      } else {
+        console.log(e.message);
+      }
+    } else {
+      console.log(e);
+    }
+  }
+}
+
+async function createSwapTx(tokenSymbol: string) {
+  if (!config.POOL_ID[tokenSymbol]) {
+    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+  }
+  console.log(`create ${tokenSymbol} swap, id: ${config.POOL_ID[tokenSymbol]}`);
+
+  const req = {
+    assetInWithAmount: ckbToken(10n),
+    assetOutWithMinAmount: generateToken(20n, tokenSymbol),
+    lock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  // console.log(req);
+
+  try {
+    const resp = await axios.post('http://127.0.0.1:3000/v1/swap/orders/swap', req);
+    const tx = deserializeTransactionToSign(resp.data.tx);
+    // console.log(JSON.stringify(tx, null, 2));
+    // console.log(resp.data.fee);
   } catch (e) {
     if (axios.isAxiosError(e)) {
       if (e.response) {
@@ -168,3 +317,7 @@ console.log(`use address: ${address}`);
 
 // createTestPool('GLIA');
 // createGenesisTx('GLIA');
+// createAddLiquidityTx('GLIA');
+// createRemoveLiquidityTx('GLIA');
+// createCancelLiquidityTx('0x7dc1554334dbde8393be45126a856654a93ea5c8a437ba32c99e9dcd783f22e2');
+// createSwapTx('GLIA');
