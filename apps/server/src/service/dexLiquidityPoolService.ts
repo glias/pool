@@ -1,15 +1,19 @@
 import { Context } from 'koa';
 import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
-import { ScriptBuilder } from '../model';
+import { Cell, ScriptBuilder } from '../model';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
-import { CKB_STR_TO_HASH, CKB_TOKEN_TYPE_HASH, POOL_INFO_TYPE_SCRIPT, INFO_LOCK_CODE_HASH } from '../config';
+import {
+  CKB_TOKEN_TYPE_HASH,
+  POOL_INFO_TYPE_SCRIPT,
+  INFO_LOCK_CODE_HASH,
+  INFO_LOCK_HASH_TYPE,
+  POOL_INFO_ID,
+} from '../config';
 import { ckbRepository, DexRepository } from '../repository';
-import { MockRepositoryFactory } from '../tests/mockRepositoryFactory';
-import { mockCkEthPoolInfo, mockGliaPoolInfo, mockUserLiquidityCells } from '../tests/mock_data';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
@@ -79,41 +83,24 @@ export class DexLiquidityPoolService {
   private async getUserPoolInfos(lock: Script, poolInfos: PoolInfo[]): Promise<PoolInfo[]> {
     const userLiquiditys: PoolInfo[] = [];
     for (const poolInfo of poolInfos) {
-      const script = new Script(
-        INFO_LOCK_CODE_HASH,
-        'type',
-        CellInfoSerializationHolderFactory.getInstance()
-          .getInfoCellSerialization()
-          .encodeArgs(CKB_STR_TO_HASH, poolInfo.tokenB.typeHash),
-      );
-
+      const typeScript = new Script(poolInfo.tokenB.typeHash, 'type', poolInfo.infoCell.cellOutput.lock.toHash());
       const queryOptions = {
         lock: lock.toLumosScript(),
-        type: new Script(poolInfo.tokenB.typeHash, 'type', script.toHash()).toLumosScript(),
+        type: typeScript.toLumosScript(),
       };
-      // const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
+      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
 
-      const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      mock
-        .mockCollectCells()
-        .resolves([])
-        .withArgs({
-          lock: queryOptions.lock,
-          type: new Script(
-            TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-            'type',
-            new Script(
-              INFO_LOCK_CODE_HASH,
-              'type',
-              CellInfoSerializationHolderFactory.getInstance()
-                .getInfoCellSerialization()
-                .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
-            ).toHash(),
-          ).toLumosScript(),
-        })
-        .resolves(mockUserLiquidityCells);
+      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
+      // mock
+      //   .mockCollectCells()
+      //   .resolves([])
+      //   .withArgs({
+      //     lock: queryOptions.lock,
+      //     type: typeScript.toLumosScript(),
+      //   })
+      //   .resolves(mockUserLiquidityCells);
 
-      const userLiquidityCells = await mock.collectCells(queryOptions);
+      // const userLiquidityCells = await mock.collectCells(queryOptions);
 
       if (userLiquidityCells.length === 0) {
         continue;
@@ -139,13 +126,12 @@ export class DexLiquidityPoolService {
 
   private async getPoolInfos(): Promise<PoolInfo[]> {
     const poolInfos: PoolInfo[] = [];
-    const tokens = TokenHolderFactory.getInstance().getTokens();
     for (const type of POOL_INFO_TYPE_SCRIPT) {
       const queryOptions: QueryOptions = {
         lock: {
           script: {
             code_hash: INFO_LOCK_CODE_HASH,
-            hash_type: 'type',
+            hash_type: INFO_LOCK_HASH_TYPE,
             args: '0x',
           },
           argsLen: 'any',
@@ -153,55 +139,59 @@ export class DexLiquidityPoolService {
         type: type.toLumosScript(),
       };
 
-      // const poolCell = await this.dexRepository.collectCells(queryOptions);
-
-      const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      mock
-        .mockCollectCells()
-        .resolves([])
-        .withArgs({
-          lock: queryOptions.lock,
-          type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
-        })
-        .resolves(mockGliaPoolInfo)
-        .withArgs({
-          lock: queryOptions.lock,
-          type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
-        })
-        .resolves(mockCkEthPoolInfo);
-
-      const poolCell = await mock.collectCells(queryOptions);
-
-      if (poolCell.length === 0) {
+      const infoCells = await this.dexRepository.collectCells(queryOptions);
+      if (infoCells.length === 0) {
         continue;
       }
 
-      const infoTypeHash = CellInfoSerializationHolderFactory.getInstance()
-        .getInfoCellSerialization()
-        .decodeArgs(poolCell[0].cellOutput.lock.args).infoTypeHash;
-
-      const tokenB = tokens.find((x) => x.typeHash === infoTypeHash);
+      const infoCell = infoCells[0];
+      const sudtType = this.getSudtSymbol(infoCell);
+      const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
       tokenB.balance = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
-        .decodeData(poolCell[0].data)
+        .decodeData(infoCell.data)
         .sudtReserve.toString();
 
       // Prevent modification to the same tokenA
-
       const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
       tokenA.balance = CellInfoSerializationHolderFactory.getInstance()
         .getInfoCellSerialization()
-        .decodeData(poolCell[0].data)
+        .decodeData(infoCell.data)
         .ckbReserve.toString();
 
       poolInfos.push({
         poolId: tokenB.typeScript.toHash(),
         tokenA: tokenA,
         tokenB: tokenB,
+        infoCell: infoCell,
       });
     }
 
     return poolInfos;
+  }
+
+  private getSudtSymbol(poolCell: Cell) {
+    let sudtType = '';
+    if (POOL_INFO_ID['GLIA'] === poolCell.cellOutput.type.args) {
+      sudtType = 'GLIA';
+    }
+
+    if (POOL_INFO_ID['ckETH'] === poolCell.cellOutput.type.args) {
+      sudtType = 'ckETH';
+    }
+
+    if (POOL_INFO_ID['ckDAI'] === poolCell.cellOutput.type.args) {
+      sudtType = 'ckDAI';
+    }
+
+    if (POOL_INFO_ID['ckUSDC'] === poolCell.cellOutput.type.args) {
+      sudtType = 'ckUSDC';
+    }
+
+    if (POOL_INFO_ID['ckUSDT'] === poolCell.cellOutput.type.args) {
+      sudtType = 'ckUSDT';
+    }
+    return sudtType;
   }
 
   public async buildCreateTestLiquidityPoolTx(
