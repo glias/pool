@@ -1,16 +1,22 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+
+import * as config from '../config';
 import { Script } from '../model';
+import * as commons from '@gliaswap/commons';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
-import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
-import { cellConver, Token } from '../model';
+import { AssetSchema, ScriptSchema, StepSchema, TransactionToSignSchema } from './swaggerSchema';
+import { cellConver, Token, TokenHolder, TokenHolderFactory } from '../model';
 
 const swapTag = tags(['Swap']);
 
 export default class DexSwapController {
   private readonly service: DexSwapService;
+  private readonly tokenHolder: TokenHolder;
 
   constructor() {
     this.service = dexSwapService;
+    this.tokenHolder = TokenHolderFactory.getInstance();
   }
 
   @request('post', '/v1/swap/orders')
@@ -94,23 +100,45 @@ export default class DexSwapController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenInAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assetInWithAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenOutMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assetOutWithMinAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
   })
   public async createSwapOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.SwapOrderRequest>ctx.request.body;
-    const req = {
-      tokenInAmount: Token.deserialize(reqBody.tokenInAmount),
-      tokenOutMinAmount: Token.deserialize(reqBody.tokenOutMinAmount),
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
-    };
+    const reqBody = ctx.request.body as commons.GenerateSwapTransactionPayload;
+    const { assetInWithAmount, assetOutWithMinAmount, lock, tips } = reqBody;
 
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenInAmount, tokenOutMinAmount] = [assetInWithAmount, assetOutWithMinAmount].map((asset) => {
+      if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
+        ctx.throw(400, `asset type hash ${asset.typeHash}'s balance is zero`);
+      }
+
+      const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+      if (!token) {
+        ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
+      }
+      token.balance = asset.balance;
+
+      return token;
+    });
+    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'sudt/sudt pool isnt support yet');
+    }
+
+    const req = {
+      tokenInAmount,
+      tokenOutMinAmount,
+      userLock: Script.deserialize(lock),
+      tips: Token.fromAsset(tips as AssetSchema),
+    };
     const txWithFee = await this.service.buildSwapOrderTx(ctx, req);
 
     ctx.status = 200;
@@ -137,16 +165,20 @@ export default class DexSwapController {
   @body({
     txHash: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CancelOrderRequest>ctx.request.body;
-    const req: txBuilder.CancelOrderRequest = {
-      txHash: reqBody.txHash,
-      userLock: Script.deserialize(reqBody.userLock),
+    const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const req = {
+      txHash,
+      userLock: Script.deserialize(lock),
       requestType: txBuilder.CancelRequestType.Swap,
     };
-
     const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
 
     ctx.status = 200;

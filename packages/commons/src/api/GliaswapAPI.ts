@@ -1,6 +1,7 @@
 import {
   Asset,
   ChainSpec,
+  CkbAsset,
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
   LiquidityInfo,
@@ -10,6 +11,7 @@ import {
   PoolInfo,
   Script,
   SerializedTransactionToSignWithFee,
+  SerializedTransactonToSign,
 } from '../';
 
 export interface LiquidityPoolFilter {
@@ -26,6 +28,24 @@ export interface LiquidityOrderSummaryFilter {
   lock: Script;
 }
 
+export interface GenerateCreateLiquidityPoolTransactionPayload {
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+}
+
+export interface GenerateCreateLiquidityPoolTransactionResponse {
+  transactionToSign: SerializedTransactonToSign;
+  fee: string;
+  lpToken: CkbAsset;
+}
+
+export interface GenerateGenesisLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
+}
+
 export interface GenerateAddLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
@@ -40,6 +60,18 @@ export interface GenerateRemoveLiquidityTransactionPayload {
   assetsWithMinAmount: CkbAssetWithBalance[];
   lpToken: LPTokenWithBalance;
   tips: CkbAssetWithBalance;
+}
+
+export interface GenerateSwapTransactionPayload {
+  assetInWithAmount: CkbAssetWithBalance;
+  assetOutWithMinAmount: CkbAssetWithBalance;
+  lock: Script;
+  tips: CkbAssetWithBalance;
+}
+
+export interface GenerateCancelRequestTransactionPayload {
+  txHash: string;
+  lock: Script;
 }
 
 export interface GliaswapAPI {
@@ -70,12 +102,26 @@ export interface GliaswapAPI {
 
   getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
 
+  generateCreateLiquidityPoolTransaction: (
+    payload: GenerateCreateLiquidityPoolTransactionPayload,
+  ) => Promise<GenerateCreateLiquidityPoolTransactionResponse>;
+
+  generateGenesisLiquidityTransaction: (
+    payload: GenerateGenesisLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
   generateAddLiquidityTransaction: (
     payload: GenerateAddLiquidityTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
   generateRemoveLiquidityTransaction: (
     payload: GenerateRemoveLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateSwapTransaction: (payload: GenerateSwapTransactionPayload) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateCancelRequestTransaction: (
+    payload: GenerateCancelRequestTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
   cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;

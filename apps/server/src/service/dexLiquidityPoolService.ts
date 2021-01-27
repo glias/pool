@@ -194,13 +194,6 @@ export class DexLiquidityPoolService {
     return sudtType;
   }
 
-  public async buildCreateTestLiquidityPoolTx(
-    ctx: Context,
-    req: txBuilder.CreateLiquidityPoolRequest,
-  ): Promise<txBuilder.CreateLiquidityPoolResponse> {
-    return await this.txBuilderService.buildTestLiquidityPool(ctx, req);
-  }
-
   public async buildCreateLiquidityPoolTx(
     ctx: Context,
     req: txBuilder.CreateLiquidityPoolRequest,
@@ -208,7 +201,6 @@ export class DexLiquidityPoolService {
     return await this.txBuilderService.buildCreateLiquidityPool(ctx, req);
   }
 
-  // FIXME: ensure req token type script exists
   public async buildGenesisLiquidityOrderTx(
     ctx: Context,
     req: txBuilder.GenesisLiquidityRequest,

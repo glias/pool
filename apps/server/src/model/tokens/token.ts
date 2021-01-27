@@ -1,6 +1,6 @@
 import { Script } from '..';
 import BigNumber from 'bignumber.js';
-import { AssetSchema } from '../../controller/swaggerSchema';
+import { AssetSchema, TokenInfoSchema } from '../../controller/swaggerSchema';
 
 export class Token {
   typeHash: string;
@@ -17,12 +17,21 @@ export class Token {
     this.balance = balance;
   }
 
+  clone(): Token {
+    return new Token(this.typeHash, this.typeScript, this.info, this.shadowFrom, this.balance);
+  }
+
   toERC20Token(): Token {
     if (!this.shadowFrom) {
       return null;
     }
 
     return new Token(null, null, this.shadowFrom, null, null);
+  }
+
+  setTypeScript(script: Script): Token {
+    this.typeScript = script;
+    return this;
   }
 
   getBalance(): bigint {
@@ -46,22 +55,12 @@ export class Token {
     };
   }
 
-  // FIXME: token info and balance deserialize
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-  static deserialize(value: any): Token {
-    if (!value.typeHash) {
-      throw new Error('Token: typeHash not found');
-    }
+  static fromAsset(value: AssetSchema): Token {
+    const script = value.typeScript ? Script.deserialize(value.typeScript) : undefined;
+    const shadowFrom = value.shadowFrom ? TokenInfo.deserialize(value.shadowFrom) : undefined;
+    const info = TokenInfo.FromAsset(value);
 
-    if (value.typeScript) {
-      const typeScript = Script.deserialize({
-        ...value.typeScript,
-      });
-      return new Token(value.typeHash, typeScript, value.info, undefined, value.balance);
-    }
-
-    return new Token(value.typeHash, undefined, value.info, undefined, value.balance);
+    return new Token(value.typeHash, script, info, shadowFrom, value.balance);
   }
 
   toAsset(): AssetSchema {
@@ -94,6 +93,14 @@ export class TokenInfo {
     this.logoURI = logoURI;
     this.address = address;
     this.chainType = chainType;
+  }
+
+  static FromAsset(value: AssetSchema): TokenInfo {
+    return new TokenInfo(value.name, value.symbol, value.decimals, value.logoURI, value.address, value.chainType);
+  }
+
+  static deserialize(value: TokenInfoSchema): TokenInfo {
+    return new TokenInfo(value.name, value.symbol, value.decimals, value.logoURI, value.address, value.chainType);
   }
 }
 
