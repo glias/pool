@@ -53,7 +53,7 @@ export default class SendTransactionController {
       ctx.status = 200;
       ctx.body = { txHash };
     } catch (e) {
-      ctx.throw(400, e.toJson());
+      ctx.throw(400, e.toString());
     }
   }
 }
