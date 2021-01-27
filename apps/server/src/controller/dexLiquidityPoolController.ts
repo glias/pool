@@ -266,7 +266,6 @@ export default class DexLiquidityPoolController {
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = <txBuilder.GenesisLiquidityRequest>ctx.request.body;
-    console.log(reqBody.tokenAAmount);
     const req = {
       tokenAAmount: Token.deserialize(reqBody.tokenAAmount),
       tokenBAmount: Token.deserialize(reqBody.tokenBAmount),

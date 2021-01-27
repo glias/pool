@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_TYPE_HASH, CKB_DECIMAL } from '@gliaswap/constants';
 import * as commons from '@gliaswap/commons';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -16,9 +16,6 @@ const USER_LOCK: CKBComponents.Script = {
   args: process.env.USER_LOCK_ARGS,
 };
 const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
-const POOL_IDS = {
-  GLIA: '0xeff0c7b3706be915f6a1ec798db16c673b7c683a39af099305a5fd467b993251',
-};
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
 
 const ckbToken = (amount: bigint) => {
@@ -76,6 +73,11 @@ const deserializeTransactionToSign = (serialized: commons.SerializedTransactonTo
 };
 
 async function createTestPool(tokenSymbol: string) {
+  if (!config.POOL_ID[tokenSymbol]) {
+    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+  }
+  console.log(`create ${tokenSymbol} pool, id: ${config.POOL_ID[tokenSymbol]}`);
+
   const req = {
     tokenA: ckbToken(0n),
     tokenB: generateToken(0n, tokenSymbol),
@@ -116,10 +118,15 @@ async function createTestPool(tokenSymbol: string) {
 }
 
 async function createGenesisTx(tokenSymbol: string) {
+  if (!config.POOL_ID[tokenSymbol]) {
+    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+  }
+  console.log(`create ${tokenSymbol} genesis, id: ${config.POOL_ID[tokenSymbol]}`);
+
   const req = {
-    tokenAAmount: ckbToken(100n),
-    tokenBAmount: generateToken(100n, tokenSymbol),
-    poolId: POOL_IDS[tokenSymbol],
+    tokenAAmount: ckbToken(10n * CKB_DECIMAL),
+    tokenBAmount: generateToken(10n, tokenSymbol),
+    poolId: config.POOL_ID[tokenSymbol],
     userLock: USER_LOCK,
     tips: ckbToken(0n),
   };

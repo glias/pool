@@ -88,7 +88,7 @@ export class TransactionWithFee {
   serialize(): Record<string, unknown> {
     return {
       tx: this.tx.serialize(),
-      fee: this.fee,
+      fee: this.fee.toString(),
     };
   }
 }
@@ -134,16 +134,16 @@ export class TxBuilderService {
     const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
     const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
     if (inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
+      ctx.throw(400, `free ckb not enough, required: ${minCapacity}, available: ${inputCapacity}`);
     }
     if (!inputCells[0].outPoint) {
-      ctx.throw('create pool failed, first input donest have outpoint', 500);
+      ctx.throw(500, 'create pool failed, first input donest have outpoint');
     }
 
     const tokenHolder = TokenHolderFactory.getInstance();
     const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
     if (!tokenHolder.getTokenByTypeHash(reqToken.typeHash)) {
-      ctx.throw('token not in token list', 400, { tokenType: reqToken.typeHash });
+      ctx.throw(400, `token not in token list, token type hash: ${reqToken.typeHash}`);
     }
 
     // Generate info type script
@@ -358,7 +358,7 @@ export class TxBuilderService {
     txFee = 0n,
   ): Promise<TransactionWithFee> {
     if (req.tokenAAmount.typeHash != CKB_TYPE_HASH && req.tokenBAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
+      ctx.throw(400, 'token/token pool isnt support yet');
     }
     if (req.tokenAAmount.getBalance() == 0n || req.tokenBAmount.getBalance() == 0n) {
       ctx.throw(400, 'token amount is zero');
@@ -374,10 +374,10 @@ export class TxBuilderService {
       ckb.getBalance() + constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, token);
     if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
+      ctx.throw(400, `free ckb not enough, required: ${minCapacity}, available: ${collectedCells.inputCapacity}`);
     }
     if (collectedCells.inputToken < token.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: token.balance });
+      ctx.throw(400, `free token not enough, required: ${token.balance}, available: ${collectedCells.inputToken}`);
     }
 
     // Generate genesis request lock script
@@ -1145,7 +1145,7 @@ class TxBuilderCellCollector implements CellCollector {
       }
 
       if (inputTokenAmount < token.getBalance()) {
-        ctx.throw('free token not enough', 400, { required: token.balance });
+        ctx.throw(400, `free token not enough, required: ${token.balance}, available: ${inputTokenAmount}`);
       }
     }
 
@@ -1165,7 +1165,7 @@ class TxBuilderCellCollector implements CellCollector {
       inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
     }
     if (inputCapacity < neededCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: neededCapacity });
+      ctx.throw(400, `free ckb not enough, required: ${neededCapacity}, available: ${inputCapacity}`);
     }
 
     return {
