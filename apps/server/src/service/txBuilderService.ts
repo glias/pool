@@ -133,9 +133,6 @@ export class TxBuilderService {
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
     const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (inputCapacity < minCapacity) {
-      ctx.throw(400, `free ckb not enough, required: ${minCapacity}, available: ${inputCapacity}`);
-    }
     if (!inputCells[0].outPoint) {
       ctx.throw(500, 'create pool failed, first input donest have outpoint');
     }
@@ -255,9 +252,6 @@ export class TxBuilderService {
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
     const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     if (!inputCells[0].outPoint) {
       ctx.throw('create pool failed, first input donest have outpoint', 500);
     }
@@ -374,12 +368,6 @@ export class TxBuilderService {
     const minCapacity =
       ckb.getBalance() + constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, token);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw(400, `free ckb not enough, required: ${minCapacity}, available: ${collectedCells.inputCapacity}`);
-    }
-    if (collectedCells.inputToken < token.getBalance()) {
-      ctx.throw(400, `free token not enough, required: ${token.balance}, available: ${collectedCells.inputToken}`);
-    }
 
     // Generate genesis request lock script
     const lockArgs = (() => {
@@ -485,12 +473,6 @@ export class TxBuilderService {
       minTokenChangeCapacity +
       txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, tokenDesired);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < tokenDesired.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: tokenDesired.balance });
-    }
 
     // Generate add liquidity request lock script
     const lockArgs = (() => {
@@ -595,12 +577,6 @@ export class TxBuilderService {
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, req.lpTokenAmount.typeScript);
     const minCapacity = constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, req.lpTokenAmount);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < req.lpTokenAmount.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: req.lpTokenAmount.balance });
-    }
 
     // Generate remove liquidity request lock script
     const lockArgs = (() => {
@@ -718,12 +694,6 @@ export class TxBuilderService {
     const minCapacity = constants.SWAP_SELL_REQ_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
 
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, req.tokenInAmount);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < req.tokenInAmount.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: req.tokenInAmount.balance });
-    }
 
     // Generate swap request lock script
     const lockArgs = (() => {
@@ -819,9 +789,6 @@ export class TxBuilderService {
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY + minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
 
     // Generate swap request lock script
     const lockArgs = (() => {
@@ -937,9 +904,6 @@ export class TxBuilderService {
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
     const outputs: Output[] = [];
@@ -1017,9 +981,6 @@ export class TxBuilderService {
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
     const outputs: Output[] = [];
