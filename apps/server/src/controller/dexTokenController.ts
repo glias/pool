@@ -26,7 +26,7 @@ export default class DexTokenController {
     tokens.forEach((x) => {
       result.push(x.toAsset());
       if (x.shadowFrom) {
-        result.push(new Token(null, null, x.shadowFrom, null, null).toAsset());
+        result.push(x.toERC20Token().toAsset());
       }
     });
 

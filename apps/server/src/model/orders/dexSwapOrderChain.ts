@@ -51,13 +51,13 @@ export class DexSwapOrderChain extends DexOrderChain {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
 
       if (this._isIn) {
-        amountIn = new Token(null, null, token.shadowFrom, null, null);
+        amountIn = token.toERC20Token();
         amountOut = token;
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       } else {
         amountIn = token;
-        amountOut = new Token(null, null, token.shadowFrom, null, null);
+        amountOut = token.toERC20Token();
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       }

@@ -17,6 +17,14 @@ export class Token {
     this.balance = balance;
   }
 
+  toERC20Token(): Token {
+    if (!this.shadowFrom) {
+      return null;
+    }
+
+    return new Token(null, null, this.shadowFrom, null, null);
+  }
+
   getBalance(): bigint {
     if (!this.balance) {
       return 0n;
