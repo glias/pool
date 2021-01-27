@@ -19,14 +19,18 @@ export const mysqlInfo: MySqlConnectionConfig = {
 
 export const env = process.env.NODE_ENV || 'development';
 
-export const PW_LOCK_CODE_HASH = process.env.PW_LOCK_CODE_HASH;
-export const PW_LOCK_HASH_TYPE = process.env.PW_LOCK_HASH_TYPE;
-export const SECP256K1_LOCK_CODE_HASH = process.env.SECP256K1_LOCK_CODE_HASH;
-export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE;
-export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
-export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE;
-export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
-export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE;
+export const PW_LOCK_CODE_HASH =
+  process.env.PW_LOCK_CODE_HASH || '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63';
+export const PW_LOCK_HASH_TYPE = process.env.PW_LOCK_HASH_TYPE || 'type';
+export const SECP256K1_LOCK_CODE_HASH =
+  process.env.SECP256K1_LOCK_CODE_HASH || '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8';
+export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE || 'type';
+export const LIQUIDITY_ORDER_LOCK_CODE_HASH =
+  process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH || '0xe29e05537c84f459b706753df58ad8b43c346d7ff7d7926c58237ef9b0a7bbf3';
+export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE || 'data';
+export const SWAP_ORDER_LOCK_CODE_HASH =
+  process.env.SWAP_ORDER_LOCK_CODE_HASH || '0xc632e1aa84105366a4adfb14361164241b1dc68b000218db1e61806bbfc0be57';
+export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE || 'data';
 
 // INFO CELL
 export const INFO_LOCK_CODE_HASH =
@@ -72,7 +76,7 @@ export const POOL_ID: Record<string, string> = {
 
 export const PW_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.PW_LOCK_DEP_TX_HASH,
+    txHash: process.env.PW_LOCK_DEP_TX_HASH || '0x57a62003daeab9d54aa29b944fc3b451213a5ebdf2e232216a3cfed0dde61b38',
     index: '0x0',
   },
   depType: 'code',
@@ -80,7 +84,9 @@ export const PW_LOCK_DEP = {
 
 export const LIQUIDITY_ORDER_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH,
+    txHash:
+      process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH ||
+      '0x1e4b3b77f46a767d65e2af14f5d27c90fca61e1207d416e42493bfb2183229c8',
     index: '0x0',
   },
   depType: 'code',
@@ -88,7 +94,8 @@ export const LIQUIDITY_ORDER_LOCK_DEP = {
 
 export const SWAP_ORDER_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.SWAP_ORDER_LOCK_DEP_TX_HASH,
+    txHash:
+      process.env.SWAP_ORDER_LOCK_DEP_TX_HASH || '0xbc5f82c939129202f32c10fbdc71ab8ed224b8c1fa0a8ebb4f69111b6a6933de',
     index: '0x0',
   },
   depType: 'code',
@@ -96,7 +103,7 @@ export const SWAP_ORDER_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH,
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0xdaaf991904fa940095a515ffc27c6100f8fccc136454a39d0d529b685008cf84',
     index: '0x0',
   },
   depType: 'code',
@@ -104,7 +111,7 @@ export const INFO_TYPE_DEP = {
 
 export const INFO_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.INFO_LOCK_DEP_TX_HASH,
+    txHash: process.env.INFO_LOCK_DEP_TX_HASH || '0x92a1327f94435d4b7bbb11a1f369effb5d02fa997ad9aa5cfc60b788c27ff012',
     index: '0x0',
   },
   depType: 'code',
@@ -112,7 +119,7 @@ export const INFO_LOCK_DEP = {
 
 export const SUDT_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.SUDT_TYPE_DEP_TX_HASH,
+    txHash: process.env.SUDT_TYPE_DEP_TX_HASH || '0xe12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769',
     index: '0x0',
   },
   depType: 'code',
@@ -120,7 +127,8 @@ export const SUDT_TYPE_DEP = {
 
 export const SECP256K1_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.SECP256K1_LOCK_DEP_TX_HASH,
+    txHash:
+      process.env.SECP256K1_LOCK_DEP_TX_HASH || '0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37',
     index: '0x0',
   },
   depType: 'dep_group',
