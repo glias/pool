@@ -12,7 +12,6 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
-import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;

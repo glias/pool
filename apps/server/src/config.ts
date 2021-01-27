@@ -1,7 +1,8 @@
-import * as dex from './model';
+import { HashType } from '@ckb-lumos/base';
 import dotenv from 'dotenv';
 dotenv.config();
 import { MySqlConnectionConfig } from 'knex';
+import * as dex from './model';
 
 export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
@@ -20,13 +21,18 @@ export const env = process.env.NODE_ENV || 'development';
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH = process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_CODE_HASH = process.env.SWAP_ORDER_LOCK_CODE_HASH;
 export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE;
-export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0x0000000000000000000000000000000000000000000000000000000000000011';
+
+// INFO CELL
 export const INFO_LOCK_CODE_HASH =
-  process.env.INFO_LOCK_CODE_HASH || '0x0000000000000000000000000000000000000000000000000000000000000004';
+  process.env.INFO_LOCK_CODE_HASH || '0x10490e5d8c7a5330db3c5067efc79464b2920b1a01db2199737d51a597633e15';
+export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
+
+export const INFO_TYPE_CODE_HASH =
+  process.env.INFO_TYPE_CODE_HASH || '0xb7a3d73a77f315a86381247cd763fa3269b1627cbf696aa24f17b9010cccb04c';
+export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
+
 export const SUDT_TYPE_CODE_HASH =
   process.env.SUDT_TYPE_CODE_HASH || '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4';
-
 export const CKB_STR_TO_HASH =
   process.env.CKB_STR_TO_HASH ||
   '0x636b6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
@@ -45,27 +51,27 @@ export const POOL_INFO_ID: Record<string, string> = {
 export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
   new dex.Script(
     INFO_TYPE_CODE_HASH,
-    'type',
+    INFO_TYPE_HASH_TYPE,
     process.env.GLIA_ID || '0x0000000000000000000000000000000000000000000000000000000000000011',
   ),
   new dex.Script(
     INFO_TYPE_CODE_HASH,
-    'type',
+    INFO_TYPE_HASH_TYPE,
     process.env.CKETH_ID || '0x0000000000000000000000000000000000000000000000000000000000000012',
   ),
   new dex.Script(
     INFO_TYPE_CODE_HASH,
-    'type',
+    INFO_TYPE_HASH_TYPE,
     process.env.CKDAI_ID || '0x0000000000000000000000000000000000000000000000000000000000000013',
   ),
   new dex.Script(
     INFO_TYPE_CODE_HASH,
-    'type',
+    INFO_TYPE_HASH_TYPE,
     process.env.CKUSDC_ID || '0x0000000000000000000000000000000000000000000000000000000000000014',
   ),
   new dex.Script(
     INFO_TYPE_CODE_HASH,
-    'type',
+    INFO_TYPE_HASH_TYPE,
     process.env.CKUSDT_ID || '0x0000000000000000000000000000000000000000000000000000000000000015',
   ),
 ];

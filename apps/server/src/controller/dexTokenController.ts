@@ -1,5 +1,4 @@
 import * as commons from '@gliaswap/commons';
-import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Token, TokenHolderFactory, cellConver, CellInfoSerializationHolderFactory } from '../model';
