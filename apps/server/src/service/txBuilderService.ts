@@ -148,7 +148,7 @@ export class TxBuilderService {
 
     // Generate info type script
     // For testnet, we use default hardcode id for each token pool
-    const id = config.POOL_INFO_ID[reqToken.info.symbol];
+    const id = config.POOL_INFO_TYPE_ARGS[reqToken.info.symbol];
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
     console.log(`pool id: ${infoType.toHash()}`);
 
