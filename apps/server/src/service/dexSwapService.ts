@@ -107,7 +107,7 @@ export class DexSwapService {
       type: type.toLumosScript(),
       order: 'desc',
     };
-    const txs = await this.dexRepository.collectTransactions(queryOptions);
+    const txs = await this.dexRepository.collectTransactions(queryOptions, true);
 
     // const mock = MockRepositoryFactory.getDexRepositoryInstance();
     // mock
