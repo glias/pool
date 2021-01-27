@@ -160,7 +160,7 @@ export default class DexLiquidityPoolController {
       tokenB: Token.fromAsset(assetB as AssetSchema),
       userLock: Script.deserialize(lock),
     };
-    const resp = await this.service.buildCreateTestLiquidityPoolTx(ctx, req);
+    const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = resp.serialize();
