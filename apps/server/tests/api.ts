@@ -15,7 +15,7 @@ const USER_LOCK: CKBComponents.Script = {
   hashType: 'type',
   args: process.env.USER_LOCK_ARGS,
 };
-const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
+// const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
 
 const ckbToken = (amount: bigint) => {
@@ -131,7 +131,7 @@ async function createGenesisTx(tokenSymbol: string) {
     tips: ckbToken(0n),
   };
 
-  console.log(req);
+  // console.log(req);
 
   try {
     const resp = await axios.post('http://127.0.0.1:3000/v1/liquidity-pool/orders/genesis-liquidity', req);
@@ -167,4 +167,4 @@ const address = ckb.utils.privateKeyToAddress(USER_PRIV_KEY, { prefix: AddressPr
 console.log(`use address: ${address}`);
 
 // createTestPool('GLIA');
-createGenesisTx('GLIA');
+// createGenesisTx('GLIA');
