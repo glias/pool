@@ -12,7 +12,6 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
-import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -74,15 +73,16 @@ export class DexSwapService {
       const transaction = await this.dexRepository.getTransaction(tx.ckb_tx_hash);
       txs.push(transaction);
     }
+
     const orders: DexOrderChain[] = [];
     const factory = new DexOrderChainFactory(true);
     txs.forEach((x) => {
-      const cell = x.transaction.outputs.find((y) => y.type !== undefined && y.type.args !== '0x');
-      if (!cell) {
-        return;
-      }
+      // const cell = x.transaction.outputs.find((y) => y.type !== undefined && y.type.args !== '0x');
+      // if (!cell) {
+      //   return;
+      // }
 
-      const pureCrossOrders = factory.getOrderChains(lock, cell.type, [x], bridgeInfoMatch);
+      const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);
       orders.push(pureCrossOrders[0]);
     });
 

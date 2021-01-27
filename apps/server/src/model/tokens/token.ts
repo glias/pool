@@ -114,6 +114,15 @@ export class TokenHolder {
     return new Token(token.typeHash, token.typeScript, token.info, token.shadowFrom, null);
   }
 
+  getTokenByShadowFromAddress(address: string): Token {
+    const token = this.toknes.find((x) => x.shadowFrom && address.toLowerCase() === x.shadowFrom.address.toLowerCase());
+    if (!token) {
+      return null;
+    }
+
+    return new Token(token.typeHash, token.typeScript, token.info, token.shadowFrom, null);
+  }
+
   getTypeScripts(): Script[] {
     return this.toknes
       .filter((x) => x.typeScript !== undefined)
