@@ -45,8 +45,8 @@ export const CKB_STR_TO_HASH =
 export const CKB_TOKEN_TYPE_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 // TODO: refactor to PoolHolder, <Symbol, TypeArgs>
-export const POOL_INFO_ID: Record<string, string> = {
-  GLIA: '0x0000000000000000000000000000000000000000000000000000000000000011',
+export const POOL_INFO_TYPE_ARGS: Record<string, string> = {
+  GLIA: '0x0000000000000000000000000000000000000000000000000000000000000016',
   ckETH: '0x0000000000000000000000000000000000000000000000000000000000000012',
   ckDAI: '0x0000000000000000000000000000000000000000000000000000000000000013',
   ckUSDC: '0x0000000000000000000000000000000000000000000000000000000000000014',
@@ -54,12 +54,20 @@ export const POOL_INFO_ID: Record<string, string> = {
 };
 
 export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.GLIA_ID || POOL_INFO_ID['GLIA']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKETH_ID || POOL_INFO_ID['ckETH']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKDAI_ID || POOL_INFO_ID['ckDAI']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDC_ID || POOL_INFO_ID['ckUSDC']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDT_ID || POOL_INFO_ID['ckUSDT']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.GLIA_ID || POOL_INFO_TYPE_ARGS['GLIA']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKETH_ID || POOL_INFO_TYPE_ARGS['ckETH']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKDAI_ID || POOL_INFO_TYPE_ARGS['ckDAI']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDC_ID || POOL_INFO_TYPE_ARGS['ckUSDC']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDT_ID || POOL_INFO_TYPE_ARGS['ckUSDT']),
 ];
+
+export const POOL_ID: Record<string, string> = {
+  GLIA: POOL_INFO_TYPE_SCRIPT[0].toHash(),
+  ckETH: POOL_INFO_TYPE_SCRIPT[1].toHash(),
+  ckDAI: POOL_INFO_TYPE_SCRIPT[2].toHash(),
+  ckUSDC: POOL_INFO_TYPE_SCRIPT[3].toHash(),
+  ckUSDT: POOL_INFO_TYPE_SCRIPT[4].toHash(),
+};
 
 export const PW_LOCK_DEP = {
   outPoint: {
