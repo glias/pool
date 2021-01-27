@@ -54,11 +54,11 @@ export const POOL_INFO_TYPE_ARGS: Record<string, string> = {
 };
 
 export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.GLIA_ID || POOL_INFO_TYPE_ARGS['GLIA']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKETH_ID || POOL_INFO_TYPE_ARGS['ckETH']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKDAI_ID || POOL_INFO_TYPE_ARGS['ckDAI']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDC_ID || POOL_INFO_TYPE_ARGS['ckUSDC']),
-  new dex.Script(INFO_TYPE_CODE_HASH, 'type', process.env.CKUSDT_ID || POOL_INFO_TYPE_ARGS['ckUSDT']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'data', process.env.GLIA_ID || POOL_INFO_TYPE_ARGS['GLIA']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'data', process.env.CKETH_ID || POOL_INFO_TYPE_ARGS['ckETH']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'data', process.env.CKDAI_ID || POOL_INFO_TYPE_ARGS['ckDAI']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'data', process.env.CKUSDC_ID || POOL_INFO_TYPE_ARGS['ckUSDC']),
+  new dex.Script(INFO_TYPE_CODE_HASH, 'data', process.env.CKUSDT_ID || POOL_INFO_TYPE_ARGS['ckUSDT']),
 ];
 
 export const POOL_ID: Record<string, string> = {
