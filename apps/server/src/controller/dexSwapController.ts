@@ -6,15 +6,17 @@ import { Script } from '../model';
 import * as commons from '@gliaswap/commons';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TransactionToSignSchema } from './swaggerSchema';
-import { cellConver, Token } from '../model';
+import { cellConver, Token, TokenHolder, TokenHolderFactory } from '../model';
 
 const swapTag = tags(['Swap']);
 
 export default class DexSwapController {
   private readonly service: DexSwapService;
+  private readonly tokenHolder: TokenHolder;
 
   constructor() {
     this.service = dexSwapService;
+    this.tokenHolder = TokenHolderFactory.getInstance();
   }
 
   @request('post', '/v1/swap/orders')
@@ -112,6 +114,12 @@ export default class DexSwapController {
 
     if (assetInWithAmount.typeHash != CKB_TYPE_HASH || assetOutWithMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
+    }
+    if (!this.tokenHolder.getTokenByTypeHash(assetInWithAmount.typeHash)) {
+      ctx.throw(400, `asset type hash ${assetInWithAmount.typeHash} not in token list`);
+    }
+    if (!this.tokenHolder.getTokenByTypeHash(assetOutWithMinAmount.typeHash)) {
+      ctx.throw(400, `asset type hash ${assetOutWithMinAmount.typeHash} not in token list`);
     }
     if (assetInWithAmount.balance == undefined || BigInt(assetInWithAmount) == 0n) {
       ctx.throw(400, 'assetInWithAmount balance is zero');
