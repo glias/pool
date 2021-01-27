@@ -112,15 +112,6 @@ export default class DexSwapController {
     const reqBody = ctx.request.body as commons.GenerateSwapTransactionPayload;
     const { assetInWithAmount, assetOutWithMinAmount, lock, tips } = reqBody;
 
-    if (assetInWithAmount.typeHash != CKB_TYPE_HASH || assetOutWithMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'sudt/sudt pool isnt support yet');
-    }
-    if (!this.tokenHolder.getTokenByTypeHash(assetInWithAmount.typeHash)) {
-      ctx.throw(400, `asset type hash ${assetInWithAmount.typeHash} not in token list`);
-    }
-    if (!this.tokenHolder.getTokenByTypeHash(assetOutWithMinAmount.typeHash)) {
-      ctx.throw(400, `asset type hash ${assetOutWithMinAmount.typeHash} not in token list`);
-    }
     if (assetInWithAmount.balance == undefined || BigInt(assetInWithAmount) == 0n) {
       ctx.throw(400, 'assetInWithAmount balance is zero');
     }
@@ -128,9 +119,25 @@ export default class DexSwapController {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
 
+    const [tokenInAmount, tokenOutMinAmount] = [assetInWithAmount, assetOutWithMinAmount].map((asset) => {
+      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
+        ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
+      }
+
+      const token = Token.fromAsset(asset as AssetSchema);
+      if (!token.typeScript) {
+        return token.setTypeScript(this.tokenHolder.getTokenByTypeHash(asset.typeHash).typeScript);
+      } else {
+        return token;
+      }
+    });
+    if (tokenInAmount.typeHash != CKB_TYPE_HASH || tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'sudt/sudt pool isnt support yet');
+    }
+
     const req = {
-      tokenInAmount: Token.fromAsset(assetInWithAmount as AssetSchema),
-      tokenOutMinAmount: Token.fromAsset(assetOutWithMinAmount as AssetSchema),
+      tokenInAmount,
+      tokenOutMinAmount,
       userLock: Script.deserialize(lock),
       tips: Token.fromAsset(tips as AssetSchema),
     };

@@ -25,6 +25,11 @@ export class Token {
     return new Token(null, null, this.shadowFrom, null, null);
   }
 
+  setTypeScript(script: Script): Token {
+    this.typeScript = script;
+    return this;
+  }
+
   getBalance(): bigint {
     if (!this.balance) {
       return 0n;

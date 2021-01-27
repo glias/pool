@@ -137,26 +137,34 @@ export default class DexLiquidityPoolController {
     if (assets.length != 2) {
       ctx.throw(400, 'only support create pool with two liquidity assets now');
     }
-    assets.forEach((asset, idx) => {
-      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
-      }
-      if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
-        ctx.throw(400, 'create pool dont need asset balance');
-      }
-    });
     if (!config.LOCK_DEPS[lock.codeHash]) {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
 
-    const [assetA, assetB] = assets;
-    if (assetA.typeHash != CKB_TYPE_HASH && assetB.typeHash != CKB_TYPE_HASH) {
+    const [tokenA, tokenB] = assets.map(
+      (asset, idx): Token => {
+        if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
+          ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
+        }
+        if (asset.balance != undefined || BigInt(asset.balance) != 0n) {
+          ctx.throw(400, 'create pool dont need asset balance');
+        }
+
+        const token = Token.fromAsset(asset as AssetSchema);
+        if (!token.typeScript) {
+          return token.setTypeScript(this.tokenHolder.getTokenByTypeHash(asset.typeHash).typeScript);
+        } else {
+          return token;
+        }
+      },
+    );
+    if (tokenA.typeHash != CKB_TYPE_HASH && tokenB.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
     const req = {
-      tokenA: Token.fromAsset(assetA as AssetSchema),
-      tokenB: Token.fromAsset(assetB as AssetSchema),
+      tokenA,
+      tokenB,
       userLock: Script.deserialize(lock),
     };
     const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
@@ -253,26 +261,32 @@ export default class DexLiquidityPoolController {
     if (assets.length != 2) {
       ctx.throw(400, 'only support adding liquidity to pool with two assets now');
     }
-    assets.forEach((asset, idx) => {
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenAAmount, tokenBAmount] = assets.map((asset, idx) => {
       if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
         ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
       }
       if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
         ctx.throw(400, 'asset balance is zero');
       }
-    });
-    if (!config.LOCK_DEPS[lock.codeHash]) {
-      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
-    }
 
-    const [assetAAmount, assetBAmount] = assets;
-    if (assetAAmount.typeHash != CKB_TYPE_HASH && assetBAmount.typeHash != CKB_TYPE_HASH) {
+      const token = Token.fromAsset(asset as AssetSchema);
+      if (!token.typeScript) {
+        return token.setTypeScript(this.tokenHolder.getTokenByTypeHash(asset.typeHash).typeScript);
+      } else {
+        return token;
+      }
+    });
+    if (tokenAAmount.typeHash != CKB_TYPE_HASH && tokenBAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
     const req = {
-      tokenAAmount: Token.fromAsset(assetAAmount as AssetSchema),
-      tokenBAmount: Token.fromAsset(assetBAmount as AssetSchema),
+      tokenAAmount,
+      tokenBAmount,
       poolId: poolId,
       userLock: Script.deserialize(lock),
       tips: Token.fromAsset(tips as AssetSchema),
@@ -323,7 +337,11 @@ export default class DexLiquidityPoolController {
     if (assetsWithDesiredAmount.length != 2 || assetsWithMinAmount.length != 2) {
       ctx.throw(400, 'only support adding liquidity to pool with two assets now');
     }
-    assetsWithDesiredAmount.forEach((assetDesire, idx) => {
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenA, tokenB] = assetsWithDesiredAmount.map((assetDesire, idx) => {
       const assetMin = assetsWithMinAmount[idx];
       if (assetDesire.typeHash != assetMin.typeHash) {
         ctx.throw(400, `asset ${idx} type hash mismatch, desired: ${assetDesire.typeHash}, min: ${assetMin.typeHash}`);
@@ -334,23 +352,33 @@ export default class DexLiquidityPoolController {
       if (assetDesire.balance == undefined || BigInt(assetDesire.balance) == 0n) {
         ctx.throw(400, 'asset balance is zero');
       }
+
+      let tokenDesiredAmount = Token.fromAsset(assetDesire as AssetSchema);
+      let tokenMinAmount = Token.fromAsset(assetMin as AssetSchema);
+      if (!tokenDesiredAmount.typeScript) {
+        tokenDesiredAmount = tokenDesiredAmount.setTypeScript(
+          this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash).typeScript,
+        );
+      }
+      if (!tokenMinAmount.typeScript) {
+        tokenMinAmount = tokenMinAmount.setTypeScript(
+          this.tokenHolder.getTokenByTypeHash(assetMin.typeHash).typeScript,
+        );
+      }
+      return [tokenDesiredAmount, tokenMinAmount];
     });
-    if (!config.LOCK_DEPS[lock.codeHash]) {
-      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
-    }
 
-    const [assetAWithDesiredAmount, assetBWithDesiredAmount] = assetsWithDesiredAmount;
-    const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
-
-    if (assetAWithMinAmount.typeHash != CKB_TYPE_HASH && assetBWithDesiredAmount.typeHash != CKB_TYPE_HASH) {
+    const [tokenADesiredAmount, tokenAMinAmount] = tokenA;
+    const [tokenBDesiredAmount, tokenBMinAmount] = tokenB;
+    if (tokenADesiredAmount.typeHash != CKB_TYPE_HASH && tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
     const req = {
-      tokenADesiredAmount: Token.fromAsset(assetAWithDesiredAmount as AssetSchema),
-      tokenAMinAmount: Token.fromAsset(assetAWithMinAmount as AssetSchema),
-      tokenBDesiredAmount: Token.fromAsset(assetBWithDesiredAmount as AssetSchema),
-      tokenBMinAmount: Token.fromAsset(assetBWithMinAmount as AssetSchema),
+      tokenADesiredAmount,
+      tokenAMinAmount,
+      tokenBDesiredAmount,
+      tokenBMinAmount,
       poolId,
       userLock: Script.deserialize(lock),
       tips: Token.fromAsset(tips as AssetSchema),
@@ -399,11 +427,6 @@ export default class DexLiquidityPoolController {
     if (assetsWithMinAmount.length != 2) {
       ctx.throw(400, 'only support removing from pool with two assets now');
     }
-    assetsWithMinAmount.forEach((asset, idx) => {
-      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
-        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
-      }
-    });
     if (lpToken.balance == undefined || BigInt(lpToken.balance) == 0n) {
       ctx.throw(400, 'lp token balance is zero');
     }
@@ -411,15 +434,33 @@ export default class DexLiquidityPoolController {
       ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
     }
 
-    const [assetAWithMinAmount, assetBWithMinAmount] = assetsWithMinAmount;
-    if (assetAWithMinAmount.typeHash != CKB_TYPE_HASH && assetBWithMinAmount.typeHash != CKB_TYPE_HASH) {
+    const [tokenAMinAmount, tokenBMinAmount] = assetsWithMinAmount.map((asset, idx) => {
+      if (!this.tokenHolder.getTokenByTypeHash(asset.typeHash)) {
+        ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
+      }
+
+      const token = Token.fromAsset(asset as AssetSchema);
+      if (!token.typeScript) {
+        return token.setTypeScript(this.tokenHolder.getTokenByTypeHash(asset.typeHash).typeScript);
+      } else {
+        return token;
+      }
+    });
+    if (tokenAMinAmount.typeHash != CKB_TYPE_HASH && tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
+    let lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
+    if (!lpTokenAmount.typeScript) {
+      const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
+      const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(ctx, token);
+      lpTokenAmount = lpTokenAmount.setTypeScript(lpTokenTypeScript);
+    }
+
     const req = {
-      lpTokenAmount: Token.fromAsset(lpToken as AssetSchema),
-      tokenAMinAmount: Token.fromAsset(assetAWithMinAmount as AssetSchema),
-      tokenBMinAmount: Token.fromAsset(assetBWithMinAmount as AssetSchema),
+      lpTokenAmount,
+      tokenAMinAmount,
+      tokenBMinAmount,
       poolId: poolId,
       userLock: Script.deserialize(lock),
       tips: Token.fromAsset(tips as AssetSchema),

@@ -201,7 +201,6 @@ export class DexLiquidityPoolService {
     return await this.txBuilderService.buildCreateLiquidityPool(ctx, req);
   }
 
-  // FIXME: ensure req token type script exists
   public async buildGenesisLiquidityOrderTx(
     ctx: Context,
     req: txBuilder.GenesisLiquidityRequest,
