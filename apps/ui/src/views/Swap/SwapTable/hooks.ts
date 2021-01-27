@@ -8,11 +8,13 @@ import {
   ShadowOfEthWithBalance,
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
+import BigNumber from 'bignumber.js';
 import { useGliaswapAssets } from 'contexts';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
 import { useSwapContainer } from '../context';
+import { calcBalance, calcPrice, calcPriceImpact } from './fee';
 
 export const useSwapTable = ({
   form,
@@ -25,7 +27,7 @@ export const useSwapTable = ({
   tokenA: GliaswapAssetWithBalance;
   tokenB: GliaswapAssetWithBalance;
 }) => {
-  const { setTokenA, setTokenB, setPay, setReceive, togglePair } = useSwapContainer();
+  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive } = useSwapContainer();
   const { ckbNativeAsset, ethNativeAsset } = useGliaswapAssets();
   const [isPayInvalid, setIsPayInvalid] = useState(true);
   const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
@@ -33,6 +35,19 @@ export const useSwapTable = ({
   const disabled = useMemo(() => {
     return isPayInvalid || isReceiveInvalid;
   }, [isPayInvalid, isReceiveInvalid]);
+
+  const payReserve = useMemo(() => {
+    return new BigNumber(10).pow(18).times(1).toString();
+  }, []);
+
+  const receiveReserve = useMemo(() => {
+    return new BigNumber(10).pow(8).times(10000).toString();
+  }, []);
+
+  useEffect(() => {
+    setTokenA((t) => calcBalance(pay, t));
+    setTokenB((t) => calcBalance(receive, t));
+  }, [pay, receive, setTokenA, setTokenB]);
 
   // init pair
   useEffect(() => {
@@ -50,6 +65,21 @@ export const useSwapTable = ({
     setIsReceiveInvalid(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenA.symbol, tokenB.symbol]);
+
+  const isBid = useMemo(() => {
+    return isCkbNativeAsset(tokenA);
+  }, [tokenA]);
+
+  const price = useMemo(() => {
+    return calcPrice(pay, receive, isBid);
+  }, [pay, receive, isBid]);
+
+  const priceImpact = useMemo(() => {
+    if (isBid) {
+      return calcPriceImpact(payReserve, receiveReserve, price, tokenB.decimals);
+    }
+    return calcPriceImpact(receiveReserve, payReserve, price, tokenA.decimals);
+  }, [payReserve, receiveReserve, price, isBid, tokenA.decimals, tokenB.decimals]);
 
   const findShadowAsset = useCallback(
     (erc20: EthErc20AssetWithBalance) => {
@@ -164,5 +194,10 @@ export const useSwapTable = ({
     setIsPayInvalid,
     setIsReceiveInvalid,
     disabled,
+    isBid,
+    price,
+    priceImpact,
+    payReserve,
+    receiveReserve,
   };
 };

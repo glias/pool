@@ -4,7 +4,14 @@
       "order-table": {
         "you-pay": "You Pay",
         "you-receive": "You Receive",
-        "swap": "Swap"
+        "swap": "Swap",
+        "price": "Price",
+        "min-receive": "Minimum Received",
+        "price-impact": "Price Impact",
+        "swap-fee": "Swap Fee",
+        "min-receive-desc": "The minimum amount you will receive if swapping successfully",
+        "price-impact-desc": "The different between the market price and estimated price due to trade size",
+        "swap-fee-desc": "0.3% of this swap goes to Liquidity providers as the incentives（ 0.1% fee of this swap goes to cross-chain relayer as the incentives)"
       },
       "order-list": {
         "title": "My Pending Requests",

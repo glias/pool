@@ -9,13 +9,15 @@ import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
+import { EthErc20AssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { useGliaswap } from 'contexts';
 import { useSwapTable } from './hooks';
 import { getValidBalanceString } from 'utils';
+import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
+import { InfoTable } from './InfoTable';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -42,9 +44,7 @@ export const SwapTable: React.FC = () => {
     swapMode,
     setPay,
     setReceive,
-    setTokenA,
     tokenA,
-    setTokenB,
     tokenB,
     setCurrentEthTx,
     setCurrentTx,
@@ -66,15 +66,6 @@ export const SwapTable: React.FC = () => {
 
   const { web3 } = adapter.raw;
 
-  const getBalance = useCallback(
-    (field: string, asset: GliaswapAssetWithBalance) => {
-      const val = form.getFieldValue(field);
-      const decimal = +asset.decimals;
-      return new BigNumber(val).times(10 ** decimal).toFixed(decimal, BigNumber.ROUND_DOWN);
-    },
-    [form],
-  );
-
   const {
     onReceiveSelect,
     onPaySelectAsset,
@@ -84,6 +75,10 @@ export const SwapTable: React.FC = () => {
     setIsPayInvalid,
     setIsReceiveInvalid,
     disabled,
+    payReserve,
+    receiveReserve,
+    price,
+    priceImpact,
   } = useSwapTable({
     form,
     tokenA,
@@ -92,41 +87,21 @@ export const SwapTable: React.FC = () => {
   });
 
   const swapCrossChain = useCallback(async () => {
-    const balanceA = getBalance('pay', tokenA!);
-    const balanceB = getBalance('receive', tokenB!);
-    const newTokenA: GliaswapAssetWithBalance = { ...tokenA, balance: balanceA };
-    const newTokenB: GliaswapAssetWithBalance = { ...tokenB, balance: balanceB };
-    setTokenA(newTokenA);
-    setTokenB(newTokenB);
     if (swapMode === SwapMode.CrossIn) {
       const { data } = await bridgeAPI.shadowAssetCrossIn(
-        newTokenA as EthErc20AssetWithBalance,
+        tokenA as EthErc20AssetWithBalance,
         ckbAddress,
         ethAddress,
         web3!,
       );
       setCurrentEthTx(data);
     } else {
-      const { data } = await bridgeAPI.shadowAssetCrossOut(newTokenA as ShadowOfEthWithBalance, ckbAddress, ethAddress);
+      const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowOfEthWithBalance, ckbAddress, ethAddress);
       const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
       setCurrentTx(tx);
     }
     setReviewModalVisable(true);
-  }, [
-    setReviewModalVisable,
-    setTokenA,
-    tokenA,
-    setTokenB,
-    tokenB,
-    getBalance,
-    swapMode,
-    bridgeAPI,
-    ckbAddress,
-    ethAddress,
-    web3,
-    setCurrentEthTx,
-    setCurrentTx,
-  ]);
+  }, [bridgeAPI, ckbAddress, ethAddress, setCurrentEthTx, setCurrentTx, setReviewModalVisable, swapMode, tokenA, web3]);
 
   const onSubmit = useCallback(async () => {
     setIsFetchingOrder(true);
@@ -135,9 +110,6 @@ export const SwapTable: React.FC = () => {
         await swapCrossChain();
       }
     } catch (error) {
-      // if (process.env.NODE_ENV === 'development') {
-      //   throw new Error(error);
-      // }
       Modal.error({
         title: 'Build Transaction',
         content: error.message,
@@ -147,50 +119,72 @@ export const SwapTable: React.FC = () => {
     }
   }, [swapCrossChain, swapMode, setIsFetchingOrder]);
 
-  const fillFormWithPay = useCallback(
+  const fillReceiveWithPay = useCallback(
     (val: string, setSelf = false) => {
       if (setSelf) {
         form.setFieldsValue({ pay: val });
-      }
-      if (swapMode === SwapMode.CrossIn) {
         setPay(val);
+      }
+
+      if (swapMode === SwapMode.CrossIn) {
         form.setFieldsValue({ receive: val });
+        setReceive(val);
       } else if (swapMode === SwapMode.CrossOut) {
-        const v = getValidBalanceString(new BigNumber(val).times(1 - CROSS_CHAIN_FEE), tokenA.decimals);
-        setPay(v);
+        const receive = getValidBalanceString(new BigNumber(val).times(1 - CROSS_CHAIN_FEE), tokenA.decimals);
         form.setFieldsValue({
-          receive: v,
+          receive,
         });
+        setReceive(receive);
+      } else {
+        const pay = getValueFromInput(val, tokenA.decimals);
+        const receive = pay
+          ? getInputFromValue(calcReceiveWithPay(pay, payReserve, receiveReserve), tokenB.decimals)
+          : '';
+        form.setFieldsValue({
+          receive,
+        });
+        setReceive(receive);
       }
       form.validateFields(['receive']);
     },
-    [setPay, swapMode, form, tokenA.decimals],
+    [swapMode, form, tokenA.decimals, setPay, setReceive, payReserve, receiveReserve, tokenB.decimals],
   );
 
   const payOnChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
-      fillFormWithPay(val);
+      setPay(val);
+      fillReceiveWithPay(val);
     },
-    [fillFormWithPay],
+    [fillReceiveWithPay, setPay],
   );
 
   const receiveOnChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
+      setReceive(val);
       if (swapMode === SwapMode.CrossIn) {
-        setReceive(val);
         form.setFieldsValue({ pay: val });
+        setPay(val);
       } else if (swapMode === SwapMode.CrossOut) {
-        const v = getValidBalanceString(new BigNumber(val).div(1 - CROSS_CHAIN_FEE), tokenA.decimals);
-        setReceive(v);
+        const pay = getValidBalanceString(new BigNumber(val).div(1 - CROSS_CHAIN_FEE), tokenA.decimals);
         form.setFieldsValue({
-          pay: v,
+          pay,
         });
+        setPay(pay);
+      } else {
+        const receive = getValueFromInput(val, tokenB.decimals);
+        const pay = receive
+          ? getInputFromValue(calcPayWithReceive(receive, payReserve, receiveReserve), tokenA.decimals)
+          : '';
+        form.setFieldsValue({
+          pay,
+        });
+        setPay(pay);
       }
       form.validateFields(['pay']);
     },
-    [setReceive, swapMode, form, tokenA.decimals],
+    [setReceive, swapMode, form, tokenA.decimals, setPay, tokenB.decimals, payReserve, receiveReserve],
   );
 
   const checkPay = useCallback(
@@ -252,20 +246,13 @@ export const SwapTable: React.FC = () => {
 
   return (
     <Block>
-      <FormContainer
-        form={form}
-        layout="vertical"
-        onChange={() => {
-          const err = form.getFieldsError(['pay', 'receive']);
-          console.log(err, 'fuck');
-        }}
-      >
+      <FormContainer form={form} layout="vertical">
         <InputNumber
           label={i18n.t('swap.order-table.you-pay')}
           name="pay"
           max={payMax}
           assets={assets.value}
-          setMax={(max) => fillFormWithPay(max, true)}
+          setMax={(max) => fillReceiveWithPay(max, true)}
           renderKeys={(a) => a.symbol}
           inputProps={{
             onChange: payOnChange,
@@ -310,6 +297,9 @@ export const SwapTable: React.FC = () => {
             bold: true,
           }}
         />
+        {disabled ? null : (
+          <InfoTable tokenA={tokenA} tokenB={tokenB} price={price} priceImpact={priceImpact} swapMode={swapMode} />
+        )}
         <Form.Item className="submit">
           {!shouldApprove ? (
             <ConfirmButton
