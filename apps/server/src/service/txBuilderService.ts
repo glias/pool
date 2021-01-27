@@ -150,7 +150,10 @@ export class TxBuilderService {
     // For testnet, we use default hardcode id for each token pool
     const id = config.POOL_INFO_TYPE_ARGS[reqToken.info.symbol];
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
-    console.log(`pool id: ${infoType.toHash()}`);
+    const infoTypeHash = infoType.toHash();
+    if (infoTypeHash != config.POOL_ID[reqToken.info.symbol]) {
+      ctx.throw(400, `created test pool id don't match one in config, ${reqToken.info.symbol} id: ${infoTypeHash}`);
+    }
 
     // Generate info lock script
     const typeHash = infoType.toHash().slice(2);
