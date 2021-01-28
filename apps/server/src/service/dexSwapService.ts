@@ -56,7 +56,7 @@ export class DexSwapService {
     ethAddress: string,
     bridgeInfoMatch: BridgeInfoMatchChain,
   ): Promise<DexOrderChain[]> {
-    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, true);
+    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
     const txs: TransactionWithStatus[] = [];
     for (const tx of pureCrossTxs.ckb_to_eth) {
       if (tx.status !== 'success') {
@@ -73,15 +73,16 @@ export class DexSwapService {
       const transaction = await this.dexRepository.getTransaction(tx.ckb_tx_hash);
       txs.push(transaction);
     }
+
     const orders: DexOrderChain[] = [];
     const factory = new DexOrderChainFactory(true);
     txs.forEach((x) => {
-      const cell = x.transaction.outputs.find((y) => y.type !== undefined && y.type.args !== '0x');
-      if (!cell) {
-        return;
-      }
+      // const cell = x.transaction.outputs.find((y) => y.type !== undefined && y.type.args !== '0x');
+      // if (!cell) {
+      //   return;
+      // }
 
-      const pureCrossOrders = factory.getOrderChains(lock, cell.type, [x], bridgeInfoMatch);
+      const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);
       orders.push(pureCrossOrders[0]);
     });
 
@@ -89,9 +90,9 @@ export class DexSwapService {
   }
 
   private async getBridgeInfoMatch(lock: Script, ethAddress: string): Promise<BridgeInfoMatchChain> {
-    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, true);
-    const crossChainOrderTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress, false);
-    return BridgeInfoMatchChainFactory.getInstance(pureCrossTxs, crossChainOrderTxs);
+    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    // const crossChainOrderTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    return BridgeInfoMatchChainFactory.getInstance(pureCrossTxs);
   }
 
   private async getOrders(
@@ -107,7 +108,7 @@ export class DexSwapService {
       type: type.toLumosScript(),
       order: 'desc',
     };
-    const txs = await this.dexRepository.collectTransactions(queryOptions);
+    const txs = await this.dexRepository.collectTransactions(queryOptions, true);
 
     // const mock = MockRepositoryFactory.getDexRepositoryInstance();
     // mock

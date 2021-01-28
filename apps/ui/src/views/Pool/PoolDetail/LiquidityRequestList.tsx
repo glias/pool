@@ -2,7 +2,7 @@ import { LiquidityOrderSummary } from '@gliaswap/commons';
 import { Divider, Empty, Skeleton } from 'antd';
 import { AssetBalanceList } from 'components/Asset/AssetBlanaceList';
 import { Section, SpaceBetweenRow } from 'components/Layout';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import { exploreTypeHash } from 'envs';
 import i18n from 'i18n';
 import React from 'react';

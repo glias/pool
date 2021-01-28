@@ -12,7 +12,7 @@ import { RequestFeeLabel } from './components/RequestFeeLabel';
 
 interface RemoveLiquidityProps {
   poolLiquidity: LiquidityInfo;
-  lockLiquidity: LiquidityInfo;
+  userLiquidity: LiquidityInfo;
 }
 
 const RemoveLiquidityWrapper = styled.div`
@@ -47,14 +47,14 @@ const ReceiveAssets = styled(AssetBalanceList)`
 
 export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
   const [removePercent, setRemovePercent] = useState(0); /* 0 - 100 */
-  const lockLiquidity = props.lockLiquidity;
+  const userLiquidity = props.userLiquidity;
 
   const assetsWithRemoveLiquidityBalance = useMemo(
     () =>
-      lockLiquidity.assets.map((asset) =>
+      userLiquidity.assets.map((asset) =>
         update(asset, { balance: (balance) => new BigNumber(balance).times(removePercent / 100).toString() }),
       ),
-    [lockLiquidity.assets, removePercent],
+    [userLiquidity.assets, removePercent],
   );
 
   const RemovePercentButton: React.FC<{ value: number; display?: string }> = ({ display, value }) => {

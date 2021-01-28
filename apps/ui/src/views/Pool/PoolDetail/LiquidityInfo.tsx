@@ -13,7 +13,7 @@ interface LiquidityInfoProps {
 }
 
 export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
-  const { poolLiquidityQuery, lockLiquidityQuery } = useLiquidityQuery();
+  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery();
 
   if (poolLiquidityQuery.isLoading) {
     return (
@@ -24,7 +24,7 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
   }
 
   const poolLiquidity = poolLiquidityQuery.data;
-  const lockLiquidity = lockLiquidityQuery.data;
+  const userLiquidity = userLiquidityQuery.data;
 
   return (
     <Section>
@@ -45,8 +45,8 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Your LP Token')}</div>
         <div>
-          {lockLiquidity?.lpToken ? (
-            <HumanizeBalance asset={lockLiquidity.lpToken} value={lockLiquidity.lpToken.balance} />
+          {userLiquidity?.lpToken ? (
+            <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
           ) : (
             '-'
           )}
@@ -54,12 +54,12 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool Share')}</div>
-        <div>{lockLiquidity?.share ? (lockLiquidity.share * 100).toFixed(2) + ' %' : '-'} </div>
+        <div>{userLiquidity?.share ? (userLiquidity.share * 100).toFixed(2) + ' %' : '-'} </div>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Your Liquidity')}</div>
         <div>
-          <AssetBalanceList assets={lockLiquidity?.assets ?? []} hideSymbolIcon />
+          <AssetBalanceList assets={userLiquidity?.assets ?? []} hideSymbolIcon />
         </div>
       </SpaceBetweenRow>
     </Section>

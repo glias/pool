@@ -1,5 +1,9 @@
-import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { cellConver, Script, Token } from '../model';
+import * as commons from '@gliaswap/commons';
+import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
+
+import * as config from '../config';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { cellConver, Script, Token, TokenHolderFactory, TokenHolder } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
@@ -7,9 +11,11 @@ const liquidityTag = tags(['Liquidity']);
 
 export default class DexLiquidityPoolController {
   private readonly service: DexLiquidityPoolService;
+  private readonly tokenHolder: TokenHolder;
 
   constructor() {
     this.service = dexLiquidityPoolService;
+    this.tokenHolder = TokenHolderFactory.getInstance();
   }
 
   @request('post', '/v1/liquidity-pool')
@@ -43,8 +49,8 @@ export default class DexLiquidityPoolController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: false },
-    limit: { type: 'number', required: true },
-    skip: { type: 'number', required: true },
+    limit: { type: 'number', required: false },
+    skip: { type: 'number', required: false },
   })
   public async getLiquidityPools(ctx: Context): Promise<void> {
     const req = <{ lock: Script; limit: number; skip: number }>ctx.request.body;
@@ -121,60 +127,44 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
   })
   public async createLiquidityPool(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CreateLiquidityPoolRequest>ctx.request.body;
+    const { assets, lock } = ctx.request.body as commons.GenerateCreateLiquidityPoolTransactionPayload;
+
+    if (assets.length != 2) {
+      ctx.throw(400, 'only support create pool with two liquidity assets now');
+    }
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenA, tokenB] = assets.map(
+      (asset, idx): Token => {
+        if (asset.balance != undefined && BigInt(asset.balance) != 0n) {
+          ctx.throw(400, 'create pool dont need asset balance');
+        }
+
+        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        if (!token) {
+          ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
+        }
+
+        return token;
+      },
+    );
+    if (tokenA.typeHash != CKB_TYPE_HASH && tokenB.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
+
     const req = {
-      tokenA: Token.deserialize(reqBody.tokenA),
-      tokenB: Token.deserialize(reqBody.tokenB),
-      userLock: Script.deserialize(reqBody.userLock),
+      tokenA,
+      tokenB,
+      userLock: Script.deserialize(lock),
     };
     const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
-
-    ctx.status = 200;
-    ctx.body = resp.serialize();
-  }
-
-  @request('post', '/v1/liquidity-pool/create-test')
-  @summary('Create test liquidity pool tx')
-  @description('Create test liquidity pool tx')
-  @liquidityTag
-  @responses({
-    200: {
-      description: 'success',
-      schema: {
-        type: 'object',
-        properties: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tx: { type: 'object', properties: (TransactionToSignSchema as any).swaggerDocument, required: true },
-          fee: { type: 'string', required: true },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          lpToken: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-        },
-      },
-    },
-  })
-  @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenA: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenB: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-  })
-  public async createTestLiquidityPool(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CreateLiquidityPoolRequest>ctx.request.body;
-    const req = {
-      tokenA: Token.deserialize(reqBody.tokenA),
-      tokenB: Token.deserialize(reqBody.tokenB),
-      userLock: Script.deserialize(reqBody.userLock),
-    };
-    const resp = await this.service.buildCreateTestLiquidityPoolTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = resp.serialize();
@@ -255,23 +245,49 @@ export default class DexLiquidityPoolController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.GenesisLiquidityRequest>ctx.request.body;
+    const { assets, lock, poolId, tips } = ctx.request.body as commons.GenerateGenesisLiquidityTransactionPayload;
+
+    if (assets.length != 2) {
+      ctx.throw(400, 'only support adding liquidity to pool with two assets now');
+    }
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenAAmount, tokenBAmount] = assets.map(
+      (asset, idx): Token => {
+        if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
+          ctx.throw(400, 'asset balance is zero');
+        }
+
+        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        if (!token) {
+          ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
+        }
+        token = token.clone();
+        token.balance = asset.balance;
+
+        return token;
+      },
+    );
+    if (tokenAAmount.typeHash != CKB_TYPE_HASH && tokenBAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
+
     const req = {
-      tokenAAmount: Token.deserialize(reqBody.tokenAAmount),
-      tokenBAmount: Token.deserialize(reqBody.tokenBAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      tokenAAmount,
+      tokenBAmount,
+      poolId: poolId,
+      userLock: Script.deserialize(lock),
+      tips: Token.fromAsset(tips as AssetSchema),
     };
     const txWithFee = await this.service.buildGenesisLiquidityOrderTx(ctx, req);
 
@@ -297,30 +313,70 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
+    assetsWithDesiredAmount: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    },
+    assetsWithMinAmount: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenADesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBDesiredAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.AddLiquidityRequest>ctx.request.body;
+    const reqBody = ctx.request.body as commons.GenerateAddLiquidityTransactionPayload;
+    const { assetsWithDesiredAmount, assetsWithMinAmount, lock, poolId, tips } = reqBody;
+    if (assetsWithDesiredAmount.length != 2 || assetsWithMinAmount.length != 2) {
+      ctx.throw(400, 'only support adding liquidity to pool with two assets now');
+    }
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenA, tokenB] = assetsWithDesiredAmount.map((assetDesire, idx): Token[] => {
+      const assetMin = assetsWithMinAmount[idx];
+      if (assetDesire.typeHash != assetMin.typeHash) {
+        ctx.throw(400, `asset ${idx} type hash mismatch, desired: ${assetDesire.typeHash}, min: ${assetMin.typeHash}`);
+      }
+      if (assetDesire.balance == undefined || BigInt(assetDesire.balance) == 0n) {
+        ctx.throw(400, 'asset ${idx} desired balance is zero');
+      }
+      if (assetMin.balance == undefined || BigInt(assetMin.balance) == 0n) {
+        ctx.throw(400, 'asset ${idx} min balance is zero');
+      }
+
+      const tokenDesiredAmount = this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash);
+      if (!tokenDesiredAmount) {
+        ctx.throw(400, `asset ${idx} type hash: ${assetDesire.typeHash} not in token list`);
+      }
+
+      const tokenMinAmount = tokenDesiredAmount.clone();
+      tokenDesiredAmount.balance = assetDesire.balance;
+      tokenMinAmount.balance = assetMin.balance;
+
+      return [tokenDesiredAmount, tokenMinAmount];
+    });
+
+    const [tokenADesiredAmount, tokenAMinAmount] = tokenA;
+    const [tokenBDesiredAmount, tokenBMinAmount] = tokenB;
+    if (tokenADesiredAmount.typeHash != CKB_TYPE_HASH && tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
+
     const req = {
-      tokenADesiredAmount: Token.deserialize(reqBody.tokenADesiredAmount),
-      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
-      tokenBDesiredAmount: Token.deserialize(reqBody.tokenBDesiredAmount),
-      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      tokenADesiredAmount,
+      tokenAMinAmount,
+      tokenBDesiredAmount,
+      tokenBMinAmount,
+      poolId,
+      userLock: Script.deserialize(lock),
+      tips: Token.fromAsset(tips as AssetSchema),
     };
     const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
 
@@ -328,7 +384,7 @@ export default class DexLiquidityPoolController {
     ctx.body = txWithFee.serialize();
   }
 
-  @request('post', '/v1/liquidity-pool/liquidity/remove-liquidity')
+  @request('post', '/v1/liquidity-pool/orders/remove-liquidity')
   @summary('Create remove liquidity order tx')
   @description('Create remove liquidity order tx')
   @liquidityTag
@@ -346,27 +402,75 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
+    assetsWithMinAmount: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lpTokenAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenAMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tokenBMinAmount: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.RemoveLiquidityRequest>ctx.request.body;
+    const reqBody = ctx.request.body as commons.GenerateRemoveLiquidityTransactionPayload;
+    const { assetsWithMinAmount, lock, lpToken, poolId, tips } = reqBody;
+
+    if (assetsWithMinAmount.length != 2) {
+      ctx.throw(400, 'only support removing from pool with two assets now');
+    }
+    if (lpToken.balance == undefined || BigInt(lpToken.balance) == 0n) {
+      ctx.throw(400, 'lp token balance is zero');
+    }
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenAMinAmount, tokenBMinAmount] = assetsWithMinAmount.map(
+      (asset, idx): Token => {
+        if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
+          ctx.throw(400, `asset ${idx} type hash ${asset.typeHash}'s balance is zero`);
+        }
+
+        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        if (!token) {
+          ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
+        }
+        token = token.clone();
+        token.balance = asset.balance;
+
+        return token;
+      },
+    );
+    if (tokenAMinAmount.typeHash != CKB_TYPE_HASH && tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'pool without ckb isnt support yet');
+    }
+
+    const lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
+    if (!lpTokenAmount.typeScript) {
+      const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
+      if (!token.info.symbol) {
+        ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
+      }
+      if (!config.POOL_INFO_TYPE_ARGS[token.info.symbol]) {
+        ctx.throw(400, `token ${token.info.symbol} type args not in config`);
+      }
+
+      const infoTypeScriptArgs = config.POOL_INFO_TYPE_ARGS[token.info.symbol];
+      const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
+      lpTokenAmount.typeScript = lpTokenTypeScript;
+    }
+
     const req = {
-      lpTokenAmount: Token.deserialize(reqBody.lpTokenAmount),
-      tokenAMinAmount: Token.deserialize(reqBody.tokenAMinAmount),
-      tokenBMinAmount: Token.deserialize(reqBody.tokenBMinAmount),
-      poolId: reqBody.poolId,
-      userLock: Script.deserialize(reqBody.userLock),
-      tips: Token.deserialize(reqBody.tips),
+      lpTokenAmount,
+      tokenAMinAmount,
+      tokenBMinAmount,
+      poolId: poolId,
+      userLock: Script.deserialize(lock),
+      tips: Token.fromAsset(tips as AssetSchema),
     };
     const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
 
@@ -394,13 +498,18 @@ export default class DexLiquidityPoolController {
   @body({
     txHash: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userLock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
-    const reqBody = <txBuilder.CancelOrderRequest>ctx.request.body;
+    const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
     const req = {
-      txHash: reqBody.txHash,
-      userLock: Script.deserialize(reqBody.userLock),
+      txHash,
+      userLock: Script.deserialize(lock),
       requestType: txBuilder.CancelRequestType.Liquidity,
     };
     const txWithFee = await this.service.buildCancelOrderTx(ctx, req);

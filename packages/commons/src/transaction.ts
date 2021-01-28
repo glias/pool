@@ -37,6 +37,11 @@ export type SerializedTransactionToSignWithFee = {
   fee: string;
 };
 
+export type Gen = {
+  transactionToSign: SerializedTransactonToSign;
+  fee: string;
+};
+
 function deserializeScript(script: CKBComponents.Script): Script {
   const hashType = script.hashType === 'type' ? HashType.type : HashType.data;
   return new Script(script.codeHash, script.args, hashType);

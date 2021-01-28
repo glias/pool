@@ -4,15 +4,17 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import Web3 from 'web3';
 import {
   Asset,
+  CkbAsset,
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
-  LiquidityAssetWithBalance,
   LiquidityInfo,
   LiquidityOrderSummary,
+  LPTokenWithBalance,
   Maybe,
   PoolInfo,
   Script,
   SerializedTransactionToSignWithFee,
+  SerializedTransactonToSign,
 } from '../';
 
 export interface LiquidityPoolFilter {
@@ -29,18 +31,50 @@ export interface LiquidityOrderSummaryFilter {
   lock: Script;
 }
 
-export interface GenerateAddLiquidityTransactionPayload {
+export interface GenerateCreateLiquidityPoolTransactionPayload {
+  lock: Script;
+  assets: CkbAssetWithBalance[];
+}
+
+export interface GenerateCreateLiquidityPoolTransactionResponse {
+  transactionToSign: SerializedTransactonToSign;
+  fee: string;
+  lpToken: CkbAsset;
+}
+
+export interface GenerateGenesisLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
   assets: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
+}
+
+export interface GenerateAddLiquidityTransactionPayload {
+  poolId: string;
+  lock: Script;
+  assetsWithDesiredAmount: CkbAssetWithBalance[];
+  assetsWithMinAmount: CkbAssetWithBalance[];
+  tips: CkbAssetWithBalance;
 }
 
 export interface GenerateRemoveLiquidityTransactionPayload {
   poolId: string;
   lock: Script;
-  // minimum receiving share
-  assets: CkbAssetWithBalance[];
-  lpToken: LiquidityAssetWithBalance;
+  assetsWithMinAmount: CkbAssetWithBalance[];
+  lpToken: LPTokenWithBalance;
+  tips: CkbAssetWithBalance;
+}
+
+export interface GenerateSwapTransactionPayload {
+  assetInWithAmount: CkbAssetWithBalance;
+  assetOutWithMinAmount: CkbAssetWithBalance;
+  lock: Script;
+  tips: CkbAssetWithBalance;
+}
+
+export interface GenerateCancelRequestTransactionPayload {
+  txHash: string;
+  lock: Script;
 }
 
 export interface GliaswapAPI {
@@ -88,11 +122,27 @@ export interface GliaswapAPI {
   ) => Promise<{ tx: Transaction }>;
 
   // TODO generate transaction and the other data API
+  generateCreateLiquidityPoolTransaction: (
+    payload: GenerateCreateLiquidityPoolTransactionPayload,
+  ) => Promise<GenerateCreateLiquidityPoolTransactionResponse>;
+
+  generateGenesisLiquidityTransaction: (
+    payload: GenerateGenesisLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
   generateAddLiquidityTransaction: (
     payload: GenerateAddLiquidityTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
-  generateRemoveLiquidityTransaction: () => Promise<SerializedTransactionToSignWithFee>;
+  generateRemoveLiquidityTransaction: (
+    payload: GenerateRemoveLiquidityTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateSwapTransaction: (payload: GenerateSwapTransactionPayload) => Promise<SerializedTransactionToSignWithFee>;
+
+  generateCancelRequestTransaction: (
+    payload: GenerateCancelRequestTransactionPayload,
+  ) => Promise<SerializedTransactionToSignWithFee>;
 
   cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;
 }

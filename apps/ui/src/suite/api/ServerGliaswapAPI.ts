@@ -4,6 +4,7 @@ import {
   CkbSudtAssetWithBalance,
   EthErc20Asset,
   EthNativeAssetWithBalance,
+  GenerateAddLiquidityTransactionPayload,
   getCkbChainSpec,
   GliaswapAPI,
   GliaswapAssetWithBalance,
@@ -57,8 +58,15 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve({} as any);
   }
 
-  generateAddLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
-    return Promise.resolve({} as any);
+  async generateAddLiquidityTransaction(
+    payload: GenerateAddLiquidityTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    const res = await this.axios.post<SerializedTransactionToSignWithFee>(
+      '/liquidity-pool/orders/add-liquidity',
+      payload,
+    );
+
+    return res.data;
   }
 
   generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
@@ -138,8 +146,9 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return api.getLiquidityInfo();
   }
 
-  getLiquidityPools(_filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
-    return api.getLiquidityPools();
+  async getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
+    const res = await this.axios.post<PoolInfo[]>('/liquidity-pool', filter);
+    return res.data;
   }
 
   getRemoveLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {

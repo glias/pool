@@ -1,7 +1,14 @@
-import * as blake2bWasm from 'blake2b-wasm';
+import { blake2b as blake2bUtil } from '@nervosnetwork/ckb-sdk-utils';
 
-export function blake2b(data: string[]): string {
-  const hasher = blake2bWasm(32, null, null, Buffer.from('ckb-default-hash'));
-  data.map(Buffer.from).forEach(hasher.update);
+export function blake2b(hexData: string[]): string {
+  const hasher = blake2bUtil(32, null, null, Buffer.from('ckb-default-hash'));
+  for (const str of hexData) {
+    if (str.startsWith('0x')) {
+      hasher.update(Buffer.from(str.slice(2), 'hex'));
+    } else {
+      hasher.update(Buffer.from(str));
+    }
+  }
+
   return `0x${hasher.digest('hex')}`;
 }

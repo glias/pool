@@ -3,7 +3,7 @@ import { AssetDetail } from 'components/AssetManager/AssetsDetail';
 import { Provider as AssetManagerProvider, useAssetManager } from 'components/AssetManager/hooks';
 import { Receive } from 'components/AssetManager/Receive';
 import { Send } from 'components/AssetManager/Send';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import React, { useEffect, useMemo } from 'react';
 import { MemoryRouter, Route, Switch, useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';

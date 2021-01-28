@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@rehooks/local-storage';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 
 export type GliaswapGlobalSetting = { slippage: number };
 

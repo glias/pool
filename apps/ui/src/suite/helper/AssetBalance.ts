@@ -7,8 +7,8 @@ abstract class CommonsBalance {
   assetDecimals: number;
 
   protected constructor(value: BigNumber.Value, assetDecimals: number) {
-    this.value = BN(value);
     this.assetDecimals = assetDecimals;
+    this.value = BN(value).decimalPlaces(assetDecimals, BigNumber.ROUND_DOWN);
   }
 }
 
@@ -17,8 +17,12 @@ export class BalanceWithDecimal extends CommonsBalance {
     return new BalanceWithDecimal(value, assetDecimals);
   }
 
-  static fromAssetWithBalance(asset: AssetWithBalance): BalanceWithDecimal {
-    return BalanceWithoutDecimal.fromAssetWithBalance(asset).withDecimal();
+  static fromAsset(asset: AssetWithBalance): BalanceWithDecimal {
+    return BalanceWithoutDecimal.fromAsset(asset).withDecimal();
+  }
+
+  newValue(this: BalanceWithDecimal, value: BigNumber.Value): BalanceWithDecimal {
+    return new BalanceWithDecimal(value, this.assetDecimals);
   }
 
   toHumanize(decimalPlaces = 4): string {
@@ -35,8 +39,12 @@ export class BalanceWithoutDecimal extends CommonsBalance {
     return new BalanceWithoutDecimal(value, assetDecimals);
   }
 
-  static fromAssetWithBalance(asset: AssetWithBalance): BalanceWithoutDecimal {
+  static fromAsset(asset: AssetWithBalance): BalanceWithoutDecimal {
     return new BalanceWithoutDecimal(asset.balance, asset.decimals);
+  }
+
+  newValue(this: BalanceWithoutDecimal, value: BigNumber.Value): BalanceWithoutDecimal {
+    return new BalanceWithoutDecimal(value, this.assetDecimals);
   }
 
   withDecimal(): BalanceWithDecimal {

@@ -3,7 +3,7 @@ import { AssetManagerHeader } from 'components/AssetManager/AssetManagerHeader';
 import { useAssetManager } from 'components/AssetManager/hooks';
 import { AssetSymbol } from 'components/Asset/AssetSymbol';
 import { HumanizeBalance } from 'components/Balance';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
 import { parse } from 'query-string';
 import React, { useState } from 'react';

@@ -1,5 +1,4 @@
 import * as commons from '@gliaswap/commons';
-import { CkbNativeAssetWithBalance } from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Token, TokenHolderFactory, cellConver, CellInfoSerializationHolderFactory } from '../model';
@@ -27,7 +26,7 @@ export default class DexTokenController {
     tokens.forEach((x) => {
       result.push(x.toAsset());
       if (x.shadowFrom) {
-        result.push(new Token(null, null, x.shadowFrom, null, null).toAsset());
+        result.push(x.toERC20Token().toAsset());
       }
     });
 
@@ -64,7 +63,7 @@ export default class DexTokenController {
       });
     }
 
-    const listAssetBalance: commons.GliaswapAssetWithBalance[] = [];
+    const listAssetBalance = [];
 
     for (const token of tokens) {
       if (token.typeHash === CKB_TYPE_HASH) {
@@ -82,14 +81,12 @@ export default class DexTokenController {
           BigInt(0),
         );
 
-        const ckbAsset = toCKBAsset(token);
+        token.balance = balance.toString();
         listAssetBalance.push({
-          typeHash: CKB_TYPE_HASH,
-          balance: balance.toString(),
+          ...token.toAsset(),
           locked: '0', // TODO(@zjh): fix it when implementing lp pool.
           occupied: occupiedBalance.toString(),
-          ...ckbAsset,
-        } as CkbNativeAssetWithBalance);
+        });
       } else {
         const cells = await this.dexRepository.collectCells({
           lock: lock.toLumosScript(),
@@ -99,14 +96,10 @@ export default class DexTokenController {
         cells.forEach((x) => {
           balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);
         });
-
-        const ckbAsset = toCKBAsset(token);
+        token.balance = balance.toString();
         listAssetBalance.push({
-          typeHash: token.typeHash,
-          balance: balance.toString(),
-          locked: '0',
-          ...token.info,
-          ...ckbAsset,
+          ...token.toAsset(),
+          locked: '0', // TODO(@zjh): fix it when implementing lp pool.
         });
       }
     }

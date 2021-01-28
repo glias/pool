@@ -1,7 +1,7 @@
 import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
-import { Token, TokenHolderFactory } from '../tokens';
+import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
 import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
@@ -48,14 +48,16 @@ export class DexSwapOrderChain extends DexOrderChain {
     let amountIn;
     let amountOut;
     if (!this._isOrder && this._bridgeInfo) {
+      const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
+
       if (this._isIn) {
-        amountIn = new Token(null, null, sudtToken.shadowFrom, null, null);
-        amountOut = sudtToken;
+        amountIn = token.toERC20Token();
+        amountOut = token;
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       } else {
-        amountIn = sudtToken;
-        amountOut = new Token(null, null, sudtToken.shadowFrom, null, null);
+        amountIn = token;
+        amountOut = token.toERC20Token();
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       }

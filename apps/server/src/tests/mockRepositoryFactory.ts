@@ -18,7 +18,6 @@ export class MockRepository implements DexRepository {
   async getForceBridgeHistory(
     lock: Script,
     ethAddress: string,
-    pureCross: boolean,
   ): Promise<{
     eth_to_ckb: BridgeInfo[];
     ckb_to_eth: BridgeInfo[];
@@ -29,7 +28,7 @@ export class MockRepository implements DexRepository {
     };
   }
 
-  async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
+  async collectCells(queryOptions: QueryOptions, includePool?: boolean): Promise<Cell[]> {
     return [];
   }
 

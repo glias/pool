@@ -6,7 +6,6 @@ import * as constants from '@gliaswap/constants';
 import { ckbRepository, DexRepository } from '../repository';
 import * as utils from '../utils';
 import { Cell, Script, Token, RawTransaction, cellConver, Output, TransactionToSign } from '../model';
-import { TokenHolderFactory } from '../model';
 import { CellInfoSerializationHolderFactory, CellInfoSerializationHolder } from '../model';
 import * as config from '../config';
 
@@ -88,7 +87,7 @@ export class TransactionWithFee {
   serialize(): Record<string, unknown> {
     return {
       tx: this.tx.serialize(),
-      fee: this.fee,
+      fee: this.fee.toString(),
     };
   }
 }
@@ -124,59 +123,65 @@ export class TxBuilderService {
     req: CreateLiquidityPoolRequest,
     txFee = 0n,
   ): Promise<CreateLiquidityPoolResponse> {
-    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-
     // Collect enough free ckb to generate liquidity pool cells
     // Ensure we always have change output cell to simplify tx fee calculation
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
     const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     if (!inputCells[0].outPoint) {
-      ctx.throw('create pool failed, first input donest have outpoint', 500);
+      ctx.throw(500, 'create pool failed, first input donest have outpoint');
     }
 
     // Generate info type script
-    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0x00']);
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
+    // FIXME: index should be u64 to_le_bytes
+    // const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
+    // const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
+
+    // For testnet, we use default hardcode id for each token pool
+    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
+    const id = config.POOL_INFO_TYPE_ARGS[reqToken.info.symbol];
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
+    const infoTypeHash = infoType.toHash();
+    if (infoTypeHash != config.POOL_ID[reqToken.info.symbol]) {
+      ctx.throw(400, `created test pool id don't match one in config, ${reqToken.info.symbol} id: ${infoTypeHash}`);
+    }
 
     // Generate info lock script
-    const typeHash = infoType.toHash().slice(2);
+    const typeHash = infoType.toHash();
     const pairHash = (() => {
       const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
       const hashes = ['ckb', token.typeHash];
-      return utils.blake2b(hashes).slice(2);
+      return utils.blake2b(hashes);
     })();
-    const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
+    const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
-    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
-    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
+    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
+    const lpTokenTypeHash = lpTokenType.toHash();
     const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
 
     // Generate info data
-    const ckbReserve = '0x00'.slice(2);
-    const tokenReserve = '0x00'.slice(2);
-    const totalLiquidity = '0x00'.slice(2);
-    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
+    const infoData = (() => {
+      const encoder = this.codec.getInfoCellSerialization().encodeData;
+      return encoder(0n, 0n, 0n, lpTokenTypeHash);
+    })();
 
     // Finally, generate info output cell
     const infoOutput = {
-      capacity: constants.INFO_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.INFO_CAPACITY),
       lock: infoLock,
       type: infoType,
     };
 
     // Generate pool output cell
     const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
+    const poolData = (() => {
+      const encoder = this.codec.getSudtCellSerialization().encodeData;
+      return encoder(0n);
+    })();
     const poolOutput = {
-      capacity: constants.MIN_POOL_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
       type: tokenType,
     };
@@ -184,7 +189,7 @@ export class TxBuilderService {
     // Generate change output cell
     const changeCapacity = inputCapacity - constants.INFO_CAPACITY - constants.MIN_POOL_CAPACITY;
     let changeOutput = {
-      capacity: changeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(changeCapacity),
       lock: req.userLock,
     };
 
@@ -195,20 +200,22 @@ export class TxBuilderService {
     const inputs = inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -216,117 +223,7 @@ export class TxBuilderService {
     }
 
     changeOutput = txToSign.raw.outputs.pop();
-    changeOutput.capacity = (BigInt(changeOutput.capacity) - estimatedTxFee).toString();
-    txToSign.raw.outputs.push(changeOutput);
-
-    return new CreateLiquidityPoolResponse(txToSign, estimatedTxFee, lpToken);
-  }
-
-  public async buildTestLiquidityPool(
-    ctx: Context,
-    req: CreateLiquidityPoolRequest,
-    txFee = 0n,
-  ): Promise<CreateLiquidityPoolResponse> {
-    if (req.tokenA.typeHash != CKB_TYPE_HASH && req.tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-
-    // Collect enough free ckb to generate liquidity pool cells
-    // Ensure we always have change output cell to simplify tx fee calculation
-    const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
-    const minCapacity = constants.INFO_CAPACITY + constants.MIN_POOL_CAPACITY + minCKBChangeCapacity + txFee;
-    const { inputCells, inputCapacity } = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (!inputCells[0].outPoint) {
-      ctx.throw('create pool failed, first input donest have outpoint', 500);
-    }
-
-    const tokenHolder = TokenHolderFactory.getInstance();
-    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
-    if (!tokenHolder.getTokenByTypeHash(reqToken.typeHash)) {
-      ctx.throw('token not in token list', 400, { tokenType: reqToken.typeHash });
-    }
-
-    // Generate info type script
-    // For testnet, we use default hardcode id for each token pool
-    const id = config.POOL_INFO_ID[reqToken.info.symbol];
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, id, 'type');
-
-    // Generate info lock script
-    const typeHash = infoType.toHash().slice(2);
-    const pairHash = (() => {
-      const token = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
-      const hashes = ['ckb', token.typeHash];
-      return utils.blake2b(hashes).slice(2);
-    })();
-    const infoLockArgs = `0x${pairHash}${typeHash}`;
-    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, infoLockArgs, 'type');
-
-    // Generate liquidity provider token type script
-    const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, infoLock.toHash(), 'type');
-    const lpTokenTypeHash = lpTokenType.toHash().slice(2);
-    const lpToken = new Token(lpTokenType.toHash(), lpTokenType);
-
-    // Generate info data
-    const ckbReserve = '0x00'.slice(2);
-    const tokenReserve = '0x00'.slice(2);
-    const totalLiquidity = '0x00'.slice(2);
-    const infoData = `0x${ckbReserve}${tokenReserve}${totalLiquidity}${lpTokenTypeHash}`;
-
-    // Finally, generate info output cell
-    const infoOutput = {
-      capacity: constants.INFO_CAPACITY.toString(),
-      lock: infoLock,
-      type: infoType,
-    };
-
-    // Generate pool output cell
-    const tokenType = req.tokenA.typeHash != CKB_TYPE_HASH ? req.tokenA.typeScript : req.tokenB.typeScript;
-    const poolData = `0x00`;
-    const poolOutput = {
-      capacity: constants.MIN_POOL_CAPACITY.toString(),
-      lock: infoLock,
-      type: tokenType,
-    };
-
-    // Generate change output cell
-    const changeCapacity = inputCapacity - constants.INFO_CAPACITY - constants.MIN_POOL_CAPACITY;
-    let changeOutput = {
-      capacity: changeCapacity.toString(),
-      lock: req.userLock,
-    };
-
-    const outputs: Output[] = [infoOutput, poolOutput, changeOutput];
-    const outputsData: string[] = [infoData, poolData, `0x`];
-
-    // Generate transaction
-    const inputs = inputCells.map((cell) => {
-      return cellConver.converToInput(cell);
-    });
-    const raw: RawTransaction = {
-      cellDeps: [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP],
-      headerDeps: [],
-      inputs,
-      outputs,
-      outputsData,
-      version: '0x0',
-    };
-    const txToSign = new TransactionToSign(
-      raw,
-      inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
-
-    const estimatedTxFee = txToSign.calcFee();
-    if (changeCapacity - estimatedTxFee < minCKBChangeCapacity) {
-      return await this.buildTestLiquidityPool(ctx, req, estimatedTxFee);
-    }
-
-    changeOutput = txToSign.raw.outputs.pop();
-    changeOutput.capacity = (BigInt(changeOutput.capacity) - estimatedTxFee).toString();
+    changeOutput.capacity = TxBuilderService.hexBigint(BigInt(changeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(changeOutput);
 
     return new CreateLiquidityPoolResponse(txToSign, estimatedTxFee, lpToken);
@@ -337,13 +234,6 @@ export class TxBuilderService {
     req: GenesisLiquidityRequest,
     txFee = 0n,
   ): Promise<TransactionWithFee> {
-    if (req.tokenAAmount.typeHash != CKB_TYPE_HASH && req.tokenBAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-    if (req.tokenAAmount.getBalance() == 0n || req.tokenBAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
-    }
-
     const token = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenBAmount : req.tokenAAmount;
     const ckb = req.tokenAAmount.typeHash == CKB_TYPE_HASH ? req.tokenAAmount : req.tokenBAmount;
 
@@ -353,12 +243,6 @@ export class TxBuilderService {
     const minCapacity =
       ckb.getBalance() + constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, token);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < token.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: token.balance });
-    }
 
     // Generate genesis request lock script
     const lockArgs = (() => {
@@ -366,11 +250,11 @@ export class TxBuilderService {
       const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
       return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate genesis request output cell
     const reqOutput = {
-      capacity: (constants.LIQUIDITY_ORDER_CAPACITY + ckb.getBalance()).toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckb.getBalance()),
       lock: reqLock,
       type: token.typeScript,
     };
@@ -383,7 +267,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > token.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: token.typeScript,
       };
@@ -399,7 +283,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -409,20 +293,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -430,20 +316,13 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
   public async buildAddLiquidity(ctx: Context, req: AddLiquidityRequest, txFee = 0n): Promise<TransactionWithFee> {
-    if (req.tokenADesiredAmount.typeHash != CKB_TYPE_HASH && req.tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-    if (req.tokenADesiredAmount.getBalance() == 0n || req.tokenBDesiredAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
-    }
-
     const tokenDesired =
       req.tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? req.tokenBDesiredAmount : req.tokenADesiredAmount;
     const ckbDesired =
@@ -459,12 +338,6 @@ export class TxBuilderService {
       minTokenChangeCapacity +
       txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, tokenDesired);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < tokenDesired.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: tokenDesired.balance });
-    }
 
     // Generate add liquidity request lock script
     const lockArgs = (() => {
@@ -478,11 +351,11 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, tokenAmount, ckbAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     const reqOutput = {
-      capacity: (constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance()).toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance()),
       lock: reqLock,
       type: tokenDesired.typeScript,
     };
@@ -495,7 +368,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > tokenDesired.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: tokenDesired.typeScript,
       };
@@ -511,7 +384,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -521,20 +394,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -542,7 +417,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -553,23 +428,10 @@ export class TxBuilderService {
     req: RemoveLiquidityRequest,
     txFee = 0n,
   ): Promise<TransactionWithFee> {
-    if (req.tokenAMinAmount.typeHash != CKB_TYPE_HASH && req.tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-    if (req.lpTokenAmount.getBalance() == 0n) {
-      ctx.throw('token amount is zero', 400);
-    }
-
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, req.lpTokenAmount.typeScript);
     const minCapacity = constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, req.lpTokenAmount);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < req.lpTokenAmount.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: req.lpTokenAmount.balance });
-    }
 
     // Generate remove liquidity request lock script
     const lockArgs = (() => {
@@ -583,11 +445,11 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, ckbAmount, tokenAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     const reqOutput = {
-      capacity: constants.LIQUIDITY_ORDER_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY),
       lock: reqLock,
       type: req.lpTokenAmount.typeScript,
     };
@@ -600,7 +462,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > req.lpTokenAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: req.lpTokenAmount.typeScript,
       };
@@ -616,7 +478,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -626,20 +488,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -647,17 +511,13 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
   public async buildSwap(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
-    if (req.tokenInAmount.typeHash != CKB_TYPE_HASH && req.tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw('token/token pool isnt support yet', 400);
-    }
-
     if (req.tokenInAmount.typeHash == CKB_TYPE_HASH) {
       return await this.buildSwapToken(ctx, req, txFee);
     } else {
@@ -674,6 +534,20 @@ export class TxBuilderService {
     }
   }
 
+  public static lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
+    const id = infoTypeScriptArgs;
+    const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
+
+    // Generate info lock script
+    const infoTypeHash = infoType.toHash();
+    const pairHash = utils.blake2b(['ckb', tokenTypeHash]);
+    const infoLockArgs = `0x${pairHash.slice(2)}${infoTypeHash.slice(2)}`;
+    const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
+
+    // Generate liquidity provider token type script
+    return new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
+  }
+
   // Sudt => CKB
   private async buildSwapCkb(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     // Collect free ckb and free token cells
@@ -682,12 +556,6 @@ export class TxBuilderService {
     const minCapacity = constants.SWAP_SELL_REQ_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
 
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, req.tokenInAmount);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
-    if (collectedCells.inputToken < req.tokenInAmount.getBalance()) {
-      ctx.throw('free token not enough', 400, { required: req.tokenInAmount.balance });
-    }
 
     // Generate swap request lock script
     const lockArgs = (() => {
@@ -698,11 +566,11 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
-      capacity: constants.SWAP_SELL_REQ_CAPACITY.toString(),
+      capacity: TxBuilderService.hexBigint(constants.SWAP_SELL_REQ_CAPACITY),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -715,7 +583,7 @@ export class TxBuilderService {
     if (collectedCells.inputToken > req.tokenInAmount.getBalance()) {
       // We have free token change cell and free ckb change cell
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: req.userLock,
         type: req.tokenInAmount.typeScript,
       };
@@ -731,7 +599,7 @@ export class TxBuilderService {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -741,20 +609,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.SWAP_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -771,16 +641,13 @@ export class TxBuilderService {
   // CKB => SUDT
   private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
     if (req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY <= constants.SWAP_BUY_REQ_CAPACITY) {
-      ctx.throw('ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8', 400);
+      ctx.throw(400, 'ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8');
     }
 
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY + minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
 
     // Generate swap request lock script
     const lockArgs = (() => {
@@ -791,12 +658,12 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, 'type', lockArgs);
+    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY;
     const reqOutput = {
-      capacity: reqCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
       type: req.tokenInAmount.typeScript,
     };
@@ -808,7 +675,7 @@ export class TxBuilderService {
 
     const ckbChangeCapacity = collectedCells.inputCapacity - reqCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: req.userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -818,20 +685,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
+    const cellDeps = [userLockDeps];
+    const witnessArgs =
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SWAP_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -839,7 +708,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -853,11 +722,11 @@ export class TxBuilderService {
         : config.SWAP_ORDER_LOCK_CODE_HASH;
 
     const idx = transaction.outputs.findIndex((output: Output) => output.lock.codeHash == requestLockCodeHash);
-    if (!idx) {
-      ctx.throw('transaction not found', 404, { txHash: txHash });
+    if (idx == -1) {
+      ctx.throw(404, `request not found in transaction ${txHash}`);
     }
     if (!transaction.outputs[idx].type) {
-      ctx.throw('order cell doesnt have type script', 400, { txHash: txHash });
+      ctx.throw(400, `${txHash}'s request cell doesnt have type script`);
     }
 
     const output = transaction.outputs[idx];
@@ -865,7 +734,7 @@ export class TxBuilderService {
       cellOutput: output,
       outPoint: {
         txHash: transaction.hash,
-        index: idx.toString(16),
+        index: `0x${idx.toString(16)}`,
       },
       blockHash: null,
       blockNumber: null,
@@ -884,23 +753,20 @@ export class TxBuilderService {
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (liquidityArgs.userLockHash != userLock.toHash()) {
-      ctx.throw('user lock hash not match', 400);
+      ctx.throw(400, 'user lock hash not match');
     }
 
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
     const outputs: Output[] = [];
     const outputsData: string[] = [];
 
     const tokenChangeOutput = {
-      capacity: minTokenChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
       lock: userLock,
       type: requestCell.cellOutput.type,
     };
@@ -910,7 +776,7 @@ export class TxBuilderService {
 
     const ckbChangeCapacity = inputCapacity - minTokenChangeCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -919,20 +785,22 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
+    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
+    const witnessArgs =
+      userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
     const raw: RawTransaction = {
-      cellDeps: [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP],
+      cellDeps,
       headerDeps: [],
       inputs,
       outputs,
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -940,7 +808,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
@@ -957,7 +825,7 @@ export class TxBuilderService {
       return decoder(requestCell.cellOutput.lock.args);
     })();
     if (swapArgs.userLockHash != userLock.toHash()) {
-      ctx.throw('user lock hash not match', 400);
+      ctx.throw(400, 'user lock hash not match');
     }
 
     // Sell sudt, split swap cell into free token cell and free ckb cell
@@ -966,9 +834,6 @@ export class TxBuilderService {
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    if (collectedCells.inputCapacity < minCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: minCapacity.toString() });
-    }
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
 
     const outputs: Output[] = [];
@@ -976,7 +841,7 @@ export class TxBuilderService {
 
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       const tokenChangeOutput = {
-        capacity: minTokenChangeCapacity.toString(),
+        capacity: TxBuilderService.hexBigint(minTokenChangeCapacity),
         lock: userLock,
         type: requestCell.cellOutput.type,
       };
@@ -988,7 +853,7 @@ export class TxBuilderService {
     const ckbChangeCapacity =
       swapArgs.sudtTypeHash == CKB_TYPE_HASH ? inputCapacity - minTokenChangeCapacity : inputCapacity;
     let ckbChangeOutput = {
-      capacity: ckbChangeCapacity.toString(),
+      capacity: TxBuilderService.hexBigint(ckbChangeCapacity),
       lock: userLock,
     };
     outputs.push(ckbChangeOutput);
@@ -998,10 +863,17 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
 
-    const cellDeps = [config.SWAP_ORDER_LOCK_DEP];
+    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
+    const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
+    const witnessArgs =
+      userLock.codeHash == config.PW_LOCK_CODE_HASH
+        ? [config.PW_WITNESS_ARGS.Secp256k1]
+        : [config.SECP256K1_WITNESS_ARGS];
+    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
+
     const raw: RawTransaction = {
       version: '0x0',
       headerDeps: [],
@@ -1010,12 +882,7 @@ export class TxBuilderService {
       outputs,
       outputsData,
     };
-    const txToSign = new TransactionToSign(
-      raw,
-      collectedCells.inputCells,
-      [config.PW_WITNESS_ARGS.Secp256k1],
-      [config.PW_ECDSA_WITNESS_LEN],
-    );
+    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -1023,10 +890,14 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);
+  }
+
+  private static hexBigint(n: bigint): string {
+    return `0x${n.toString(16)}`;
   }
 
   private static minCKBChangeCapacity(userLock: Script): bigint {
@@ -1086,7 +957,7 @@ class TxBuilderCellCollector implements CellCollector {
       }
 
       if (inputTokenAmount < token.getBalance()) {
-        ctx.throw('free token not enough', 400, { required: token.balance });
+        ctx.throw(400, `free token not enough, required: ${token.balance}, available: ${inputTokenAmount}`);
       }
     }
 
@@ -1106,7 +977,7 @@ class TxBuilderCellCollector implements CellCollector {
       inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
     }
     if (inputCapacity < neededCapacity) {
-      ctx.throw('free ckb not enough', 400, { required: neededCapacity });
+      ctx.throw(400, `free ckb not enough, required: ${neededCapacity}, available: ${inputCapacity}`);
     }
 
     return {

@@ -1,6 +1,6 @@
 import { LeftOutlined } from '@ant-design/icons';
 import { Button, Col, Row, Typography } from 'antd';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import React, { HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
