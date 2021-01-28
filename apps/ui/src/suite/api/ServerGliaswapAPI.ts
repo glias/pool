@@ -28,7 +28,7 @@ import Axios, { AxiosInstance } from 'axios';
 import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
 import Web3 from 'web3';
 import CKB from '@nervosnetwork/ckb-sdk-core';
-import { CKB_NODE_URL } from 'suite/constants';
+import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import { Transaction } from '@lay2/pw-core';
 
 const api = new DummyGliaswapAPI();
@@ -157,11 +157,36 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  cancelSwapOrders(): Promise<Transaction> {
-    return Promise.resolve(Object.create(null));
+  async cancelSwapOrders(txHash: string, lock: Script): Promise<{ tx: Transaction }> {
+    const { data } = await this.axios.post('/swap/orders/cancel', {
+      txHash,
+      lock,
+    });
+
+    return data;
   }
 
-  swapNormalOrder(): Promise<Transaction> {
-    return Promise.resolve(Object.create(null));
+  async swapNormalOrder(
+    tokenA: GliaswapAssetWithBalance,
+    tokenB: GliaswapAssetWithBalance,
+    lock: Script,
+  ): Promise<{ tx: Transaction }> {
+    const { data } = await this.axios.post('/swap/orders/swap', {
+      assetInWithAmount: tokenA,
+      assetOutWithMinAmount: tokenB,
+      lock,
+      tip: {
+        typeHash: CKB_NATIVE_TYPE_HASH,
+        chainType: 'Nervos',
+        decimals: 8,
+        logoURI: 'http://121.196.29.165:3040/token/ckb.svg',
+        name: 'CKB',
+        balance: '0',
+        locked: '0',
+        occupied: '0',
+        symbol: 'CKB',
+      },
+    });
+    return data;
   }
 }

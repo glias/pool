@@ -57,7 +57,7 @@ export class BridgeAPI {
       });
   }
 
-  async shadowAssetCrossIn(asset: EthErc20AssetWithBalance, ckbAddress: string, ethAddress: string, web3: Web3) {
+  async lock(asset: EthErc20AssetWithBalance, ckbAddress: string, ethAddress: string, web3: Web3) {
     const amount = `0x${new BigNumber(asset.balance).toString(16)}`;
     const gasPrice = await web3.eth.getGasPrice();
     const nonce = await web3.eth.getTransactionCount(ethAddress);

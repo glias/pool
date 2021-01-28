@@ -234,6 +234,14 @@ const useSwap = () => {
     return balance.toString();
   }, [tokenA, realtimeAssets]);
 
+  const isBid = useMemo(() => {
+    return isCkbNativeAsset(tokenA);
+  }, [tokenA]);
+
+  const isSendCkbTransaction = useMemo(() => {
+    return swapMode === SwapMode.NormalOrder || swapMode === SwapMode.CrossOut;
+  }, [swapMode]);
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -265,6 +273,8 @@ const useSwap = () => {
     setAndCacheCrossChainOrders,
     crossChainOrders,
     payMax,
+    isBid,
+    isSendCkbTransaction,
   };
 };
 

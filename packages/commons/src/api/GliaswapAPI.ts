@@ -79,9 +79,13 @@ export interface GliaswapAPI {
 
   getSwapOrders: (lock: Script, ethAddress: string) => Promise<SwapOrder[]>;
 
-  cancelSwapOrders: (txHash: string, lock: Script) => Promise<Transaction>;
+  cancelSwapOrders: (txHash: string, lock: Script) => Promise<{ tx: Transaction }>;
 
-  swapNormalOrder: (tokenA: GliaswapAssetWithBalance, tokenB: GliaswapAssetWithBalance) => Promise<Transaction>;
+  swapNormalOrder: (
+    tokenA: GliaswapAssetWithBalance,
+    tokenB: GliaswapAssetWithBalance,
+    lock: Script,
+  ) => Promise<{ tx: Transaction }>;
 
   // TODO generate transaction and the other data API
   generateAddLiquidityTransaction: (

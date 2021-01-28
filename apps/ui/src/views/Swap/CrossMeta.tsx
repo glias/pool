@@ -9,6 +9,7 @@ export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: bool
   if (swapMode === SwapMode.CrossOut) {
     return null;
   }
+  const amount = swapMode === SwapMode.CrossIn ? '142' : !isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY;
   return (
     <MetaContainer>
       <div className="meta">
@@ -17,7 +18,7 @@ export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: bool
         </div>
         <div>
           {i18n.t('swap.swap-modal.cross-meta', {
-            amount: swapMode === SwapMode.CrossIn ? '142' : isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY,
+            amount,
           })}
           <a
             href={`${README_URL}#why-lock-my-addtional-ckb-when-i-place-an-order`}

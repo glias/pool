@@ -119,11 +119,11 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     return Promise.resolve(Object.create(null));
   }
 
-  cancelSwapOrders(): Promise<Transaction> {
+  cancelSwapOrders(): Promise<{ tx: Transaction }> {
     return Promise.resolve(Object.create(null));
   }
 
-  swapNormalOrder(): Promise<Transaction> {
+  swapNormalOrder(): Promise<{ tx: Transaction }> {
     return Promise.resolve(Object.create(null));
   }
 }

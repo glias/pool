@@ -9,15 +9,17 @@ import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { EthErc20AssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
+import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
-import { useGliaswap } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'contexts';
 import { useSwapTable } from './hooks';
 import { getValidBalanceString } from 'utils';
 import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
 import { InfoTable } from './InfoTable';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
+import { Script } from '@lay2/pw-core';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -60,7 +62,11 @@ export const SwapTable: React.FC = () => {
     currentEthAddress: ethAddress,
     adapter,
     realtimeAssets: assets,
+    api,
+    currentUserLock,
   } = useGliaswap();
+  const [setting] = useGlobalSetting();
+  const { shadowEthAssets } = useGliaswapAssets();
 
   const [isFetchingOrder, setIsFetchingOrder] = useState(false);
 
@@ -88,27 +94,48 @@ export const SwapTable: React.FC = () => {
 
   const swapCrossChain = useCallback(async () => {
     if (swapMode === SwapMode.CrossIn) {
-      const { data } = await bridgeAPI.shadowAssetCrossIn(
-        tokenA as EthErc20AssetWithBalance,
-        ckbAddress,
-        ethAddress,
-        web3!,
-      );
+      const { data } = await bridgeAPI.lock(tokenA as EthErc20AssetWithBalance, ckbAddress, ethAddress, web3!);
       setCurrentEthTx(data);
     } else {
       const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowOfEthWithBalance, ckbAddress, ethAddress);
       const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
       setCurrentTx(tx);
     }
-    setReviewModalVisable(true);
-  }, [bridgeAPI, ckbAddress, ethAddress, setCurrentEthTx, setCurrentTx, setReviewModalVisable, swapMode, tokenA, web3]);
+  }, [bridgeAPI, ckbAddress, ethAddress, setCurrentEthTx, setCurrentTx, swapMode, tokenA, web3]);
+
+  const swapNormalOrder = useCallback(
+    async (amountInToken: GliaswapAssetWithBalance) => {
+      const balance = new BigNumber(tokenB.balance).times(1 - setting.slippage).toFixed(0, BigNumber.ROUND_DOWN);
+      const { tx } = await api.swapNormalOrder(amountInToken, { ...tokenB, balance }, currentUserLock!);
+      setCurrentTx(tx);
+      return tx;
+    },
+    [tokenB, currentUserLock, api, setCurrentTx, setting.slippage],
+  );
+
+  const swapCrossChainOrder = useCallback(
+    async (amountInToken: EthErc20AssetWithBalance) => {
+      const shadowAsset = shadowEthAssets.find((a) => a.shadowFrom.address === amountInToken.address)!;
+      const ckbTx = await swapNormalOrder({ ...shadowAsset, balance: amountInToken.balance });
+      const lock = ckbTx.raw.outputs[0].lock;
+      const ckbAddress = new Script(lock.codeHash, lock.args, lock.hashType).toAddress().toCKBAddress();
+      const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
+      setCurrentEthTx(data);
+    },
+    [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, swapNormalOrder, web3],
+  );
 
   const onSubmit = useCallback(async () => {
     setIsFetchingOrder(true);
     try {
       if (swapMode === SwapMode.CrossIn || swapMode === SwapMode.CrossOut) {
         await swapCrossChain();
+      } else if (swapMode === SwapMode.CrossChainOrder) {
+        await swapCrossChainOrder(tokenA as EthErc20AssetWithBalance);
+      } else {
+        await swapNormalOrder(tokenA);
       }
+      setReviewModalVisable(true);
     } catch (error) {
       Modal.error({
         title: 'Build Transaction',
@@ -117,7 +144,15 @@ export const SwapTable: React.FC = () => {
     } finally {
       setIsFetchingOrder(false);
     }
-  }, [swapCrossChain, swapMode, setIsFetchingOrder]);
+  }, [
+    swapCrossChain,
+    swapMode,
+    setIsFetchingOrder,
+    setReviewModalVisable,
+    swapCrossChainOrder,
+    swapNormalOrder,
+    tokenA,
+  ]);
 
   const fillReceiveWithPay = useCallback(
     (val: string, setSelf = false) => {

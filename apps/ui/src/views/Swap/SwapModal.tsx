@@ -13,7 +13,7 @@ import { Trans } from 'react-i18next';
 import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
 import { SWAP_CELL_ASK_CAPACITY } from 'suite/constants';
-import { useGliaswap } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'contexts';
 
 export const SwapModal = () => {
   const {
@@ -26,9 +26,11 @@ export const SwapModal = () => {
     currentEthTx,
     sendEthTransaction,
     setAndCacheCrossChainOrders,
+    isSendCkbTransaction,
   } = useSwapContainer();
   const { adapter } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const { shadowEthAssets } = useGliaswapAssets();
 
   const txFee = useMemo(() => {
     const fee = currentCkbTx ? Builder.calcFee(currentCkbTx).toString() : '0';
@@ -45,13 +47,14 @@ export const SwapModal = () => {
 
   const shadowAsset = useMemo(() => {
     if (isCrossChainOrder && isEthAsset(tokenA!)) {
+      const asset = shadowEthAssets.find((a) => a.shadowFrom.address === tokenA.address);
       return {
-        ...tokenA,
-        symbol: `ck${tokenA.symbol}`,
+        ...(asset ?? tokenA),
+        balance: tokenA.balance,
       };
     }
     return tokenA!;
-  }, [isCrossChainOrder, tokenA]);
+  }, [isCrossChainOrder, tokenA, shadowEthAssets]);
 
   const operation = useMemo(() => {
     switch (swapMode) {
@@ -65,7 +68,7 @@ export const SwapModal = () => {
     }
   }, [swapMode]);
 
-  const placeCrossIn = useCallback(async () => {
+  const placeLockOrder = useCallback(async () => {
     if (currentEthTx) {
       const txHash = await sendEthTransaction(currentEthTx);
       const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
@@ -81,15 +84,25 @@ export const SwapModal = () => {
     }
   }, [currentCkbTx, adapter.raw.pw, tokenA, tokenB, setAndCacheCrossChainOrders]);
 
+  const placeNormalorder = useCallback(async () => {
+    if (currentCkbTx) {
+      await adapter.raw.pw.sendTransaction(currentCkbTx);
+    }
+  }, [currentCkbTx, adapter.raw.pw]);
+
   const placeOrder = useCallback(async () => {
     setIsPlacingOrder(true);
     try {
       switch (swapMode) {
+        case SwapMode.CrossChainOrder:
         case SwapMode.CrossIn:
-          await placeCrossIn();
+          await placeLockOrder();
           break;
         case SwapMode.CrossOut:
           await placeCrossOut();
+          break;
+        case SwapMode.NormalOrder:
+          await placeNormalorder();
           break;
         default:
           break;
@@ -103,7 +116,7 @@ export const SwapModal = () => {
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [swapMode, placeCrossIn, placeCrossOut, setReviewModalVisable]);
+  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder]);
 
   return (
     <Container
@@ -154,7 +167,7 @@ export const SwapModal = () => {
             <CrossMeta isBid={false} swapMode={swapMode} />
           )}
         </Form.Item>
-        {currentCkbTx ? (
+        {currentCkbTx && isSendCkbTransaction ? (
           <TableRow
             label={i18n.t('swap.cancel-modal.tx-fee')}
             labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}

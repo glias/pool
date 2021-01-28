@@ -9,7 +9,7 @@ import {
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
 import BigNumber from 'bignumber.js';
-import { useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'contexts';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
@@ -27,14 +27,18 @@ export const useSwapTable = ({
   tokenA: GliaswapAssetWithBalance;
   tokenB: GliaswapAssetWithBalance;
 }) => {
-  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive } = useSwapContainer();
+  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive, isBid } = useSwapContainer();
   const { ckbNativeAsset, ethNativeAsset } = useGliaswapAssets();
   const [isPayInvalid, setIsPayInvalid] = useState(true);
   const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
+  const { currentUserLock } = useGliaswap();
 
   const disabled = useMemo(() => {
+    if (currentUserLock == null) {
+      return false;
+    }
     return isPayInvalid || isReceiveInvalid;
-  }, [isPayInvalid, isReceiveInvalid]);
+  }, [isPayInvalid, isReceiveInvalid, currentUserLock]);
 
   const payReserve = useMemo(() => {
     return new BigNumber(10).pow(18).times(1).toString();
@@ -65,10 +69,6 @@ export const useSwapTable = ({
     setIsReceiveInvalid(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenA.symbol, tokenB.symbol]);
-
-  const isBid = useMemo(() => {
-    return isCkbNativeAsset(tokenA);
-  }, [tokenA]);
 
   const price = useMemo(() => {
     return calcPrice(pay, receive, isBid);

@@ -21,6 +21,7 @@ import { AdapterContextState } from 'commons/WalletAdapter/Provider';
 import { Provider as AssetProvider, RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { message } from 'antd';
 import { useGlobalConfig } from './config';
 
 export const GliaswapProvider: React.FC = (props) => {
@@ -29,7 +30,9 @@ export const GliaswapProvider: React.FC = (props) => {
 
   useEffect(() => {
     (async () => {
+      const hide = message.loading('Loading assets...');
       const list = await api.getAssetList();
+      hide();
       setAssetList(list);
     })();
   }, [api]);
