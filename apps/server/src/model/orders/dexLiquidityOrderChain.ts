@@ -36,7 +36,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const transactionHash = this.getLastOrder().getTxHash();
     const argsData = this.getArgsData();
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-    const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(argsData.infoTypeHash);
+    const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
     const amountA = ckbToken;
     const amountB = sudtToken;
 
