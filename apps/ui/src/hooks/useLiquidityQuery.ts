@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 
 interface LiquidityDetail {
   poolLiquidityQuery: QueryObserverResult<Maybe<LiquidityInfo>>;
-  lockLiquidityQuery: QueryObserverResult<Maybe<LiquidityInfo & { share: number }>>;
+  userLiquidityQuery: QueryObserverResult<Maybe<LiquidityInfo & { share: number }>>;
 }
 
 export function useQueryLiquidityInfo(inputPoolId?: string): QueryObserverResult<Maybe<LiquidityInfo>> {
@@ -33,22 +33,22 @@ export function useLiquidityQuery(inputPoolId?: string): LiquidityDetail {
   // const assets = realtimeAssets.value;
 
   const poolLiquidityQuery = useQueryLiquidityInfo(poolId);
-  const lockLiquidityQuery = useQuery(
-    ['getLiquidityInfo', poolId, currentUserLock],
+  const userLiquidityQuery = useQuery(
+    ['getLiquidityInfo', poolId, currentUserLock, poolLiquidityQuery.data],
     async () => {
-      const lockLiquidity = await api.getLiquidityInfo({ lock: currentUserLock, poolId });
+      const userLiquidity = await api.getLiquidityInfo({ lock: currentUserLock, poolId });
       const poolLiquidity = poolLiquidityQuery.data;
-      if (!poolLiquidity || !lockLiquidity) return;
+      if (!poolLiquidity || !userLiquidity) return;
 
-      const share = new BigNumber(lockLiquidity.lpToken.balance).div(poolLiquidity.lpToken.balance).toNumber();
+      const share = new BigNumber(userLiquidity.lpToken.balance).div(poolLiquidity.lpToken.balance).toNumber();
 
-      return { ...lockLiquidity, share };
+      return { ...userLiquidity, share };
     },
     { enabled: currentUserLock != null },
   );
 
   return {
     poolLiquidityQuery,
-    lockLiquidityQuery,
+    userLiquidityQuery,
   };
 }

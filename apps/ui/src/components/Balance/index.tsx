@@ -18,9 +18,9 @@ const BalanceWrapper = styled.span`
 `;
 
 export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
-  asset: { decimals: number; symbol: string };
+  asset: { decimals: number; symbol: string; balance?: BigNumber.Value };
 
-  value: BigNumber.Value;
+  value?: BigNumber.Value;
   /**
    * display the symbol of the asset after the balance
    */
@@ -32,7 +32,7 @@ export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
-  const { value, asset, showSuffix, maxToFormat, ...otherProps } = props;
+  const { asset, value = asset.balance || 0, showSuffix, maxToFormat, ...otherProps } = props;
 
   const balanceNum = new BigNumber(value).div(10 ** asset.decimals);
 

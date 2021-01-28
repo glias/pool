@@ -14,9 +14,9 @@ export interface LiquidityOperationProps {
 }
 
 export const LiquidityOperation: React.FC<LiquidityOperationProps> = (props) => {
-  const { poolLiquidityQuery, lockLiquidityQuery } = useLiquidityQuery(props.poolId);
+  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery(props.poolId);
   const { data: poolLiquidity } = poolLiquidityQuery;
-  const { data: lockLiquidity } = lockLiquidityQuery;
+  const { data: userLiquidity } = userLiquidityQuery;
 
   if (!poolLiquidity) return null;
 
@@ -26,9 +26,9 @@ export const LiquidityOperation: React.FC<LiquidityOperationProps> = (props) => 
         <Tabs.TabPane key="add" tab={i18n.t('Add Liquidity')}>
           <AddLiquidity poolLiquidity={poolLiquidity} />
         </Tabs.TabPane>
-        <Tabs.TabPane disabled={!lockLiquidity} key="remove" tab={i18n.t('Remove Liquidity')}>
-          {lockLiquidity && poolLiquidity && (
-            <RemoveLiquidity lockLiquidity={lockLiquidity} poolLiquidity={poolLiquidity} />
+        <Tabs.TabPane disabled={!userLiquidity} key="remove" tab={i18n.t('Remove Liquidity')}>
+          {userLiquidity && poolLiquidity && (
+            <RemoveLiquidity userLiquidity={userLiquidity} poolLiquidity={poolLiquidity} />
           )}
         </Tabs.TabPane>
       </Tabs>
