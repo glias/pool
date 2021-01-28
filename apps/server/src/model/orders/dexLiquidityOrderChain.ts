@@ -6,7 +6,7 @@ import {
   LIQUIDITY_ORDER_LOCK_SCRIPT,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
-import { TokenHolderFactory } from '../tokens';
+import { Token, TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
 
 export enum ORDER_TYPE {
@@ -47,6 +47,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
+      poolId: amountB.typeHash,
       transactionHash: transactionHash,
       timestamp: this.tx.txStatus.timestamp,
       amountIn: amountA,
