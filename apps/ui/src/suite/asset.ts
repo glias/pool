@@ -38,7 +38,7 @@ export function calcTotalBalance(asset: Asset | GliaswapAssetWithBalance): BigNu
   return BN(0);
 }
 
-export function createAssetWithBalance<T extends Asset>(asset: T, balance: BigNumber.Value): T & Balanced {
+export function createAssetWithBalance<T extends Asset>(asset: T, balance: BigNumber.Value = 0): T & Balanced {
   return {
     ...asset,
     balance: BN(balance).toString(),

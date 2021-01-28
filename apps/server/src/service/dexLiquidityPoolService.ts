@@ -58,7 +58,7 @@ export class DexLiquidityPoolService {
       //   })
       //   .resolves(mockLiquidityOrder);
       // const liquidityTxs = await mock.collectTransactions(queryOptions);
-      const orders = factory.getOrderChains(orderLock, type, liquidityTxs, null);
+      const orders = factory.getOrderChains(queryOptions.lock, type, liquidityTxs, null);
       orders.forEach((x) => liquidityOrders.push(x));
     }
 

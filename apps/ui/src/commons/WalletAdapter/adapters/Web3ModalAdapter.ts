@@ -16,8 +16,8 @@ class DummySigner implements Signer {
 class PWSigner implements Signer {
   readonly address: Address;
 
-  constructor(private pw: PWCore) {
-    this.address = PWCore.provider.address;
+  constructor(private pw: PWCore, address?: Address) {
+    this.address = address ?? PWCore.provider.address;
   }
 
   sendTransaction(tx: Transaction): Promise<CKBComponents.Hash> {
@@ -57,7 +57,8 @@ export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
         this.emit('signerChanged', undefined);
         return;
       }
-      this.signer = new PWSigner(this.pw);
+
+      this.signer = new PWSigner(this.pw, new Address(accounts[0], AddressType.eth));
       this.emit('signerChanged', this.signer);
     });
 

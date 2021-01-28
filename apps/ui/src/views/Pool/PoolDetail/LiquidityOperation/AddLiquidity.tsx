@@ -241,7 +241,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
         <SpaceBetweenRow>
           <TransactionFeeLabel />
-          <HumanizeBalance asset={{ symbol: 'CKB', decimals: 8 }} value={0} showSuffix />
+          <HumanizeBalance asset={{ symbol: 'CKB', decimals: 8 }} value={0} maxToFormat={8} showSuffix />
         </SpaceBetweenRow>
       </OperationConfirmModal>
     </AddLiquidityWrapper>

@@ -3,6 +3,7 @@ import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useCallback } from 'react';
 import { useQuery } from 'react-query';
+import { createAssetWithBalance } from 'suite';
 
 export type RealtimeInfo<T> = {
   // unix timestamp milliseconds
@@ -71,9 +72,17 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   );
 
   useEffect(() => {
+    if (connectStatus !== 'connected') {
+      setAssetsWithBalance({ lastUpdated: Date.now(), value: assetsWithBalance.value.map(createAssetWithBalance) });
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectStatus]);
+
+  useEffect(() => {
     if (status !== 'success' || !data) return;
     setBalance(assetList);
-  }, [status, data, assetList, setBalance]);
+  }, [status, assetList, setBalance, data]);
 
   return (
     <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api }}>{children}</AssetManagerContext.Provider>

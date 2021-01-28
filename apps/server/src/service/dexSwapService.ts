@@ -129,7 +129,7 @@ export class DexSwapService {
     //   .resolves(mockSwapOrder);
     // const txs = await mock.collectTransactions(queryOptions);
     const factory = new DexOrderChainFactory(true);
-    const orders = factory.getOrderChains(orderLock, type, txs, bridgeInfoMatch);
+    const orders = factory.getOrderChains(queryOptions.lock, type, txs, bridgeInfoMatch);
 
     return orders;
   }
