@@ -2,6 +2,7 @@ import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatu
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
+import * as lumos from '@ckb-lumos/base';
 
 export class DexOrderChainFactory {
   private inputOutPointWithTransaction: Map<string, TransactionWithStatus>;
@@ -15,7 +16,7 @@ export class DexOrderChainFactory {
   }
 
   getOrderChains(
-    lock: Script,
+    lock: Script | (lumos.Script | lumos.ScriptWrapper),
     type: Script,
     transactionCollector: TransactionWithStatus[],
     bridgeInfoMatch: BridgeInfoMatchChain,
@@ -81,7 +82,7 @@ export class DexOrderChainFactory {
   }
 
   private initOrderChainDatas(
-    lock: Script,
+    lock: Script | (lumos.Script | lumos.ScriptWrapper),
     type: Script,
     transactionCollector: TransactionWithStatus[],
     bridgeInfoMatch: BridgeInfoMatchChain,
@@ -96,6 +97,12 @@ export class DexOrderChainFactory {
       });
 
       x.transaction.outputs.forEach((output, index) => {
+        // args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
+        // argsLen = 244
+        if (!this.isSwapOrder && output.lock.args.length !== 244) {
+          return;
+        }
+
         if (type && !scriptEquals.equalsTypeScript(type, output.type)) {
           return;
         }
@@ -103,6 +110,7 @@ export class DexOrderChainFactory {
         if (!scriptEquals.matchLockScriptWapper(lock, output.lock)) {
           return;
         }
+
         const data = x.transaction.outputsData[index];
         const bridgeInfoResult = bridgeInfoMatch ? bridgeInfoMatch.match(x.transaction.hash) : null;
         const isIn = bridgeInfoResult ? bridgeInfoResult.isIn : null;
