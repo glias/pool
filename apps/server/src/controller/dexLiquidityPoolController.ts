@@ -223,6 +223,7 @@ export default class DexLiquidityPoolController {
     ctx.status = 200;
     ctx.body = result.map((x) => {
       return {
+        poolId: x.poolId,
         transactionHash: x.transactionHash,
         tokenA: x.amountIn.toAsset(),
         tokenB: x.amountOut.toAsset(),

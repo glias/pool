@@ -6,18 +6,12 @@ import {
   LIQUIDITY_ORDER_LOCK_SCRIPT,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
-import { TokenHolderFactory } from '../tokens';
-import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
+import { Token, TokenHolderFactory } from '../tokens';
+import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
 export enum ORDER_TYPE {
   add = 'add',
   remove = 'remove',
-}
-
-const enum ORDER_STATUS {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  CANCELING = 'canceling',
 }
 
 export class DexLiquidityChain extends DexOrderChain {
@@ -47,6 +41,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
+      poolId: amountB.typeHash,
       transactionHash: transactionHash,
       timestamp: this.tx.txStatus.timestamp,
       amountIn: amountA,
@@ -83,9 +78,12 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   getStatus(): string {
-    const order = this.getLastOrder();
-    if (order.cell.lock.codeHash === LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash) {
-      return ORDER_STATUS.PENDING;
+    const orders = this.getOrders();
+    if (orders.length === 1) {
+      if (this.tx.txStatus.status === 'pending') {
+        return ORDER_STATUS.PENDING;
+      }
+      return ORDER_STATUS.OPEN;
     }
 
     return ORDER_STATUS.COMPLETED;
