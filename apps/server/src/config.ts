@@ -26,7 +26,7 @@ export const SECP256K1_LOCK_CODE_HASH =
   process.env.SECP256K1_LOCK_CODE_HASH || '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8';
 export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE || 'type';
 export const LIQUIDITY_ORDER_LOCK_CODE_HASH =
-  process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH || '0xe29e05537c84f459b706753df58ad8b43c346d7ff7d7926c58237ef9b0a7bbf3';
+  process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH || '0xca05c537875b505c420f8cca9aa204520f9cc36c7a1d9bf85f73086cd96ced07';
 export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE || 'data';
 export const SWAP_ORDER_LOCK_CODE_HASH =
   process.env.SWAP_ORDER_LOCK_CODE_HASH || '0xc632e1aa84105366a4adfb14361164241b1dc68b000218db1e61806bbfc0be57';
@@ -86,7 +86,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = {
   outPoint: {
     txHash:
       process.env.LIQUIDITY_ORDER_LOCK_DEP_TX_HASH ||
-      '0x1e4b3b77f46a767d65e2af14f5d27c90fca61e1207d416e42493bfb2183229c8',
+      '0xfc291a15698cb2eb08868c9761615a94e85dec49c1d7690a79cc2a8e536442ee',
     index: '0x0',
   },
   depType: 'code',

@@ -137,7 +137,7 @@ async function createGenesisTx(tokenSymbol: string) {
   console.log(`create ${tokenSymbol} genesis, id: ${config.POOL_ID[tokenSymbol]}`);
 
   const req = {
-    assets: [ckbToken(10n * CKB_DECIMAL), generateToken(10n, tokenSymbol)],
+    assets: [ckbToken(10n * CKB_DECIMAL), generateToken(10n * CKB_DECIMAL, tokenSymbol)],
     poolId: config.POOL_ID[tokenSymbol],
     lock: USER_LOCK,
     tips: ckbToken(0n),
@@ -157,8 +157,8 @@ async function createGenesisTx(tokenSymbol: string) {
     const sendTxReq = {
       signedTx: signedTx,
     };
-    // const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
-    // console.log(sendResp.data.txHash);
+    const sendResp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', sendTxReq);
+    console.log(sendResp.data.txHash);
   } catch (e) {
     if (axios.isAxiosError(e)) {
       if (e.response) {
