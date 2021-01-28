@@ -181,19 +181,24 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     lock: Script,
   ): Promise<{ tx: Transaction }> {
     const { data } = await this.axios.post('/swap/orders/swap', {
-      assetInWithAmount: tokenA,
-      assetOutWithMinAmount: tokenB,
+      assetInWithAmount: {
+        ...tokenA,
+        address: '',
+      },
+      assetOutWithMinAmount: {
+        ...tokenB,
+        address: '',
+      },
       lock,
-      tip: {
+      tips: {
         typeHash: CKB_NATIVE_TYPE_HASH,
         chainType: 'Nervos',
         decimals: 8,
-        logoURI: 'http://121.196.29.165:3040/token/ckb.svg',
+        logoURI: '',
         name: 'CKB',
         balance: '0',
-        locked: '0',
-        occupied: '0',
         symbol: 'CKB',
+        address: '',
       },
     });
     return data;

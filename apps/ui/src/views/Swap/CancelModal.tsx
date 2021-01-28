@@ -1,6 +1,6 @@
 import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
-import { Form } from 'antd';
+import { Form, Modal } from 'antd';
 import { AssetSymbol } from 'components/Asset';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { ModalContainer } from 'components/ModalContainer';
@@ -14,6 +14,9 @@ import { useSwapContainer } from './context';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
+import { useCallback } from 'react';
+import { useState } from 'react';
+import { useGliaswap } from 'contexts';
 
 export const Container = styled(ModalContainer)`
   .cancel {
@@ -84,6 +87,9 @@ export const CancelModal = () => {
 
   const orderType = currentOrder?.type;
 
+  const [isSending, setIsSending] = useState(false);
+  const { api, currentUserLock, adapter } = useGliaswap();
+
   const isCrossChainOrder = useMemo(() => {
     return orderType === SwapOrderType.CrossChainOrder;
   }, [orderType]);
@@ -97,6 +103,21 @@ export const CancelModal = () => {
     }
     return tokenA;
   }, [isCrossChainOrder, tokenA]);
+
+  const cancelOrder = useCallback(async () => {
+    setIsSending(true);
+    try {
+      const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
+      await adapter.raw.pw.sendTransaction(tx);
+    } catch (error) {
+      Modal.error({
+        title: 'Build Transaction',
+        content: error.message,
+      });
+    } finally {
+      setIsSending(true);
+    }
+  }, [currentUserLock, api, adapter.raw.pw, currentOrder?.transactionHash]);
 
   return (
     <Container
@@ -148,7 +169,12 @@ export const CancelModal = () => {
           value={txFee}
         />
         <Form.Item className="submit">
-          <ConfirmButton text={i18n.t('swap.cancel-modal.cancel')} bgColor="#F35252" />
+          <ConfirmButton
+            loading={isSending}
+            onClick={cancelOrder}
+            text={i18n.t('swap.cancel-modal.cancel')}
+            bgColor="#F35252"
+          />
         </Form.Item>
       </Form>
     </Container>
