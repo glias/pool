@@ -38,7 +38,8 @@ export class DexSwapService {
     const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
-    const orders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    const orders = [];
+    // const orders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
 
     for (let i = 0; i < types.length; i++) {
       const txs = await this.getOrders(orderLock, types[i], bridgeInfoMatch);
@@ -109,6 +110,9 @@ export class DexSwapService {
       order: 'desc',
     };
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
+    if (!txs) {
+      return [];
+    }
 
     // const mock = MockRepositoryFactory.getDexRepositoryInstance();
     // mock
