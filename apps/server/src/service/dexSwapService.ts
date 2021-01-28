@@ -38,9 +38,7 @@ export class DexSwapService {
     const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
-    const orders = [];
-    // const orders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
-
+    const orders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
     for (let i = 0; i < types.length; i++) {
       const txs = await this.getOrders(orderLock, types[i], bridgeInfoMatch);
       txs.forEach((x) => orders.push(x));
@@ -71,6 +69,10 @@ export class DexSwapService {
       if (tx.status !== 'success') {
         continue;
       }
+
+      if (tx.recipient_lockscript.code_hash === SWAP_ORDER_LOCK_CODE_HASH) {
+        continue;
+      }
       const transaction = await this.dexRepository.getTransaction(tx.ckb_tx_hash);
       txs.push(transaction);
     }
@@ -78,13 +80,10 @@ export class DexSwapService {
     const orders: DexOrderChain[] = [];
     const factory = new DexOrderChainFactory(true);
     txs.forEach((x) => {
-      // const cell = x.transaction.outputs.find((y) => y.type !== undefined && y.type.args !== '0x');
-      // if (!cell) {
-      //   return;
-      // }
-
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);
-      orders.push(pureCrossOrders[0]);
+      if (pureCrossOrders[0]) {
+        orders.push(pureCrossOrders[0]);
+      }
     });
 
     return orders;
