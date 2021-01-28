@@ -11,20 +11,21 @@ import {
   LiquidityOrderSummary,
   LiquidityPoolFilter,
   SerializedTransactionToSignWithFee,
+  SwapOrder,
 } from '@gliaswap/commons';
 
-import {
-  ckbNativeAsset,
-  ckbNativeWithBalance,
-  ckbSudtGlia,
-  ckbSudtGliaWithBalance,
-  ethErc20Usdt,
-  ethErc20UsdtWithBalance,
-  ethNativeAsset,
-  ethNativeWithBalance,
-} from '../placeholder/assets';
+import { Transaction } from '@lay2/pw-core';
+import { TransactionConfig } from 'web3-core';
+
+import { ckbNativeAsset, ckbSudtGlia } from '../placeholder/assets';
+
+import { swapOrders } from 'mock/order-list';
+import { assetList } from 'mock/asset-list';
+import CKB from '@nervosnetwork/ckb-sdk-core';
+import { CKB_NODE_URL } from 'suite/constants';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
+  ckb = new CKB(CKB_NODE_URL);
   generateCancelRequestTransaction(
     _payload: GenerateCancelRequestTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
@@ -62,25 +63,15 @@ export class DummyGliaswapAPI implements GliaswapAPI {
   }
 
   getDefaultAssetList() {
-    return [ckbNativeAsset];
+    return assetList;
   }
 
   async getAssetList(): Promise<Asset[]> {
-    return [ckbNativeAsset, ckbSudtGlia, ethNativeAsset, ethErc20Usdt];
+    return assetList;
   }
 
   async getAssetsWithBalance() {
-    return [
-      {
-        ...ckbNativeWithBalance,
-        balance: String(Math.floor(1e12 * Math.random())),
-        locked: String(Math.floor(1e12 * Math.random())),
-        occupied: String(Math.floor(1e12 * Math.random())),
-      },
-      ckbSudtGliaWithBalance,
-      ethNativeWithBalance,
-      ethErc20UsdtWithBalance,
-    ];
+    return assetList;
   }
 
   async getLiquidityPools(_filter?: LiquidityPoolFilter): Promise<LiquidityInfo[]> {
@@ -139,5 +130,29 @@ export class DummyGliaswapAPI implements GliaswapAPI {
         status: 'pending',
       },
     ]);
+  }
+
+  getSwapOrders(): Promise<SwapOrder[]> {
+    return Promise.resolve(swapOrders);
+  }
+
+  swapCrossChainOrder(): Promise<TransactionConfig> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapCrossIn(): Promise<TransactionConfig> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapCrossOut(): Promise<Transaction> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  cancelSwapOrders(): Promise<{ tx: Transaction }> {
+    return Promise.resolve(Object.create(null));
+  }
+
+  swapNormalOrder(): Promise<{ tx: Transaction }> {
+    return Promise.resolve(Object.create(null));
   }
 }

@@ -34,7 +34,7 @@ const ItemContainer = styled(Form.Item)`
   .ant-form-item-control {
     .ant-form-item-explain-error {
       position: absolute;
-      top: 50px;
+      top: 56px;
       font-size: 12px;
       line-height: 22px;
     }

@@ -25,6 +25,12 @@ const Row = styled.div`
     line-height: 14px;
     color: #000000;
     align-items: flex-end;
+    display: flex;
+    flex-direction: row;
+    .equal {
+      margin-left: 4px;
+      margin-right: 4px;
+    }
   }
   &:last-child {
     margin-bottom: 0;
@@ -34,10 +40,11 @@ const Row = styled.div`
 export interface TableRowProps {
   label: React.ReactNode;
   labelTooltip?: string;
-  value: React.ReactNode;
+  value?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export const TableRow = ({ label, labelTooltip, value }: TableRowProps) => {
+export const TableRow = ({ label, labelTooltip, value, children }: TableRowProps) => {
   return (
     <Row>
       <span className="label">
@@ -48,7 +55,7 @@ export const TableRow = ({ label, labelTooltip, value }: TableRowProps) => {
           </Tooltip>
         ) : null}
       </span>
-      <span className="value">{value}</span>
+      <span className="value">{value ?? children}</span>
     </Row>
   );
 };

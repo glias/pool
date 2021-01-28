@@ -1,15 +1,69 @@
 {
   "translation": {
     "swap": {
-      "order-list": {
-        "title": "My Pending Requests",
+      "order-table": {
         "you-pay": "You Pay",
         "you-receive": "You Receive",
-        "swap": "Swap"
+        "swap": "Swap",
+        "price": "Price",
+        "min-receive": "Minimum Received",
+        "price-impact": "Price Impact",
+        "swap-fee": "Swap Fee",
+        "min-receive-desc": "The minimum amount you will receive if swapping successfully",
+        "price-impact-desc": "The different between the market price and estimated price due to trade size",
+        "swap-fee-desc": "0.3% of this swap goes to Liquidity providers as the incentives（ 0.1% fee of this swap goes to cross-chain relayer as the incentives)"
+      },
+      "order-list": {
+        "title": "My Pending Requests",
+        "time": "Time",
+        "route": "Route",
+        "pay": "Pay",
+        "receive": "Receive"
+      },
+      "cancel-modal": {
+        "review": "Review",
+        "operation": "Operation",
+        "cancel-swap": "Cancel Swap",
+        "pay": "Pay",
+        "cross-chain": "Cross Chain",
+        "receive": "Receive",
+        "meta": "You will get <bold>{{amount}} {{tokenName}}</bold> back to your available balance.",
+        "tx-fee": "Transaction Fee",
+        "tx-fee-desc": "This fee was paid to the CKB miner.",
+        "cancel": "Confirm Cancel"
+      },
+      "swap-modal": {
+        "swap": "Swap",
+        "cross-meta": "You will receive additional {{amount}} CKB given free by CrossChain Relayer once you cross chain successfully. ",
+        "order-meta": "Placing this Order will lock your additional {{amount}} CKB in the Order. ",
+        "learn-why": "Learn Why",
+        "confirm": "Confirm"
+      },
+      "progress": {
+        "title": "Progress",
+        "submit": "Request Submitted",
+        "confirm-eth": "Confirmed on Ethereum",
+        "confirm-ckb": "Confirmed on CKB",
+        "sucess": "Swap Successfully",
+        "lock": "Lock",
+        "burn": "Burn",
+        "swap-desc": "Normally your swap will complete successfully soon after step {{step}}, but if the price fluctuates above the slippage, your swap will be pending until the pool price fluctuates back to the price you submitted. You also have the option to cancel the operation if it takes too long."
       }
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "pending": "Pending"
     },
     "common": {
       "max": "Max"
+    },
+    "validation": {
+      "lte-zero": "The value must be bigger than 0",
+      "invalid-number": "Please fill in a valid number",
+      "decimal": "The value is up to {{decimal}} decimal places",
+      "gt-max": "The value should be less than Max",
+      "liquid": "Insufficient liquidity for this trade",
+      "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet."
     }
   }
 }

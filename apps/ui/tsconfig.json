@@ -19,7 +19,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
     "types": [
       "node",
@@ -28,7 +27,8 @@
     "typeRoots": [
       "src/react-app-env.d.ts",
       "node_modules/@types"
-    ]
+    ],
+    "noEmit": true
   },
   "include": [
     "src",

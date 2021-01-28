@@ -39,9 +39,9 @@ export type CkbNativeAssetWithBalance = CkbNativeAsset & GliaswapLockedBalance &
 export type CkbSudtAssetWithBalance = CkbSudtAsset & GliaswapLockedBalance;
 
 // A shadow asset is a counterpart that crossed to a CKB from another chain, such as an ETH native token crossing over to ckETH
-export type ShadowFromEth = { shadowFrom: EthAsset };
-export type ShadowFromEthAsset = CkbAsset & ShadowFromEth;
-export type ShadowFromEthWithBalance = ShadowFromEthAsset & GliaswapLockedBalance;
+export type ShadowOfEth = { shadowFrom: EthAsset };
+export type ShadowOfEthAsset = CkbAsset & ShadowOfEth;
+export type ShadowOfEthWithBalance = ShadowOfEthAsset & GliaswapLockedBalance;
 
 export type EthChainSpec = { chainType: 'Ethereum'; address: string };
 export type EthAsset = EthChainSpec & Asset;
@@ -54,7 +54,6 @@ export type EthErc20AssetWithBalance = EthErc20Asset & Balanced;
 export type GliaswapAssetWithBalance =
   | CkbNativeAssetWithBalance
   | CkbSudtAssetWithBalance
-  | ShadowFromEthWithBalance
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
@@ -92,7 +91,7 @@ export function isCkbSudtAsset<T extends Asset>(asset: T): asset is T & CkbSudtA
   return isCkbAsset(asset) && !isCkbNativeAsset(asset);
 }
 
-export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowFromEthAsset {
+export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowOfEthAsset {
   return isCkbSudtAsset(asset) && has(asset, 'shadowFrom');
 }
 

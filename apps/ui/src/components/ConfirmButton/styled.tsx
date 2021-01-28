@@ -42,8 +42,8 @@ export const ButtonContainer = styled.div`
       }
       &.ant-btn {
         &:disabled {
-          background-color: #ddd;
-          color: #888;
+          background-color: #b8b9d6;
+          color: white;
         }
       }
       &:active {

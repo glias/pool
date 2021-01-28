@@ -11,7 +11,6 @@ const AssetSelectorModalWrapper = styled.div`
   .title {
     font-weight: bold;
     text-align: center;
-    padding: 8px;
   }
 `;
 
@@ -23,10 +22,8 @@ interface AssetSelectorModalProps<A extends Asset, K extends Key> extends AssetL
 
 export function AssetSelectorModal<A extends Asset, K extends Key>(props: AssetSelectorModalProps<A, K>) {
   const { assets, group, onSelected, disabledKeys, renderKey, ...modalProps } = props;
-
   const listElem = useMemo(() => {
     const assetListProps = { assets, onSelected, disabledKeys, renderKey };
-
     if (group) return <GroupedAssetList {...assetListProps} group={group} />;
     return <AssetList {...assetListProps} />;
   }, [assets, disabledKeys, group, onSelected, renderKey]);

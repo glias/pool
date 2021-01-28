@@ -1,6 +1,7 @@
-import { Asset, GliaswapAPI, GliaswapAssetWithBalance } from '@gliaswap/commons';
-import { useWalletAdapter } from 'commons/WalletAdapter';
+import { Asset, GliaswapAPI, GliaswapAssetWithBalance, isCkbAsset, isEthAsset } from '@gliaswap/commons';
+import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { createAssetWithBalance } from 'suite';
 
@@ -32,16 +33,42 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     value: assetList.map((asset) => ({ ...asset, balance: '0' } as GliaswapAssetWithBalance)),
   });
 
-  const { signer, status: connectStatus } = useWalletAdapter();
+  const { signer, status: connectStatus, raw } = useWalletAdapter<Web3ModalAdapter>();
   const lockScript = useMemo(() => {
     if (connectStatus !== 'connected') return null;
     return signer.address.toLockScript();
   }, [connectStatus, signer.address]);
 
+  const currentEthAddress = useMemo(() => {
+    if (connectStatus === 'connected') return signer.address.addressString;
+    return '';
+  }, [signer.address, connectStatus]);
+
   const { data, status } = useQuery(
     ['getAssetsWithBalance', api, lockScript],
-    () => api.getAssetsWithBalance(lockScript!, assetList),
-    { refetchInterval: 3000, enabled: lockScript != null },
+    () => api.getAssetsWithBalance(lockScript!, assetList, currentEthAddress, raw.web3),
+    { refetchInterval: 3000, enabled: lockScript != null && !!raw.web3 },
+  );
+
+  const setBalance = useCallback(
+    (assetList: Asset[]) => {
+      const updatedAssets = assetList.map((asset) => {
+        let target = {
+          ...asset,
+          balance: '',
+        } as GliaswapAssetWithBalance;
+        if (isEthAsset(asset)) {
+          const updated = data?.filter(isEthAsset).find((a) => a.address === asset.address);
+          target = updated ?? target;
+        } else if (isCkbAsset(asset)) {
+          const updated = data?.filter(isCkbAsset).find((a) => a.typeHash === asset.typeHash);
+          target = updated ?? target;
+        }
+        return target;
+      });
+      setAssetsWithBalance({ lastUpdated: Date.now(), value: updatedAssets });
+    },
+    [data],
   );
 
   useEffect(() => {
@@ -53,9 +80,9 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   }, [connectStatus]);
 
   useEffect(() => {
-    if (status !== 'success' || !data || assetsWithBalance.value === data) return;
-    setAssetsWithBalance({ lastUpdated: Date.now(), value: data });
-  }, [status, data, assetsWithBalance]);
+    if (status !== 'success' || !data) return;
+    setBalance(assetList);
+  }, [status, assetList, setBalance, data]);
 
   return (
     <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api }}>{children}</AssetManagerContext.Provider>

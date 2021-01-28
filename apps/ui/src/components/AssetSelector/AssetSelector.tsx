@@ -1,18 +1,21 @@
-import { DownOutlined } from '@ant-design/icons';
 import { Asset } from '@gliaswap/commons';
 import { AssetSymbol } from 'components/Asset';
 import React, { Key, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { AssetListProps } from './AssetList';
 import { AssetSelectorModal } from './AssetSelectorModal';
+import { ReactComponent as TriangleSvg } from 'assets/svg/triangle.svg';
 
 interface WrapperProps {
   selectable?: boolean;
+  bold?: boolean;
 }
 
 const TokenSelectorWrapper = styled.span<WrapperProps>`
   display: inline-flex;
   align-items: center;
+  font-weight: ${(props) => (props.bold ? 'bold' : 'normal')};
+  color: rgba(0, 0, 0, 0.85);
 
   ${(props) =>
     props.selectable &&
@@ -23,7 +26,7 @@ const TokenSelectorWrapper = styled.span<WrapperProps>`
       background: ${props.theme.primary || '#eee'};
     }`}
   .action {
-    margin-left: 4px;
+    margin-left: 8px;
   }
 `;
 
@@ -34,10 +37,12 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
   selectedKey?: K;
 
   group?: (asset: T) => string;
+
+  bold?: boolean;
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
-  const { selectedKey, onSelected, assets, renderKey, group, ...otherProps } = props;
+  const { selectedKey, onSelected, assets, renderKey, group, disabledKeys, ...otherProps } = props;
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectable = !!onSelected;
@@ -52,11 +57,11 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
   );
 
   const onSelect = useCallback(
-    (key: K) => {
-      onSelected?.(key, selectedAsset!);
+    (key: K, asset) => {
+      onSelected?.(key, asset);
       setModalVisible(false);
     },
-    [onSelected, selectedAsset],
+    [onSelected],
   );
 
   const buttonElem = useMemo(() => {
@@ -64,7 +69,7 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
       return (
         <>
           <AssetSymbol asset={selectedAsset} />
-          <DownOutlined className="action" />
+          <TriangleSvg className="action" />
         </>
       );
     }
@@ -75,7 +80,6 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
 
   const modalElem = useMemo(() => {
     if (!selectable) return;
-
     return (
       <AssetSelectorModal
         onCancel={() => setModalVisible(false)}
@@ -84,10 +88,10 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
         onSelected={onSelect}
         renderKey={renderKey}
         group={group}
-        disabledKeys={selectedAsset ? ([selectedKey] as K[]) : undefined}
+        disabledKeys={disabledKeys ? disabledKeys : selectedAsset ? ([selectedKey] as K[]) : undefined}
       />
     );
-  }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey]);
+  }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey, disabledKeys]);
 
   const onClick = useCallback(() => {
     if (!selectable) return;

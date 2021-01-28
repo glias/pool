@@ -4,10 +4,10 @@ import {
   GliaswapAssetWithBalance,
   isCkbNativeAsset,
   isCkbSudtAsset,
-  isEthErc20Dai,
-  isEthErc20Usdc,
-  isEthErc20Usdt,
-  isEthNativeAsset,
+  // isEthErc20Dai,
+  // isEthErc20Usdc,
+  // isEthErc20Usdt,
+  // isEthNativeAsset,
   utils,
 } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
@@ -17,12 +17,13 @@ export function BN(value: BigNumber.Value): BigNumber {
 }
 
 export function getIconBackgroundColor(asset: Asset): string {
-  if (isCkbNativeAsset(asset) || isCkbSudtAsset(asset)) return '#d9e8e2';
-  if (isEthNativeAsset(asset)) return '#c1c8e2';
-  if (isEthErc20Usdt(asset)) return '#b0e3d4';
-  if (isEthErc20Usdc(asset)) return '#b3d0f0';
-  if (isEthErc20Dai(asset)) return '#efddbf';
-  return '#eee';
+  if (isCkbNativeAsset(asset) || isCkbSudtAsset(asset)) return '#D9E8E2';
+  return '#C1C8E2';
+  // if (isEthNativeAsset(asset)) return '#c1c8e2';
+  // if (isEthErc20Usdt(asset)) return '#b0e3d4';
+  // if (isEthErc20Usdc(asset)) return '#b3d0f0';
+  // if (isEthErc20Dai(asset)) return '#efddbf';
+  // return '#eee';
 }
 
 /**

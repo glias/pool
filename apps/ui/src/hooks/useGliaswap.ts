@@ -13,7 +13,7 @@ import {
   isEthNativeAsset,
   isShadowEthAsset,
   Script,
-  ShadowFromEthWithBalance,
+  ShadowOfEthWithBalance,
 } from '@gliaswap/commons';
 import { ConnectStatus, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { AdapterContextState } from 'commons/WalletAdapter/Provider';
@@ -63,7 +63,7 @@ export interface GliaswapAssets {
   ckbNativeAsset: CkbNativeAssetWithBalance | undefined;
   ckbSudtAssets: CkbSudtAssetWithBalance[];
 
-  shadowEthAssets: ShadowFromEthWithBalance[];
+  shadowEthAssets: ShadowOfEthWithBalance[];
 
   ethAssets: (EthNativeAssetWithBalance | EthErc20AssetWithBalance)[];
   ethNativeAsset: EthNativeAssetWithBalance | undefined;
