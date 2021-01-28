@@ -961,23 +961,24 @@ class TxBuilderCellCollector implements CellCollector {
       }
     }
 
-    const neededCapacity = capacity - inputCapacity;
-    const queryOptions: lumos.QueryOptions = {
-      lock: userLock.toLumosScript(),
-    };
-    const cells = await this.ckbRepository.collectCells(queryOptions);
-    // Filter non-free ckb cells
-    const freeCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
-    for (const cell of freeCells) {
-      if (inputCapacity >= neededCapacity) {
-        break;
-      }
+    if (inputCapacity < capacity) {
+      const queryOptions: lumos.QueryOptions = {
+        lock: userLock.toLumosScript(),
+      };
+      const cells = await this.ckbRepository.collectCells(queryOptions);
+      // Filter non-free ckb cells
+      const freeCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
+      for (const cell of freeCells) {
+        if (inputCapacity >= capacity) {
+          break;
+        }
 
-      inputCells.push(cell);
-      inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
-    }
-    if (inputCapacity < neededCapacity) {
-      ctx.throw(400, `free ckb not enough, required: ${neededCapacity}, available: ${inputCapacity}`);
+        inputCells.push(cell);
+        inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
+      }
+      if (inputCapacity < capacity) {
+        ctx.throw(400, `free ckb not enough, required: ${capacity}, available: ${inputCapacity}`);
+      }
     }
 
     return {
