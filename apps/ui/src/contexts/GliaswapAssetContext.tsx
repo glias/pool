@@ -2,6 +2,7 @@ import { Asset, GliaswapAPI, GliaswapAssetWithBalance } from '@gliaswap/commons'
 import { useWalletAdapter } from 'commons/WalletAdapter';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
+import { createAssetWithBalance } from 'suite';
 
 export type RealtimeInfo<T> = {
   // unix timestamp milliseconds
@@ -44,9 +45,14 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   );
 
   useEffect(() => {
-    if (status !== 'success' || !data) return;
+    if (connectStatus !== 'connected') {
+      setAssetsWithBalance({ lastUpdated: Date.now(), value: assetsWithBalance.value.map(createAssetWithBalance) });
+      return;
+    }
+
+    if (status !== 'success' || !data || assetsWithBalance.value === data) return;
     setAssetsWithBalance({ lastUpdated: Date.now(), value: data });
-  }, [status, data]);
+  }, [status, data, connectStatus, assetsWithBalance]);
 
   return (
     <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api }}>{children}</AssetManagerContext.Provider>
