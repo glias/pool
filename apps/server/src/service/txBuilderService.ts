@@ -632,7 +632,7 @@ export class TxBuilderService {
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = (BigInt(ckbChangeOutput.capacity) - estimatedTxFee).toString();
+    ckbChangeOutput.capacity = TxBuilderService.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new TransactionWithFee(txToSign, estimatedTxFee);

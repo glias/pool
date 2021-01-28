@@ -1,7 +1,7 @@
 import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
-import { Token, TokenHolderFactory } from '../tokens';
+import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
 import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
