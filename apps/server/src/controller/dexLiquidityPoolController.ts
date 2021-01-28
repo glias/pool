@@ -147,7 +147,7 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, 'create pool dont need asset balance');
         }
 
-        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
@@ -268,10 +268,11 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, 'asset balance is zero');
         }
 
-        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
+        token = token.clone();
         token.balance = asset.balance;
 
         return token;
@@ -434,10 +435,11 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, `asset ${idx} type hash ${asset.typeHash}'s balance is zero`);
         }
 
-        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
+        token = token.clone();
         token.balance = asset.balance;
 
         return token;
@@ -450,8 +452,15 @@ export default class DexLiquidityPoolController {
     const lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
     if (!lpTokenAmount.typeScript) {
       const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
-      const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(ctx, token);
-      console.log(lpTokenTypeScript.toHash());
+      if (!token.info.symbol) {
+        ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
+      }
+      if (!config.POOL_INFO_TYPE_ARGS[token.info.symbol]) {
+        ctx.throw(400, `token ${token.info.symbol} type args not in config`);
+      }
+
+      const infoTypeScriptArgs = config.POOL_INFO_TYPE_ARGS[token.info.symbol];
+      const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
       lpTokenAmount.typeScript = lpTokenTypeScript;
     }
 

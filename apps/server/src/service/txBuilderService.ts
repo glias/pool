@@ -534,22 +534,14 @@ export class TxBuilderService {
     }
   }
 
-  public static lpTokenTypeScript(ctx: Context, token: Token): Script {
-    if (!token.info.symbol) {
-      ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
-    }
-    if (!config.POOL_INFO_TYPE_ARGS[token.info.symbol]) {
-      ctx.throw(400, `token ${token.info.symbol} type args not in config`);
-    }
-
-    const id = config.POOL_INFO_TYPE_ARGS[token.info.symbol];
+  public static lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
+    const id = infoTypeScriptArgs;
     const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
-    const typeHash = infoType.toHash();
-    const hashes = ['ckb', token.typeHash];
-    const pairHash = utils.blake2b(hashes);
-    const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
+    const infoTypeHash = infoType.toHash();
+    const pairHash = utils.blake2b(['ckb', tokenTypeHash]);
+    const infoLockArgs = `0x${pairHash.slice(2)}${infoTypeHash.slice(2)}`;
     const infoLock = new Script(config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script

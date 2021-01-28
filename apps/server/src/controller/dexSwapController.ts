@@ -121,10 +121,11 @@ export default class DexSwapController {
         ctx.throw(400, `asset type hash ${asset.typeHash}'s balance is zero`);
       }
 
-      const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash).clone();
+      let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
       if (!token) {
         ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
       }
+      token = token.clone();
       token.balance = asset.balance;
 
       return token;
