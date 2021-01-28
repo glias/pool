@@ -21,8 +21,8 @@ export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderService: txBuilder.TxBuilderService;
 
-  constructor() {
-    this.dexRepository = ckbRepository;
+  constructor(dexRepository?: DexRepository) {
+    this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
