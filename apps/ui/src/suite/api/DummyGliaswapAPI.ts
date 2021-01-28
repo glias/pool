@@ -1,6 +1,11 @@
 import {
   Asset,
   GenerateAddLiquidityTransactionPayload,
+  GenerateCancelRequestTransactionPayload,
+  GenerateCreateLiquidityPoolTransactionPayload,
+  GenerateCreateLiquidityPoolTransactionResponse,
+  GenerateGenesisLiquidityTransactionPayload,
+  GenerateSwapTransactionPayload,
   GliaswapAPI,
   LiquidityInfo,
   LiquidityOrderSummary,
@@ -20,17 +25,42 @@ import {
 } from '../placeholder/assets';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
+  generateCancelRequestTransaction(
+    _payload: GenerateCancelRequestTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
+  }
+
+  generateCreateLiquidityPoolTransaction(
+    _payload: GenerateCreateLiquidityPoolTransactionPayload,
+  ): Promise<GenerateCreateLiquidityPoolTransactionResponse> {
+    return Promise.resolve({} as any);
+  }
+
+  generateGenesisLiquidityTransaction(
+    _payload: GenerateGenesisLiquidityTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
+  }
+
+  generateSwapTransaction(_payload: GenerateSwapTransactionPayload): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
+  }
+
   async generateAddLiquidityTransaction(
     _payload: GenerateAddLiquidityTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
+
   async generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
+
   async cancelOperation(_txHash: string, _lock: CKBComponents.Script): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
+
   getDefaultAssetList() {
     return [ckbNativeAsset];
   }

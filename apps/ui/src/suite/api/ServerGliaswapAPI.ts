@@ -4,6 +4,11 @@ import {
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
   GenerateAddLiquidityTransactionPayload,
+  GenerateCancelRequestTransactionPayload,
+  GenerateCreateLiquidityPoolTransactionPayload,
+  GenerateCreateLiquidityPoolTransactionResponse,
+  GenerateGenesisLiquidityTransactionPayload,
+  GenerateSwapTransactionPayload,
   getCkbChainSpec,
   GliaswapAPI,
   GliaswapAssetWithBalance,
@@ -59,7 +64,8 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
-    return Promise.resolve({} as any);
+    // TODO replace with server api
+    return Promise.resolve({ fee: (Math.random() * 10 ** 8).toFixed(8), transactionToSign: {} as any });
   }
 
   getAddLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
@@ -98,5 +104,27 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   getRemoveLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
     return Promise.resolve([]);
+  }
+
+  generateCancelRequestTransaction(
+    _payload: GenerateCancelRequestTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
+  }
+
+  generateCreateLiquidityPoolTransaction(
+    _payload: GenerateCreateLiquidityPoolTransactionPayload,
+  ): Promise<GenerateCreateLiquidityPoolTransactionResponse> {
+    return Promise.resolve({} as any);
+  }
+
+  generateGenesisLiquidityTransaction(
+    _payload: GenerateGenesisLiquidityTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
+  }
+
+  generateSwapTransaction(_payload_: GenerateSwapTransactionPayload): Promise<SerializedTransactionToSignWithFee> {
+    return Promise.resolve({} as any);
   }
 }
