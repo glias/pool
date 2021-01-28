@@ -2,6 +2,7 @@ import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatu
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
+import * as lumos from '@ckb-lumos/base';
 
 export class DexOrderChainFactory {
   private inputOutPointWithTransaction: Map<string, TransactionWithStatus>;
@@ -15,7 +16,7 @@ export class DexOrderChainFactory {
   }
 
   getOrderChains(
-    lock: Script,
+    lock: Script | (lumos.Script | lumos.ScriptWrapper),
     type: Script,
     transactionCollector: TransactionWithStatus[],
     bridgeInfoMatch: BridgeInfoMatchChain,
@@ -81,7 +82,7 @@ export class DexOrderChainFactory {
   }
 
   private initOrderChainDatas(
-    lock: Script,
+    lock: Script | (lumos.Script | lumos.ScriptWrapper),
     type: Script,
     transactionCollector: TransactionWithStatus[],
     bridgeInfoMatch: BridgeInfoMatchChain,
