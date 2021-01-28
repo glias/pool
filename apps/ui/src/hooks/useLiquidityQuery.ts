@@ -36,15 +36,16 @@ export function useLiquidityQuery(inputPoolId?: string): LiquidityDetail {
   const userLiquidityQuery = useQuery(
     ['getLiquidityInfo', poolId, currentUserLock, poolLiquidityQuery.data],
     async () => {
+      if (!currentUserLock) return;
       const userLiquidity = await api.getLiquidityInfo({ lock: currentUserLock, poolId });
       const poolLiquidity = poolLiquidityQuery.data;
+
       if (!poolLiquidity || !userLiquidity) return;
 
       const share = new BigNumber(userLiquidity.lpToken.balance).div(poolLiquidity.lpToken.balance).toNumber();
 
       return { ...userLiquidity, share };
     },
-    { enabled: currentUserLock != null },
   );
 
   return {

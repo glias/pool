@@ -1,14 +1,20 @@
 import { ArrowDownOutlined } from '@ant-design/icons';
 import { LiquidityInfo } from '@gliaswap/commons';
-import { Button, Col, Row, Slider } from 'antd';
-import BigNumber from 'bignumber.js';
-import { AssetBalanceList, AssetBaseQuotePrices } from 'components/Asset';
+import { Button, Col, Row, Slider, Typography } from 'antd';
+import { AssetBalanceList, AssetBaseQuotePrices, PoolAssetSymbol } from 'components/Asset';
+import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
+import { useRemoveLiquidity } from 'hooks/useRemoveLiquidity';
 import i18n from 'i18n';
-import update from 'immutability-helper';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useMutation } from 'react-query';
 import styled from 'styled-components';
+import { BN } from 'suite';
+import { TransactionFeeLabel } from 'views/Pool/PoolDetail/LiquidityOperation/components/TransactionFeeLabel';
+import { OperationConfirmModal } from 'views/Pool/PoolDetail/LiquidityOperation/OperationConfirmModal';
 import { RequestFeeLabel } from './components/RequestFeeLabel';
+
+const { Text } = Typography;
 
 interface RemoveLiquidityProps {
   poolLiquidity: LiquidityInfo;
@@ -46,16 +52,31 @@ const ReceiveAssets = styled(AssetBalanceList)`
 `;
 
 export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
-  const [removePercent, setRemovePercent] = useState(0); /* 0 - 100 */
-  const userLiquidity = props.userLiquidity;
+  const [confirming, setConfirming] = useState(false);
+  const {
+    generateRemoveLiquidityTransaction,
+    readyToRemoveShare,
+    readyToSendTransactionWithFee,
+    setReadyToRemoveShare,
+    readyToReceiveAssets,
+    readyToRemoveLpToken,
+  } = useRemoveLiquidity();
 
-  const assetsWithRemoveLiquidityBalance = useMemo(
-    () =>
-      userLiquidity.assets.map((asset) =>
-        update(asset, { balance: (balance) => new BigNumber(balance).times(removePercent / 100).toString() }),
-      ),
-    [userLiquidity.assets, removePercent],
+  const removePercent = useMemo(() => BN(readyToRemoveShare).times(100).toNumber(), [readyToRemoveShare]);
+
+  function setRemovePercent(percent: number) {
+    setReadyToRemoveShare(BN(percent).div(100).toNumber());
+  }
+
+  const { isLoading: isGeneratingTransaction, mutate: generateTransaction, status } = useMutation(
+    ['generateRemoveLiquidityTransaction'],
+    () => generateRemoveLiquidityTransaction(),
+    {},
   );
+
+  useEffect(() => {
+    if (status === 'success') setConfirming(true);
+  }, [status]);
 
   const RemovePercentButton: React.FC<{ value: number; display?: string }> = ({ display, value }) => {
     return (
@@ -92,7 +113,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
       <ArrowDownOutlined className="arrow-icon" />
       <Section bordered>
         <h4>{i18n.t('Receive(EST)')}</h4>
-        <ReceiveAssets assets={assetsWithRemoveLiquidityBalance} />
+        <ReceiveAssets assets={readyToReceiveAssets} />
       </Section>
 
       <SpaceBetweenRow>
@@ -112,9 +133,51 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
           <b>{i18n.t('Free now')}</b>
         </div>
       </SpaceBetweenRow>
-      <Button block type="primary">
+      <Button
+        block
+        type="primary"
+        disabled={!readyToRemoveShare}
+        onClick={() => generateTransaction()}
+        loading={isGeneratingTransaction}
+      >
         {i18n.t('Remove Liquidity')}
       </Button>
+
+      <OperationConfirmModal
+        visible={confirming}
+        onOk={() => Promise.resolve()}
+        onCancel={() => setConfirming(false)}
+        operation={<Text strong>{i18n.t('Remove Liquidity')}</Text>}
+      >
+        {readyToSendTransactionWithFee && (
+          <>
+            <div className="label">{i18n.t('Remove')}</div>
+            <SpaceBetweenRow style={{ fontWeight: 'bold', fontSize: '14px' }}>
+              <div>
+                <HumanizeBalance asset={readyToRemoveLpToken} />
+              </div>
+              <div>
+                <PoolAssetSymbol assets={readyToReceiveAssets} />
+              </div>
+            </SpaceBetweenRow>
+
+            <ArrowDownOutlined style={{ margin: '16px' }} />
+
+            <div className="label">{i18n.t('Receive(EST)')}</div>
+            <AssetBalanceList assets={readyToReceiveAssets} style={{ fontWeight: 'bold' }} />
+
+            <SpaceBetweenRow>
+              <TransactionFeeLabel />
+              <HumanizeBalance
+                asset={{ symbol: 'CKB', decimals: 8 }}
+                value={readyToSendTransactionWithFee.fee}
+                maxToFormat={8}
+                showSuffix
+              />
+            </SpaceBetweenRow>
+          </>
+        )}
+      </OperationConfirmModal>
     </RemoveLiquidityWrapper>
   );
 };
