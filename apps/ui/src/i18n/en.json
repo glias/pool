@@ -61,7 +61,9 @@
       "lte-zero": "The value must be bigger than 0",
       "invalid-number": "Please fill in a valid number",
       "decimal": "The value is up to {{decimal}} decimal places",
-      "gt-max": "The value should be less than Max"
+      "gt-max": "The value should be less than Max",
+      "liquid": "Insufficient liquidity for this trade",
+      "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet."
     }
   }
 }

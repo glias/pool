@@ -37,6 +37,13 @@ const FormContainer = styled(Form)`
       cursor: not-allowed;
     }
   }
+
+  > .warning {
+    font-size: 12px;
+    line-height: 14px;
+    color: #ff4d4f;
+    margin-bottom: 16px;
+  }
 `;
 
 export const SwapTable: React.FC = () => {
@@ -55,6 +62,7 @@ export const SwapTable: React.FC = () => {
     approveText,
     isApproving,
     payMax,
+    ckbEnoughMessage,
   } = useSwapContainer();
   const { bridgeAPI } = useGlobalConfig();
   const {
@@ -272,16 +280,28 @@ export const SwapTable: React.FC = () => {
         return Promise.reject(i18n.t('validation.decimal', { decimal: tokenB.decimals }));
       }
 
+      if (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) {
+        const realVal = val.times(10 ** tokenB.decimals);
+        if (realVal.isGreaterThan(receiveReserve)) {
+          return Promise.reject(i18n.t('validation.liquid'));
+        }
+      }
+
       setIsReceiveInvalid(false);
 
       return Promise.resolve();
     },
-    [tokenB.decimals, setIsReceiveInvalid],
+    [tokenB.decimals, setIsReceiveInvalid, receiveReserve, swapMode],
   );
 
   return (
     <Block>
       <FormContainer form={form} layout="vertical">
+        {ckbEnoughMessage ? (
+          <Form.Item className="warning">
+            <span>{ckbEnoughMessage}</span>{' '}
+          </Form.Item>
+        ) : null}
         <InputNumber
           label={i18n.t('swap.order-table.you-pay')}
           name="pay"

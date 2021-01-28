@@ -16,7 +16,6 @@ import {
   LiquidityPoolFilter,
   Maybe,
   PoolInfo,
-  Script,
   SerializedTransactionToSignWithFee,
   ShadowOfEthWithBalance,
   SwapOrder,
@@ -24,15 +23,50 @@ import {
   isEthNativeAsset,
   isEthErc20Asset,
   EthAsset,
+  Script as CkbScript,
 } from '@gliaswap/commons';
 import Axios, { AxiosInstance } from 'axios';
 import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
 import Web3 from 'web3';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
-import { Transaction } from '@lay2/pw-core';
+import {
+  Amount,
+  AmountUnit,
+  Cell,
+  Script,
+  Transaction,
+  OutPoint,
+  RawTransaction,
+  Builder,
+  CellDep,
+  DepType,
+} from '@lay2/pw-core';
 
 const api = new DummyGliaswapAPI();
+
+function fromJSONToPwCell(cell: any) {
+  const { data } = cell;
+  if (cell.index && cell.txHash) {
+    cell.outPoint = {
+      index: cell.index,
+      txHash: cell.txHash,
+    };
+  }
+  // debugger;
+  return new Cell(
+    new Amount(cell.capacity as any, AmountUnit.shannon),
+    new Script(cell.lock.codeHash, cell.lock.args, cell.lock.hashType),
+    cell.type ? new Script(cell.type.codeHash, cell.type.args, cell.type.hashType) : undefined,
+    cell.outPoint ? new OutPoint(cell.outPoint.txHash, cell.outPoint.index) : undefined,
+    data ?? '0x',
+  );
+}
+
+export const SUDT_DEP = new CellDep(
+  DepType.code,
+  new OutPoint('0xe12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769', '0x0'),
+);
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -54,7 +88,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  cancelOperation(_txHash: string, _lock: Script): Promise<SerializedTransactionToSignWithFee> {
+  cancelOperation(_txHash: string, _lock: CkbScript): Promise<SerializedTransactionToSignWithFee> {
     return Promise.resolve({} as any);
   }
 
@@ -78,7 +112,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async getAssetsWithBalance(
-    lock: Script,
+    lock: CkbScript,
     assets?: Asset[],
     ethAddr?: string,
     web3?: Web3,
@@ -155,7 +189,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve([]);
   }
 
-  async getSwapOrders(lock: Script, ethAddress: string): Promise<SwapOrder[]> {
+  async getSwapOrders(lock: CkbScript, ethAddress: string): Promise<SwapOrder[]> {
     const res = await this.axios.post('/swap/orders', {
       lock,
       ethAddress,
@@ -166,19 +200,21 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  async cancelSwapOrders(txHash: string, lock: Script): Promise<{ tx: Transaction }> {
+  async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
     const { data } = await this.axios.post('/swap/orders/cancel', {
       txHash,
       lock,
     });
 
-    return data;
+    return {
+      tx: this.toPwTransactionInstance(data.tx),
+    };
   }
 
   async swapNormalOrder(
     tokenA: GliaswapAssetWithBalance,
     tokenB: GliaswapAssetWithBalance,
-    lock: Script,
+    lock: CkbScript,
   ): Promise<{ tx: Transaction }> {
     const { data } = await this.axios.post('/swap/orders/swap', {
       assetInWithAmount: {
@@ -201,6 +237,21 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         address: '',
       },
     });
-    return data;
+
+    return {
+      tx: this.toPwTransactionInstance(data.tx),
+    };
+  }
+
+  toPwTransactionInstance(transaction: Transaction['raw']) {
+    const { inputCells } = transaction;
+    const outputs = (transaction as any).outputCells;
+    const tx = new Transaction(new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell)), [
+      Builder.WITNESS_ARGS.Secp256k1,
+    ]);
+
+    tx.raw.cellDeps.push(SUDT_DEP);
+
+    return tx.validate();
   }
 }

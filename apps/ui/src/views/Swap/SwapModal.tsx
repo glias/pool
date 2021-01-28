@@ -110,7 +110,7 @@ export const SwapModal = () => {
       setReviewModalVisable(false);
     } catch (error) {
       Modal.error({
-        title: 'Build Transaction',
+        title: 'Sign Transaction',
         content: error.message,
       });
     } finally {

@@ -111,7 +111,7 @@ export const CancelModal = () => {
       await adapter.raw.pw.sendTransaction(tx);
     } catch (error) {
       Modal.error({
-        title: 'Build Transaction',
+        title: 'Sign Transaction',
         content: error.message,
       });
     } finally {

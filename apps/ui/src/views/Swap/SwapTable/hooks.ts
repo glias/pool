@@ -138,16 +138,15 @@ export const useSwapTable = ({
       if (selectedAsset.symbol === tokenA.symbol) {
         togglePair();
       } else if (isCkbNativeAsset(selectedAsset) && isEthAsset(tokenA)) {
-        setTokenA(tokenB);
-        // setTokenB() // ckb
+        setTokenB(ckbNativeAsset!);
       } else if (isEthAsset(selectedAsset) && isCkbNativeAsset(tokenA)) {
         setTokenA(selectedAsset);
-        // setTokenB() // ckb
+        setTokenB(ckbNativeAsset!);
       } else {
         setTokenB(selectedAsset);
       }
     },
-    [setTokenA, tokenB, setTokenB, tokenA, togglePair],
+    [setTokenA, setTokenB, tokenA, togglePair, ckbNativeAsset],
   );
 
   const receiveAssetFilter = useCallback(

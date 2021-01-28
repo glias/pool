@@ -5,18 +5,20 @@ import {
   isCkbSudtAsset,
   isEthAsset,
   isEthErc20Asset,
+  isEthNativeAsset,
   isShadowEthAsset,
   SwapOrder,
 } from '@gliaswap/commons';
 import PWCore, { Transaction } from '@lay2/pw-core';
-import { useGliaswap } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'contexts';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
 import { useGlobalConfig } from 'contexts/config';
 import { crossChainOrdersCache } from 'cache/index';
 import BigNumber from 'bignumber.js';
-import { MAX_TRANSACTION_FEE, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
+import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
+import i18n from 'i18n';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -40,6 +42,7 @@ const useSwap = () => {
   const [stepModalVisable, setStepModalVisable] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
+  const { ckbNativeAsset } = useGliaswapAssets();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
   const [tokenA, setTokenA] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
   const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
@@ -212,6 +215,10 @@ const useSwap = () => {
     [currentCkbAddress, setCrossChainOrders, isWalletNotConnected],
   );
 
+  const isBid = useMemo(() => {
+    return isCkbNativeAsset(tokenA);
+  }, [tokenA]);
+
   const payMax = useMemo(() => {
     const decimal = new BigNumber(10).pow(tokenA.decimals);
     const token = realtimeAssets.value.find((a) => a.symbol === tokenA.symbol) ?? tokenA;
@@ -220,27 +227,36 @@ const useSwap = () => {
       return '0';
     }
     if (isCkbNativeAsset(token)) {
-      return balance.minus(SWAP_CELL_BID_CAPACITY).minus(MAX_TRANSACTION_FEE).toString();
+      return balance
+        .minus(isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY)
+        .minus(MAX_TRANSACTION_FEE)
+        .toString();
     } else if (isCkbSudtAsset(token)) {
       return balance.toString();
-    } else if (isEthAsset(token)) {
+    } else if (isEthNativeAsset(token)) {
       const max = balance.minus(0.1);
-      if (max.isNaN() || max.isEqualTo(0)) {
+      if (max.isNaN() || max.isLessThan(0)) {
         return '0';
       }
       return max.toString();
     }
 
     return balance.toString();
-  }, [tokenA, realtimeAssets]);
-
-  const isBid = useMemo(() => {
-    return isCkbNativeAsset(tokenA);
-  }, [tokenA]);
+  }, [tokenA, realtimeAssets, isBid]);
 
   const isSendCkbTransaction = useMemo(() => {
     return swapMode === SwapMode.NormalOrder || swapMode === SwapMode.CrossOut;
   }, [swapMode]);
+
+  const ckbEnoughMessage = useMemo(() => {
+    if (swapMode === SwapMode.NormalOrder && ckbNativeAsset) {
+      const cellSize = (isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY) + MAX_TRANSACTION_FEE;
+      if (new BigNumber(ckbNativeAsset.balance).isLessThan(new BigNumber(cellSize).times(10 ** 8))) {
+        return i18n.t('validation.ckb', { amount: cellSize });
+      }
+    }
+    return '';
+  }, [swapMode, isBid, ckbNativeAsset]);
 
   return {
     cancelModalVisable,
@@ -275,6 +291,7 @@ const useSwap = () => {
     payMax,
     isBid,
     isSendCkbTransaction,
+    ckbEnoughMessage,
   };
 };
 

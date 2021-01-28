@@ -20,7 +20,7 @@ export function calcPayWithReceive(receive: string, payReserve: string, receiveR
   const pR = BigInt(payReserve);
   const rR = BigInt(receiveReserve);
 
-  const pay = ((FEE_DECIMAL * pR * r) / SWAP_FEE) * (rR - r);
+  const pay = (FEE_DECIMAL * pR * r) / (SWAP_FEE * (rR - r));
 
   return pay.toString();
 }
