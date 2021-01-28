@@ -108,8 +108,7 @@ export class DexOrderChainFactory {
 
         // liquidity order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | amountOutMin (u128, 16 bytes, 33..49) | sudt_type_hash (32 bytes, 49..81) | tips (8 bytes, 81..89) | tips_sudt (16 bytes, 89..105)
         // argsLen = 212
-        const argsLen = output.lock.args.length;
-        if (this.isSwapOrder && argsLen !== 212) {
+        if (hasSwapCodeHash && output.lock.args.length !== 212) {
           return;
         }
 
