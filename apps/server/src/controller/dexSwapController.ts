@@ -100,13 +100,13 @@ export default class DexSwapController {
   })
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assetInWithAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    assetInWithAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assetOutWithMinAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    assetOutWithMinAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
   })
   public async createSwapOrderTx(ctx: Context): Promise<void> {
     const reqBody = ctx.request.body as commons.GenerateSwapTransactionPayload;
@@ -166,7 +166,7 @@ export default class DexSwapController {
   @body({
     txHash: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
   })
   public async createCancelOrderTx(ctx: Context): Promise<void> {
     const { txHash, lock } = ctx.request.body as commons.GenerateCancelRequestTransactionPayload;

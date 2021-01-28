@@ -126,10 +126,13 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
+    assets: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
   })
   public async createLiquidityPool(ctx: Context): Promise<void> {
     const { assets, lock } = ctx.request.body as commons.GenerateCreateLiquidityPoolTransactionPayload;
@@ -244,13 +247,17 @@ export default class DexLiquidityPoolController {
     },
   })
   @body({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assets: { type: 'array', items: { type: 'object', properties: (AssetSchema as any).swaggerDocument } },
+    assets: {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+      required: true,
+    },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (TokenSchema as any).swaggerDocument, required: true },
   })
   public async createGenesisLiquidityOrder(ctx: Context): Promise<void> {
     const { assets, lock, poolId, tips } = ctx.request.body as commons.GenerateGenesisLiquidityTransactionPayload;
@@ -316,18 +323,18 @@ export default class DexLiquidityPoolController {
     assetsWithDesiredAmount: {
       type: 'array',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     },
     assetsWithMinAmount: {
       type: 'array',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
   })
   public async createAddLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = ctx.request.body as commons.GenerateAddLiquidityTransactionPayload;
@@ -405,15 +412,15 @@ export default class DexLiquidityPoolController {
     assetsWithMinAmount: {
       type: 'array',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+      items: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
     poolId: { type: 'string', required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
   })
   public async createRemoveLiquidityOrder(ctx: Context): Promise<void> {
     const reqBody = ctx.request.body as commons.GenerateRemoveLiquidityTransactionPayload;
