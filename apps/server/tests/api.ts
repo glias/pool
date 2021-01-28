@@ -11,9 +11,11 @@ import { AddressPrefix } from '@nervosnetwork/ckb-sdk-utils';
 
 const USER_PRIV_KEY = process.env.USER_PRIV_KEY;
 const USER_LOCK: CKBComponents.Script = {
-  codeHash: config.SECP256K1_LOCK_CODE_HASH,
+  // codeHash: config.SECP256K1_LOCK_CODE_HASH,
+  codeHash: '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
   hashType: 'type',
-  args: process.env.USER_LOCK_ARGS,
+  // args: process.env.USER_LOCK_ARGS,
+  args: '0x6c8c7f80161485c3e4adceda4c6c425410140054',
 };
 // const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
@@ -283,8 +285,8 @@ async function createSwapTx(tokenSymbol: string) {
   console.log(`create ${tokenSymbol} swap, id: ${config.POOL_ID[tokenSymbol]}`);
 
   const req = {
-    assetInWithAmount: ckbToken(10n),
-    assetOutWithMinAmount: generateToken(20n, tokenSymbol),
+    assetInWithAmount: generateToken(100000000000000000n, tokenSymbol),
+    assetOutWithMinAmount: ckbToken(90207783941n),
     lock: USER_LOCK,
     tips: ckbToken(0n),
   };
@@ -320,4 +322,4 @@ console.log(`use address: ${address}`);
 // createAddLiquidityTx('GLIA');
 // createRemoveLiquidityTx('GLIA');
 // createCancelLiquidityTx('0x7dc1554334dbde8393be45126a856654a93ea5c8a437ba32c99e9dcd783f22e2');
-// createSwapTx('GLIA');
+// createSwapTx('ckETH');
