@@ -40,8 +40,6 @@ export class DexSwapOrderChain extends DexOrderChain {
 
   getOrderHistory(): OrderHistory {
     const transactionHash = this.getLastOrder().getTxHash();
-    const argsData = this.getArgsData();
-
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
 
@@ -62,6 +60,7 @@ export class DexSwapOrderChain extends DexOrderChain {
         amountOut.balance = this._bridgeInfo.amount;
       }
     } else {
+      const argsData = this.getArgsData();
       amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
       amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
       if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
