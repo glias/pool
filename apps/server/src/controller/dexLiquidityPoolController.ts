@@ -5,7 +5,7 @@ import * as config from '../config';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
-import { AssetSchema, ScriptSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
+import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
 
@@ -189,13 +189,16 @@ export default class DexLiquidityPoolController {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             tokenB: { type: 'object', properties: (AssetSchema as any).swaggerDocument },
             stage: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  step: { type: 'string', required: true },
-                  message: { type: 'string', required: true },
-                  data: { type: 'string', required: true },
+              type: 'object',
+              properties: {
+                status: { type: 'string', required: true },
+                steps: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    properties: (StepSchema as any).swaggerDocument,
+                  },
                 },
               },
             },
