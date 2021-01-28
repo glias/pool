@@ -85,11 +85,12 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getStatus(): string {
     const order = this.getLastOrder();
-    if (order.cell.lock.codeHash === LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash) {
-      return ORDER_STATUS.PENDING;
-    }
+    return order.tx.txStatus.status;
+    // if (order.cell.lock.codeHash === LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash) {
+    //   return ORDER_STATUS.PENDING;
+    // }
 
-    return ORDER_STATUS.COMPLETED;
+    // return ORDER_STATUS.COMPLETED;
   }
 
   buildStep(): Step[] {
