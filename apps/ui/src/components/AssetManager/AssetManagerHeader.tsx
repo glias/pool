@@ -75,7 +75,7 @@ export const WalletConnectionStatusHeader = () => {
 
   if (status !== 'connected') return null;
 
-  async function close() {}
+  async function changeSigner() {}
 
   const provider = getProviderInfo(raw.provider);
   const connected = provider.name;
@@ -92,7 +92,7 @@ export const WalletConnectionStatusHeader = () => {
         </div>
       </div>
       <div className="button">
-        <Button size="small" type="link" onClick={close}>
+        <Button size="small" type="link" onClick={changeSigner}>
           {t('Change')}
         </Button>
       </div>
