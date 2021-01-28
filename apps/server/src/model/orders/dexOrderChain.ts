@@ -7,6 +7,13 @@ export interface Stage {
   steps: Step[];
 }
 
+export const enum ORDER_STATUS {
+  PENDING = 'pending',
+  OPEN = 'open',
+  COMPLETED = 'completed',
+  CANCELING = 'canceling',
+}
+
 export class Step {
   transactionHash: string;
   index?: string;

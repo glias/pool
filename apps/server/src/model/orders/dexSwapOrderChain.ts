@@ -2,19 +2,12 @@ import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerialization
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { TokenHolderFactory } from '../tokens';
-import { DexOrderChain, OrderHistory, Step } from './dexOrderChain';
+import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 export enum ORDER_TYPE {
   SellCKB = 0,
   BuyCKB = 1,
-}
-
-const enum ORDER_STATUS {
-  PENDING = 'pending',
-  OPEN = 'open',
-  COMPLETED = 'completed',
-  CANCELING = 'canceling',
 }
 
 enum OrderType {
