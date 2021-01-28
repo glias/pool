@@ -60,13 +60,20 @@ export const useSwapTable = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (pay === '') {
+      setIsPayInvalid(true);
+    }
+    if (receive === '') {
+      setIsReceiveInvalid(true);
+    }
+  }, [pay, receive]);
+
   // reset when pair changes
   useEffect(() => {
     form.resetFields();
     setPay('');
     setReceive('');
-    setIsPayInvalid(true);
-    setIsReceiveInvalid(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenA.symbol, tokenB.symbol]);
 

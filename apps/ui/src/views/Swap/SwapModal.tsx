@@ -27,6 +27,7 @@ export const SwapModal = () => {
     sendEthTransaction,
     setAndCacheCrossChainOrders,
     isSendCkbTransaction,
+    resetForm,
   } = useSwapContainer();
   const { adapter } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -107,6 +108,7 @@ export const SwapModal = () => {
         default:
           break;
       }
+      resetForm();
       setReviewModalVisable(false);
     } catch (error) {
       Modal.error({
@@ -116,7 +118,7 @@ export const SwapModal = () => {
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder]);
+  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder, resetForm]);
 
   return (
     <Container

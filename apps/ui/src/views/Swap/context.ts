@@ -19,6 +19,7 @@ import { crossChainOrdersCache } from 'cache/index';
 import BigNumber from 'bignumber.js';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import i18n from 'i18n';
+import { Form } from 'antd';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -258,6 +259,14 @@ const useSwap = () => {
     return '';
   }, [swapMode, isBid, ckbNativeAsset]);
 
+  const [form] = Form.useForm();
+
+  const resetForm = useCallback(() => {
+    form.resetFields();
+    setPay('');
+    setReceive('');
+  }, [form]);
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -292,6 +301,8 @@ const useSwap = () => {
     isBid,
     isSendCkbTransaction,
     ckbEnoughMessage,
+    form,
+    resetForm,
   };
 };
 

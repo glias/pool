@@ -1,5 +1,5 @@
 import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
-import { Builder } from '@lay2/pw-core';
+import { Builder, Transaction } from '@lay2/pw-core';
 import { Form, Modal } from 'antd';
 import { AssetSymbol } from 'components/Asset';
 import { ConfirmButton } from 'components/ConfirmButton';
@@ -17,6 +17,8 @@ import { Trans } from 'react-i18next';
 import { useCallback } from 'react';
 import { useState } from 'react';
 import { useGliaswap } from 'contexts';
+import { useQuery } from 'react-query';
+import { LoadingOutlined } from '@ant-design/icons';
 
 export const Container = styled(ModalContainer)`
   .cancel {
@@ -76,11 +78,7 @@ export const AssetRow = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
 };
 
 export const CancelModal = () => {
-  const { cancelModalVisable, currentCkbTx, currentOrder, setCancelModalVisable } = useSwapContainer();
-  const txFee = useMemo(() => {
-    const fee = currentCkbTx ? Builder.calcFee(currentCkbTx).toString() : '0';
-    return `${fee} CKB`;
-  }, [currentCkbTx]);
+  const { cancelModalVisable, currentOrder, setCancelModalVisable } = useSwapContainer();
 
   const tokenA = currentOrder?.amountIn!;
   const tokenB = currentOrder?.amountOut!;
@@ -104,20 +102,44 @@ export const CancelModal = () => {
     return tokenA;
   }, [isCrossChainOrder, tokenA]);
 
+  const [cancelTx, setCancelTx] = useState<Transaction | null>(null);
+
+  const { isFetching } = useQuery(
+    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock],
+    async () => {
+      const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
+      return tx;
+    },
+    {
+      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash,
+      onSuccess(tx) {
+        setCancelTx(tx);
+      },
+    },
+  );
+
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
-      const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
-      await adapter.raw.pw.sendTransaction(tx);
+      await adapter.raw.pw.sendTransaction(cancelTx!);
     } catch (error) {
       Modal.error({
         title: 'Sign Transaction',
         content: error.message,
       });
     } finally {
-      setIsSending(true);
+      setIsSending(false);
+      setCancelTx(null);
     }
-  }, [currentUserLock, api, adapter.raw.pw, currentOrder?.transactionHash]);
+  }, [adapter.raw.pw, cancelTx]);
+
+  const txFee = useMemo(() => {
+    if (isFetching) {
+      return <LoadingOutlined />;
+    }
+    const fee = cancelTx ? Builder.calcFee(cancelTx).toString() : '0';
+    return `${fee} CKB`;
+  }, [cancelTx, isFetching]);
 
   return (
     <Container
@@ -170,7 +192,7 @@ export const CancelModal = () => {
         />
         <Form.Item className="submit">
           <ConfirmButton
-            loading={isSending}
+            loading={isSending || isFetching}
             onClick={cancelOrder}
             text={i18n.t('swap.cancel-modal.cancel')}
             bgColor="#F35252"

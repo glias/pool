@@ -47,7 +47,6 @@ const FormContainer = styled(Form)`
 `;
 
 export const SwapTable: React.FC = () => {
-  const [form] = Form.useForm();
   const {
     setReviewModalVisable,
     swapMode,
@@ -63,6 +62,7 @@ export const SwapTable: React.FC = () => {
     isApproving,
     payMax,
     ckbEnoughMessage,
+    form,
   } = useSwapContainer();
   const { bridgeAPI } = useGlobalConfig();
   const {
