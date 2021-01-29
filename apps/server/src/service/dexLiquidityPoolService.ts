@@ -158,9 +158,8 @@ export class DexLiquidityPoolService {
         .getInfoCellSerialization()
         .decodeData(infoCell.data)
         .ckbReserve.toString();
-
       poolInfos.push({
-        poolId: tokenB.typeScript.toHash(),
+        poolId: type.toHash(),
         tokenA: tokenA,
         tokenB: tokenB,
         infoCell: infoCell,
