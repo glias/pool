@@ -15,7 +15,7 @@ app.use(async function (ctx, next) {
     await next();
   } catch (err) {
     ctx.status = err.statusCode || err.status || 500;
-    ctx.body = { message: err.message };
+    ctx.body = { stack: err.stack, message: err.message };
   }
 });
 app.use(cors());
