@@ -101,8 +101,8 @@ export class DexOrderChainFactory {
 
       x.transaction.outputs.forEach((output, index) => {
         // swap order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
-        // argsLen = 244
-        if (!this.isSwapOrder && output.lock.args.length !== 244) {
+        // argsLen = 228
+        if (!this.isSwapOrder && output.lock.args.length !== 228) {
           return;
         }
 
