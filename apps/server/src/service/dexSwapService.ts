@@ -47,6 +47,16 @@ export class DexSwapService {
       txs.forEach((x) => orders.push(x));
     }
 
+    await this.getCkbOrders(orderLock, orders, bridgeInfoMatch);
+
+    return orders
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .map((x) => x.getOrderHistory())
+      .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
+      .reverse();
+  }
+
+  private async getCkbOrders(orderLock: Script, orders: DexOrderChain[], bridgeInfoMatch: BridgeInfoMatchChain) {
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -55,17 +65,19 @@ export class DexSwapService {
       type: 'empty',
       order: 'desc',
     };
+
+    const txHashes = new Set();
+    orders.forEach((x) => txHashes.add(x.tx.transaction.hash));
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
     const factory = new DexOrderChainFactory(true);
-    const orders2 = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
+    const orders2 = factory.getOrderChains(
+      queryOptions.lock,
+      null,
+      txs.filter((x) => !txHashes.has(x.transaction.hash)),
+      bridgeInfoMatch,
+    );
 
     orders2.forEach((x) => orders.push(x));
-
-    return orders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
-      .map((x) => x.getOrderHistory())
-      .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
-      .reverse();
   }
 
   private async getCross(
