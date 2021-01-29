@@ -201,7 +201,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP, userLockDeps];
+    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -294,7 +294,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const cellDeps = [config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -395,7 +395,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const cellDeps = [config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -489,7 +489,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const cellDeps = [config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -610,7 +610,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, userLockDeps];
+    const cellDeps = [config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -686,7 +686,7 @@ export class TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [userLockDeps];
+    const cellDeps = userLockDeps;
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -785,7 +785,7 @@ export class TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
+    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP].concat(userLockDeps);
     const witnessArgs =
       userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -867,7 +867,7 @@ export class TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
+    const cellDeps = [config.SWAP_ORDER_LOCK_DEP].concat(userLockDeps);
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
