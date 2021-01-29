@@ -124,8 +124,9 @@ export const CancelModal = () => {
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
-      const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
-      addPendingCancelOrder(txhash);
+      await adapter.raw.pw.sendTransaction(cancelTx!);
+      addPendingCancelOrder(currentOrder?.transactionHash!);
+      setCancelModalVisable(false);
     } catch (error) {
       Modal.error({
         title: 'Sign Transaction',
@@ -135,7 +136,7 @@ export const CancelModal = () => {
       setIsSending(false);
       setCancelTx(null);
     }
-  }, [adapter.raw.pw, cancelTx, addPendingCancelOrder]);
+  }, [adapter.raw.pw, cancelTx, addPendingCancelOrder, setCancelModalVisable, currentOrder?.transactionHash]);
 
   const txFee = useMemo(() => {
     if (isFetching) {
