@@ -24,29 +24,58 @@ export class DexLiquidityPoolService {
     this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
-  async getOrders(lock: Script): Promise<OrderHistory[]> {
+  async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const factory = new DexOrderChainFactory(false);
+    const infoCell = await this.getLiquidityPoolByPoolId(poolId);
 
-    for (const type of TokenHolderFactory.getInstance().getTypeScripts()) {
-      const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
-      const queryOptions: QueryOptions = {
-        lock: {
-          script: orderLock.toLumosScript(),
-          argsLen: 'any',
-        },
-        type: type.toLumosScript(),
-        order: 'desc',
-      };
+    const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
+    const queryOptions: QueryOptions = {
+      lock: {
+        script: orderLock.toLumosScript(),
+        argsLen: 'any',
+      },
+      type: infoCell.tokenB.typeScript.toLumosScript(),
+      order: 'desc',
+    };
+    const addOrders = await this.dexRepository.collectTransactions(queryOptions);
+    const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
 
-      const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
-      const orders = factory.getOrderChains(queryOptions.lock, type, liquidityTxs, null);
-      orders.forEach((x) => liquidityOrders.push(x));
-    }
+    const infoTypeScript = POOL_INFO_TYPE_SCRIPT.find(
+      (x) =>
+        x.toHash() ===
+        CellInfoSerializationHolderFactory.getInstance()
+          .getInfoCellSerialization()
+          .decodeArgs(infoCell.infoCell.cellOutput.lock.args).infoTypeHash,
+    );
+
+    queryOptions.type = infoTypeScript.toLumosScript();
+    const removeOrders = await this.dexRepository.collectTransactions(queryOptions);
+    factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, removeOrders, null).forEach((x) => {
+      orders.push(x);
+    });
+
+    // for (const type of TokenHolderFactory.getInstance().getTypeScripts()) {
+    //   const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
+    //   const queryOptions: QueryOptions = {
+    //     lock: {
+    //       script: orderLock.toLumosScript(),
+    //       argsLen: 'any',
+    //     },
+    //     type: type.toLumosScript(),
+    //     order: 'desc',
+    //   };
+
+    //   const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
+    //   const orders = factory.getOrderChains(queryOptions.lock, type, liquidityTxs, null);
+    //   orders.forEach((x) => liquidityOrders.push(x));
+    // }
 
     return liquidityOrders
       .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
-      .map((x) => x.getOrderHistory());
+      .map((x) => x.getOrderHistory())
+      .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
+      .reverse();
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {
