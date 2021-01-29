@@ -859,7 +859,9 @@ export class TxBuilderService {
     outputs.push(ckbChangeOutput);
     outputsData.push('0x');
 
-    const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
+    const inputCells = collectedCells.inputCells.concat(requestCell);
+
+    const inputs = inputCells.map((cell) => {
       return cellConver.converToInput(cell);
     });
 
@@ -882,7 +884,7 @@ export class TxBuilderService {
       outputs,
       outputsData,
     };
-    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
