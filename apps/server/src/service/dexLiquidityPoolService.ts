@@ -61,7 +61,7 @@ export class DexLiquidityPoolService {
 
   async getLiquidityPoolByPoolId(poolId: string, lock?: Script): Promise<PoolInfo> {
     const liquidityInfo = await this.getLiquidityPools(lock);
-    return liquidityInfo.find((x) => x.tokenB.typeHash === poolId);
+    return liquidityInfo.find((x) => x.poolId === poolId);
   }
 
   private async getUserPoolInfos(lock: Script, poolInfos: PoolInfo[]): Promise<PoolInfo[]> {
