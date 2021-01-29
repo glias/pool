@@ -52,7 +52,8 @@
     },
     "actions": {
       "cancel": "Cancel",
-      "pending": "Pending"
+      "pending": "Pending",
+      "cancel-order": "Cancel Order"
     },
     "common": {
       "max": "Max"

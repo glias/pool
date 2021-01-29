@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { useGliaswap } from 'contexts';
 import { useQuery } from 'react-query';
 import { LoadingOutlined } from '@ant-design/icons';
+import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 
 export const Container = styled(ModalContainer)`
   .cancel {
@@ -118,10 +119,13 @@ export const CancelModal = () => {
     },
   );
 
+  const [, addPendingCancelOrder] = usePendingCancelOrders();
+
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
-      await adapter.raw.pw.sendTransaction(cancelTx!);
+      const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
+      addPendingCancelOrder(txhash);
     } catch (error) {
       Modal.error({
         title: 'Sign Transaction',
@@ -131,7 +135,7 @@ export const CancelModal = () => {
       setIsSending(false);
       setCancelTx(null);
     }
-  }, [adapter.raw.pw, cancelTx]);
+  }, [adapter.raw.pw, cancelTx, addPendingCancelOrder]);
 
   const txFee = useMemo(() => {
     if (isFetching) {
