@@ -229,8 +229,8 @@ export default class DexLiquidityPoolController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
-    limit: { type: 'number', required: true },
-    skip: { type: 'number', required: true },
+    limit: { type: 'number', required: false },
+    skip: { type: 'number', required: false },
   })
   public async getOrders(ctx: Context): Promise<void> {
     const req = <{ lock: Script }>ctx.request.body;
