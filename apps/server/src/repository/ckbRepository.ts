@@ -52,7 +52,7 @@ export class CkbRepository implements DexRepository {
     throw new Error('send transaction timeout');
   }
 
-  async collectCells(queryOptions: QueryOptions): Promise<Cell[]> {
+  async collectCells(queryOptions: QueryOptions, includePoolOutput?: boolean): Promise<Cell[]> {
     const lumosCells = await this.lumosRepository.collectCells(queryOptions);
     const dexCells = lumosCells.map((x) => cellConver.conver(x));
     const result: Cell[] = [];
@@ -61,7 +61,7 @@ export class CkbRepository implements DexRepository {
     const filter: PoolFilter = new PendingFilter(pendingTxs, null);
     for (const cell of dexCells) {
       const matchCells = filter.getCellFilter().matchCells(queryOptions, cell);
-      if (matchCells.length !== 0) {
+      if (matchCells.length !== 0 && includePoolOutput) {
         matchCells.forEach((x) => result.push(x));
       } else {
         result.push(cell);

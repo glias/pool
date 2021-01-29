@@ -1,12 +1,6 @@
-import {
-  Output,
-  TransactionWithStatus,
-  CellInfoSerializationHolderFactory,
-  LiquidityOrderCellArgs,
-  LIQUIDITY_ORDER_LOCK_SCRIPT,
-} from '..';
+import { Output, TransactionWithStatus, CellInfoSerializationHolderFactory, LiquidityOrderCellArgs } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
-import { Token, TokenHolderFactory } from '../tokens';
+import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
 export enum ORDER_TYPE {

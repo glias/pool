@@ -28,11 +28,11 @@ export class MockRepository implements DexRepository {
     };
   }
 
-  async collectCells(queryOptions: QueryOptions, includePool?: boolean): Promise<Cell[]> {
+  async collectCells(queryOptions: QueryOptions, includePoolOutput?: boolean): Promise<Cell[]> {
     return [];
   }
 
-  async collectTransactions(queryOptions: QueryOptions): Promise<TransactionWithStatus[]> {
+  async collectTransactions(queryOptions: QueryOptions, includePool?: boolean): Promise<TransactionWithStatus[]> {
     return [];
   }
 
