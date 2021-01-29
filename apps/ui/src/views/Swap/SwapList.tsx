@@ -6,7 +6,7 @@ import i18n from 'i18n';
 import { SwapOrder } from '@gliaswap/commons';
 import styled from 'styled-components';
 import { useQuery } from 'react-query';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 import { useGlobalConfig } from 'contexts/config';
 import { useCallback, useMemo } from 'react';
 import { SwapItem } from './SwapItem';

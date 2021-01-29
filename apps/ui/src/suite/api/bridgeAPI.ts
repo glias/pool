@@ -1,4 +1,4 @@
-import { EthErc20AssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
+import { EthErc20AssetWithBalance, ShadowFromEthWithBalance } from '@gliaswap/commons';
 import { Amount, AmountUnit } from '@lay2/pw-core';
 import BigNumber from 'bignumber.js';
 import { CKB_NODE_URL, CROSS_CHAIN_FEE, FORCE_BRIDGER_SERVER_URL } from 'suite/constants';
@@ -28,7 +28,7 @@ export class BridgeAPI {
     this.bridgeSettings = await this.getForceBridgeSettings();
   }
 
-  async shadowAssetCrossOut(asset: ShadowOfEthWithBalance, ckbAddress: string, ethAddress: string) {
+  async shadowAssetCrossOut(asset: ShadowFromEthWithBalance, ckbAddress: string, ethAddress: string) {
     const payWithDecimal = new BigNumber(asset.balance);
     const amount = `0x${payWithDecimal.toString(16)}`;
     const unlockFee = `0x${payWithDecimal.times(CROSS_CHAIN_FEE).toString(16)}`;

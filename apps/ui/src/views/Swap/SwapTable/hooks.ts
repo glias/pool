@@ -5,11 +5,11 @@ import {
   isCkbSudtAsset,
   isEthAsset,
   isShadowEthAsset,
-  ShadowOfEthWithBalance,
+  ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
 import BigNumber from 'bignumber.js';
-import { useGliaswap, useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
@@ -91,7 +91,7 @@ export const useSwapTable = ({
   const findShadowAsset = useCallback(
     (erc20: EthErc20AssetWithBalance) => {
       return assets.value.find((a) => isShadowEthAsset(a) && a.shadowFrom.address === erc20.address) as
-        | ShadowOfEthWithBalance
+        | ShadowFromEthWithBalance
         | undefined;
     },
     [assets.value],

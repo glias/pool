@@ -13,7 +13,7 @@ import { Trans } from 'react-i18next';
 import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
 import { SWAP_CELL_ASK_CAPACITY } from 'suite/constants';
-import { useGliaswap, useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
 
 export const SwapModal = () => {
   const {

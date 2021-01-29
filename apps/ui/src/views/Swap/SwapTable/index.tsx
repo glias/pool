@@ -9,11 +9,11 @@ import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowOfEthWithBalance } from '@gliaswap/commons';
+import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowFromEthWithBalance } from '@gliaswap/commons';
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
-import { useGliaswap, useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useSwapTable } from './hooks';
 import { getValidBalanceString } from 'utils';
 import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
@@ -105,7 +105,7 @@ export const SwapTable: React.FC = () => {
       const { data } = await bridgeAPI.lock(tokenA as EthErc20AssetWithBalance, ckbAddress, ethAddress, web3!);
       setCurrentEthTx(data);
     } else {
-      const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowOfEthWithBalance, ckbAddress, ethAddress);
+      const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowFromEthWithBalance, ckbAddress, ethAddress);
       const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
       setCurrentTx(tx);
     }
