@@ -12,7 +12,6 @@ import {
   INFO_LOCK_CODE_HASH,
   INFO_LOCK_HASH_TYPE,
   POOL_INFO_TYPE_ARGS,
-  POOL_ID,
 } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 
