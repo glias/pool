@@ -785,6 +785,8 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const inputCells = collectedCells.inputCells.concat(requestCell);
+
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
     const witnessArgs =
@@ -800,7 +802,7 @@ export class TxBuilderService {
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -862,6 +864,7 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
@@ -882,7 +885,7 @@ export class TxBuilderService {
       outputs,
       outputsData,
     };
-    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
