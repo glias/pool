@@ -29,7 +29,7 @@ export const LIQUIDITY_ORDER_LOCK_CODE_HASH =
   process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH || '0x4c454e1e1d7361d0f0339eba7f8cb88842c547f5a414d0da76c9d5da2ab2ffe2';
 export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE || 'data';
 export const SWAP_ORDER_LOCK_CODE_HASH =
-  process.env.SWAP_ORDER_LOCK_CODE_HASH || '0x1ee8351c40b1b3972a62b40d2fa663edfd3ec2a838dc2b8ae6bba592d943fa4c';
+  process.env.SWAP_ORDER_LOCK_CODE_HASH || '0x65aff39b362950feb6172cf787158f02c969ca5fb289024d191f530c9aa379da';
 export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE || 'data';
 
 // INFO CELL
@@ -38,7 +38,7 @@ export const INFO_LOCK_CODE_HASH =
 export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
 
 export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0xb6a999dcf0245e422cdd7930ac0f258e727eb362553dc3550a7998ad61b66b21';
+  process.env.INFO_TYPE_CODE_HASH || '0xd47ff6eaf8c720c96e91052005b124483499ebd2048156500bc5a5e2391dfc0b';
 export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
 
 export const SUDT_TYPE_CODE_HASH =
@@ -95,7 +95,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = {
 export const SWAP_ORDER_LOCK_DEP = {
   outPoint: {
     txHash:
-      process.env.SWAP_ORDER_LOCK_DEP_TX_HASH || '0xa5c1b93981c8084de3ac46367e50ea99f751b20364ed7689ca1c738733bc3c4b',
+      process.env.SWAP_ORDER_LOCK_DEP_TX_HASH || '0xe5b9ce9a6fb4fba9c58e137924ba6e7d5fbf54bbea9a47c17031fd71bdc7061f',
     index: '0x0',
   },
   depType: 'code',
@@ -103,7 +103,7 @@ export const SWAP_ORDER_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x0e5f4ae01c3bb3c619c97ed849c1f465dd358ba90c1f2db394e62e455fc76124',
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || ' 0x49a832732a2268468c3d70ed067188eb75007d1d434952d53d5b641024d84257',
     index: '0x0',
   },
   depType: 'code',
