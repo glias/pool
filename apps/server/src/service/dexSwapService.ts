@@ -49,11 +49,7 @@ export class DexSwapService {
 
     const queryOptions: QueryOptions = {
       lock: {
-        script: new Script(
-          '0x1ee8351c40b1b3972a62b40d2fa663edfd3ec2a838dc2b8ae6bba592d943fa4c',
-          'data',
-          lock.toHash(),
-        ).toLumosScript(),
+        script: orderLock.toLumosScript(),
         argsLen: 'any',
       },
       type: 'empty',
