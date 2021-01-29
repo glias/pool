@@ -3,16 +3,44 @@ import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
 import * as lumos from '@ckb-lumos/base';
-import { SWAP_ORDER_LOCK_CODE_HASH } from '../../config';
+interface OrderMatcher {
+  match(argsData: string): boolean;
+}
+
+class SwapOrderMatcher implements OrderMatcher {
+  // swap order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
+  // argsLen = 228
+  match(argsData: string): boolean {
+    console.log(argsData.length);
+
+    if (argsData.length === 212) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class LiquidityOrderMatcher implements OrderMatcher {
+  // liquidity order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | amountOutMin (u128, 16 bytes, 33..49) | sudt_type_hash (32 bytes, 49..81) | tips (8 bytes, 81..89) | tips_sudt (16 bytes, 89..105)
+  // argsLen = 228
+  match(argsData: string): boolean {
+    if (argsData.length === 228) {
+      return true;
+    }
+    return false;
+  }
+}
 
 export class DexOrderChainFactory {
   private inputOutPointWithTransaction: Map<string, TransactionWithStatus>;
   private orderCells: DexOrderChain[];
   private readonly markTheCellThatHasBeenTracked: Set<string>;
   private readonly isSwapOrder: boolean;
+  private orderMatcher: SwapOrderMatcher;
 
   constructor(isSwapOrder: boolean) {
     this.isSwapOrder = isSwapOrder;
+    this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
     this.markTheCellThatHasBeenTracked = new Set();
   }
 
@@ -97,18 +125,8 @@ export class DexOrderChainFactory {
         inputOutPointWithTransaction.set(key, x);
       });
 
-      const hasSwapCodeHash = x.transaction.outputs.find((x) => x.lock.codeHash === SWAP_ORDER_LOCK_CODE_HASH);
-
       x.transaction.outputs.forEach((output, index) => {
-        // swap order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
-        // argsLen = 228
-        if (!this.isSwapOrder && output.lock.args.length !== 228) {
-          return;
-        }
-
-        // liquidity order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | amountOutMin (u128, 16 bytes, 33..49) | sudt_type_hash (32 bytes, 49..81) | tips (8 bytes, 81..89) | tips_sudt (16 bytes, 89..105)
-        // argsLen = 212
-        if (hasSwapCodeHash && output.lock.args.length !== 212) {
+        if (!this.orderMatcher.match(output.lock.args)) {
           return;
         }
 
