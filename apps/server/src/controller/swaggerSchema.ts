@@ -177,7 +177,7 @@ export class AssetSchema {
   @swaggerProperty({ type: 'string', required: true })
   chainType: string;
 
-  @swaggerProperty({ type: 'string', required: true })
+  @swaggerProperty({ type: 'string' })
   address: string;
 
   @swaggerProperty({ type: 'string', required: true })
