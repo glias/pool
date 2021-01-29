@@ -53,7 +53,9 @@ export class DexSwapOrderChain extends DexOrderChain {
     } else {
       const argsData = this.getArgsData();
       const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(argsData.sudtTypeHash);
+      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
+        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
+      );
 
       amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
       amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
