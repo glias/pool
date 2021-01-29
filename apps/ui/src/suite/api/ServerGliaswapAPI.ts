@@ -22,7 +22,7 @@ import {
   Maybe,
   PoolInfo,
   SerializedTransactionToSignWithFee,
-  ShadowOfEthWithBalance,
+  ShadowFromEthWithBalance,
   SwapOrder,
   EthErc20AssetWithBalance,
   isEthNativeAsset,
@@ -131,7 +131,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     // @ts-ignore
     const nervosChainSpecs = assets.filter(isCkbChainSpec).map(getCkbChainSpec);
     const ckbAssets = await this.axios.post<
-      (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowOfEthWithBalance)[]
+      (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowFromEthWithBalance)[]
     >('/get-asset-with-balance', {
       lock,
       assets: nervosChainSpecs,

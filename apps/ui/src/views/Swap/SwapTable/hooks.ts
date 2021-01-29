@@ -5,7 +5,7 @@ import {
   isCkbSudtAsset,
   isEthAsset,
   isShadowEthAsset,
-  ShadowOfEthWithBalance,
+  ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
 import BigNumber from 'bignumber.js';
@@ -91,7 +91,7 @@ export const useSwapTable = ({
   const findShadowAsset = useCallback(
     (erc20: EthErc20AssetWithBalance) => {
       return assets.value.find((a) => isShadowEthAsset(a) && a.shadowFrom.address === erc20.address) as
-        | ShadowOfEthWithBalance
+        | ShadowFromEthWithBalance
         | undefined;
     },
     [assets.value],
