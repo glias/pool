@@ -725,9 +725,6 @@ export class TxBuilderService {
     if (idx == -1) {
       ctx.throw(404, `request not found in transaction ${txHash}`);
     }
-    if (!transaction.outputs[idx].type) {
-      ctx.throw(400, `${txHash}'s request cell doesnt have type script`);
-    }
 
     const output = transaction.outputs[idx];
     return {
@@ -785,6 +782,8 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const inputCells = collectedCells.inputCells.concat(requestCell);
+
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP, userLockDeps];
     const witnessArgs =
@@ -800,7 +799,7 @@ export class TxBuilderService {
       outputsData,
       version: '0x0',
     };
-    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
@@ -831,7 +830,10 @@ export class TxBuilderService {
     // Sell sudt, split swap cell into free token cell and free ckb cell
     const minCKBChangeCapacity =
       swapArgs.sudtTypeHash == CKB_TYPE_HASH ? TxBuilderService.minCKBChangeCapacity(userLock) : 0n;
-    const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
+    const minTokenChangeCapacity =
+      swapArgs.sudtTypeHash == CKB_TYPE_HASH
+        ? TxBuilderService.minTokenChangeCapacity(userLock, requestCell.cellOutput.type)
+        : 0n;
     const minCapacity = minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
     const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
@@ -862,6 +864,7 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
+    const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SWAP_ORDER_LOCK_DEP, userLockDeps];
@@ -882,7 +885,7 @@ export class TxBuilderService {
       outputs,
       outputsData,
     };
-    const txToSign = new TransactionToSign(raw, collectedCells.inputCells, witnessArgs, witnessLengths);
+    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
