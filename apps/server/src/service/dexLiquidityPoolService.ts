@@ -3,7 +3,7 @@ import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, ScriptBuilder } from '../model';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
-import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
+import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import {
@@ -40,29 +40,13 @@ export class DexLiquidityPoolService {
       };
 
       const liquidityTxs = await this.dexRepository.collectTransactions(queryOptions);
-      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      // mock
-      //   .mockCollectTransactions()
-      //   .resolves([])
-      //   .withArgs({
-      //     lock: {
-      //       script: orderLock.toLumosScript(),
-      //       argsLen: 'any',
-      //     },
-      //     type: new Script(
-      //       '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-      //       'type',
-      //       '0x6fe3733cd9df22d05b8a70f7b505d0fb67fb58fb88693217135ff5079713e902',
-      //     ).toLumosScript(),
-      //     order: 'desc',
-      //   })
-      //   .resolves(mockLiquidityOrder);
-      // const liquidityTxs = await mock.collectTransactions(queryOptions);
       const orders = factory.getOrderChains(queryOptions.lock, type, liquidityTxs, null);
       orders.forEach((x) => liquidityOrders.push(x));
     }
 
-    return liquidityOrders.map((x) => x.getOrderHistory());
+    return liquidityOrders
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .map((x) => x.getOrderHistory());
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {
@@ -89,19 +73,6 @@ export class DexLiquidityPoolService {
         type: typeScript.toLumosScript(),
       };
       const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
-
-      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      // mock
-      //   .mockCollectCells()
-      //   .resolves([])
-      //   .withArgs({
-      //     lock: queryOptions.lock,
-      //     type: typeScript.toLumosScript(),
-      //   })
-      //   .resolves(mockUserLiquidityCells);
-
-      // const userLiquidityCells = await mock.collectCells(queryOptions);
-
       if (userLiquidityCells.length === 0) {
         continue;
       }

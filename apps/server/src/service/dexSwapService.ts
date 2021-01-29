@@ -10,7 +10,7 @@ import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
-import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
+import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
 
 export class DexSwapService {
@@ -34,17 +34,39 @@ export class DexSwapService {
   }
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
-    const types = TokenHolderFactory.getInstance().getTypeScripts();
     const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE, lock.toHash());
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
-    const orders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    const orders: DexOrderChain[] = [];
+    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    crossOrders.forEach((x) => orders.push(x));
+
+    const types = TokenHolderFactory.getInstance().getTypeScripts();
     for (let i = 0; i < types.length; i++) {
       const txs = await this.getOrders(orderLock, types[i], bridgeInfoMatch);
       txs.forEach((x) => orders.push(x));
     }
 
+    const queryOptions: QueryOptions = {
+      lock: {
+        script: new Script(
+          '0x1ee8351c40b1b3972a62b40d2fa663edfd3ec2a838dc2b8ae6bba592d943fa4c',
+          'data',
+          lock.toHash(),
+        ).toLumosScript(),
+        argsLen: 'any',
+      },
+      type: 'empty',
+      order: 'desc',
+    };
+    const txs = await this.dexRepository.collectTransactions(queryOptions, true);
+    const factory = new DexOrderChainFactory(true);
+    const orders2 = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
+
+    orders2.forEach((x) => orders.push(x));
+
     return orders
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
@@ -112,25 +134,6 @@ export class DexSwapService {
     if (!txs) {
       return [];
     }
-
-    // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-    // mock
-    //   .mockCollectTransactions()
-    //   .resolves([])
-    //   .withArgs({
-    //     lock: {
-    //       script: orderLock.toLumosScript(),
-    //       argsLen: 'any',
-    //     },
-    //     type: new Script(
-    //       '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-    //       'type',
-    //       '0xe18b390fbeffbe7c7a03119b54a6493d29ea428d2e1dda3efa016110c0cc1125',
-    //     ).toLumosScript(),
-    //     order: 'desc',
-    //   })
-    //   .resolves(mockSwapOrder);
-    // const txs = await mock.collectTransactions(queryOptions);
     const factory = new DexOrderChainFactory(true);
     const orders = factory.getOrderChains(queryOptions.lock, type, txs, bridgeInfoMatch);
 

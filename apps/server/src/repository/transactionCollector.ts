@@ -36,7 +36,7 @@ export class TransactionCollector {
     }
 
     if (queryOptions.type === 'empty') {
-      // queryOptions.type = queryOptions.type;
+      queryOptions.type = queryOptions.type;
     } else if (queryOptions.type && typeof queryOptions.type === 'object' && !queryOptions.type['script']) {
       const type = <Script>queryOptions.type;
       validators.ValidateScript(type);
@@ -103,7 +103,7 @@ export class TransactionCollector {
           return this.whereIn('transaction_digests.tx_hash', typeQuery);
         });
       } else {
-        query = query.whereNull('script_id');
+        // query = query.whereNull('script_id');
       }
     }
     if (this.queryOptions.data !== 'any') {
