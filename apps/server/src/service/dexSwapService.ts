@@ -49,6 +49,8 @@ export class DexSwapService {
 
     await this.getCkbOrders(orderLock, orders, bridgeInfoMatch);
 
+    console.log(orders.length);
+
     return orders
       .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
       .map((x) => x.getOrderHistory())
