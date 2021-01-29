@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
-import { Cell, ScriptBuilder } from '../model';
+import { Cell, ScriptBuilder, Token } from '../model';
 import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
@@ -89,34 +89,41 @@ export class DexLiquidityPoolService {
         type: typeScript.toLumosScript(),
       };
       const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
-
-      // const mock = MockRepositoryFactory.getDexRepositoryInstance();
-      // mock
-      //   .mockCollectCells()
-      //   .resolves([])
-      //   .withArgs({
-      //     lock: queryOptions.lock,
-      //     type: typeScript.toLumosScript(),
-      //   })
-      //   .resolves(mockUserLiquidityCells);
-
-      // const userLiquidityCells = await mock.collectCells(queryOptions);
-
       if (userLiquidityCells.length === 0) {
         continue;
       }
 
-      poolInfo.tokenA.balance = userLiquidityCells
-        .reduce((total, cell) => total + BigInt(cell.cellOutput.capacity), BigInt(0))
+      const ckbCells = await this.dexRepository.collectCells({
+        lock: lock.toLumosScript(),
+      });
+      const normalCells = ckbCells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
+      const ckbBalance = normalCells.reduce((total, cell) => total + BigInt(cell.cellOutput.capacity), BigInt(0));
+      poolInfo.tokenA.balance = ckbBalance.toString();
+
+      const cells = await this.dexRepository.collectCells({
+        lock: lock.toLumosScript(),
+        type: poolInfo.tokenB.typeScript.toLumosScript(),
+      });
+      const sudtBalance = cells
+        .reduce(
+          (total, cell) =>
+            total + CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(cell.data),
+          BigInt(0),
+        )
         .toString();
 
-      poolInfo.tokenB.balance = userLiquidityCells
+      poolInfo.tokenB.balance = sudtBalance;
+
+      const lpTokenAmount = userLiquidityCells
         .reduce(
           (total, cell) =>
             total + CellInfoSerializationHolderFactory.getInstance().getPoolCellSerialization().decodeData(cell.data),
           BigInt(0),
         )
         .toString();
+
+      poolInfo.lpToken = new Token(poolInfo.infoCell.cellOutput.type.toHash());
+      poolInfo.lpToken.balance = lpTokenAmount;
 
       userLiquiditys.push(poolInfo);
     }
@@ -145,20 +152,18 @@ export class DexLiquidityPoolService {
       }
 
       const infoCell = infoCells[0];
+      const argsData = CellInfoSerializationHolderFactory.getInstance()
+        .getInfoCellSerialization()
+        .decodeData(infoCell.data);
       const sudtType = this.getSudtSymbol(infoCell);
       const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
-      tokenB.balance = CellInfoSerializationHolderFactory.getInstance()
-        .getInfoCellSerialization()
-        .decodeData(infoCell.data)
-        .sudtReserve.toString();
+      tokenB.balance = argsData.sudtReserve.toString();
 
       // Prevent modification to the same tokenA
       const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      tokenA.balance = CellInfoSerializationHolderFactory.getInstance()
-        .getInfoCellSerialization()
-        .decodeData(infoCell.data)
-        .ckbReserve.toString();
+      tokenA.balance = argsData.ckbReserve.toString();
       poolInfos.push({
+        total: argsData.totalLiquidity.toString(),
         poolId: type.toHash(),
         tokenA: tokenA,
         tokenB: tokenB,
