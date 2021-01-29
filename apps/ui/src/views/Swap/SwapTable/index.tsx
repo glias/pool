@@ -13,7 +13,7 @@ import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowOfEthWithBala
 import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
-import { useGliaswap, useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useSwapTable } from './hooks';
 import { getValidBalanceString } from 'utils';
 import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';

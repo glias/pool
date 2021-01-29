@@ -37,6 +37,10 @@ interface GliaswapState {
   walletConnectStatus: ConnectStatus;
   // when a wallet was connected, the user lock would be filled
   currentUserLock?: Script;
+
+  currentCkbAddress: string;
+
+  currentEthAddress: string;
 }
 
 export function useGliaswap(): GliaswapState {
@@ -49,12 +53,23 @@ export function useGliaswap(): GliaswapState {
   }, [adapter.signer.address, adapter.status]);
   const walletConnectStatus = adapter.status;
 
+  const currentCkbAddress = useMemo(() => {
+    return currentUserLock?.toAddress().toCKBAddress() ?? '';
+  }, [currentUserLock]);
+
+  const currentEthAddress = useMemo(() => {
+    if (adapter.status === 'connected') return adapter.signer.address.addressString;
+    return '';
+  }, [adapter.signer.address.addressString, adapter.status]);
+
   return {
     adapter,
     realtimeAssets: assets,
     walletConnectStatus,
     api,
     currentUserLock,
+    currentCkbAddress,
+    currentEthAddress,
   };
 }
 

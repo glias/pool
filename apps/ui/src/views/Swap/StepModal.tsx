@@ -10,7 +10,7 @@ import { ETHER_SCAN_URL, EXPLORER_URL } from 'suite/constants';
 import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 import { useQuery } from 'react-query';
-import { useGliaswap } from 'contexts';
+import { useGliaswap } from 'hooks';
 
 const { Step } = Steps;
 
