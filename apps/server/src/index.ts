@@ -9,6 +9,15 @@ import cors from 'koa2-cors';
 const app = new Koa();
 lumosRepository.init();
 
+// ONLY FOR DEVELOPMENT
+app.use(async function (ctx, next) {
+  try {
+    await next();
+  } catch (err) {
+    ctx.status = err.statusCode || err.status || 500;
+    ctx.body = { message: err.message };
+  }
+});
 app.use(cors());
 app.use(json());
 app.use(logger());
