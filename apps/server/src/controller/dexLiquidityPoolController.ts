@@ -3,7 +3,7 @@ import { body, Context, description, request, responses, summary, tags } from 'k
 
 import * as config from '../config';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
-import { cellConver, Script, Token, TokenHolderFactory, TokenHolder } from '../model';
+import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
@@ -32,6 +32,9 @@ export default class DexLiquidityPoolController {
           properties: {
             poolId: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: false },
+            total: { type: 'string', required: true },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             assets: {
               type: 'array',
               items: {
@@ -56,13 +59,7 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; limit: number; skip: number }>ctx.request.body;
     const result = await this.service.getLiquidityPools(cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = result.map((x) => {
-      return {
-        poolId: x.poolId,
-        assets: [x.tokenA.toAsset(), x.tokenB.toAsset()],
-        model: 'UNISWAP',
-      };
-    });
+    ctx.body = result.map((x) => this.toLiquidityInfo(x));
   }
 
   @request('post', '/v1/liquidity-pool/pool-id')
@@ -76,6 +73,9 @@ export default class DexLiquidityPoolController {
         type: 'object',
         properties: {
           poolId: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: false },
+          total: { type: 'string', required: true },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           assets: {
             type: 'array',
@@ -99,9 +99,23 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; poolId: string }>ctx.request.body;
     const result = await this.service.getLiquidityPoolByPoolId(req.poolId, cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = {
-      poolId: result.poolId,
-      assets: [result.tokenA.toAsset(), result.tokenB.toAsset()],
+    ctx.body = this.toLiquidityInfo(result);
+  }
+
+  private toLiquidityInfo(poolInfo: PoolInfo) {
+    if (poolInfo) {
+      return {
+        poolId: poolInfo.poolId,
+        lpToken: poolInfo.lpToken,
+        total: poolInfo.total,
+        assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
+        model: 'UNISWAP',
+      };
+    }
+    return {
+      poolId: poolInfo.poolId,
+      total: poolInfo.total,
+      assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
       model: 'UNISWAP',
     };
   }
