@@ -67,9 +67,12 @@ export default class DexTokenController {
 
     for (const token of tokens) {
       if (token.typeHash === CKB_TYPE_HASH) {
-        const cells = await this.dexRepository.collectCells({
-          lock: lock.toLumosScript(),
-        });
+        const cells = await this.dexRepository.collectCells(
+          {
+            lock: lock.toLumosScript(),
+          },
+          true,
+        );
         const normalCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
 
         const balance = normalCells.reduce((total, cell) => total + BigInt(cell.cellOutput.capacity), BigInt(0));
@@ -88,10 +91,13 @@ export default class DexTokenController {
           occupied: occupiedBalance.toString(),
         });
       } else {
-        const cells = await this.dexRepository.collectCells({
-          lock: lock.toLumosScript(),
-          type: token.typeScript.toLumosScript(),
-        });
+        const cells = await this.dexRepository.collectCells(
+          {
+            lock: lock.toLumosScript(),
+            type: token.typeScript.toLumosScript(),
+          },
+          true,
+        );
         let balance = BigInt(0);
         cells.forEach((x) => {
           balance += CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(x.data);

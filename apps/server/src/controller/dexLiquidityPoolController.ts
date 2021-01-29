@@ -185,6 +185,7 @@ export default class DexLiquidityPoolController {
         items: {
           type: 'object',
           properties: {
+            poolId: { type: 'string', required: true },
             transactionHash: { type: 'string', required: true },
             timestamp: { type: 'string', required: true },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
