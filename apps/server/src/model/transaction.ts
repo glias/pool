@@ -72,7 +72,7 @@ export class TransactionToSign {
     if (fee * ratio < base) {
       return fee + 1n;
     }
-    return fee * constants.CKB_DECIMAL;
+    return fee;
   }
 
   serialize(): Record<string, unknown> {
