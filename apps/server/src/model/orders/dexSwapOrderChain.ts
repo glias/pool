@@ -118,6 +118,11 @@ export class DexSwapOrderChain extends DexOrderChain {
 
   getStatus(): string {
     const orders = this.getOrders();
+
+    if (this.getLastOrder().tx.txStatus.status === 'pending') {
+      return ORDER_STATUS.OPEN;
+    }
+
     if (this._isOrder || !this._bridgeInfo) {
       if (orders.length === 1) {
         if (this.tx.txStatus.status === 'pending') {
