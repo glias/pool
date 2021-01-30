@@ -99,15 +99,11 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; poolId: string }>ctx.request.body;
     const result = await this.service.getLiquidityPoolByPoolId(req.poolId, cellConver.converScript(req.lock));
     ctx.status = 200;
-    if (result) {
-      ctx.body = this.toLiquidityInfo(result);
-    } else {
-      ctx.body = null;
-    }
+    ctx.body = this.toLiquidityInfo(result);
   }
 
   private toLiquidityInfo(poolInfo: PoolInfo) {
-    if (poolInfo.lpToken) {
+    if (poolInfo) {
       return {
         poolId: poolInfo.poolId,
         lpToken: poolInfo.lpToken,
@@ -233,12 +229,13 @@ export default class DexLiquidityPoolController {
   @body({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument },
+    poolId: { type: 'string', required: false },
     limit: { type: 'number', required: false },
     skip: { type: 'number', required: false },
   })
   public async getOrders(ctx: Context): Promise<void> {
-    const req = <{ lock: Script }>ctx.request.body;
-    const result = await this.service.getOrders(cellConver.converScript(req.lock));
+    const req = <{ poolId: string; lock: Script }>ctx.request.body;
+    const result = await this.service.getOrders(req.poolId, cellConver.converScript(req.lock));
     ctx.status = 200;
     ctx.body = result.map((x) => {
       return {
