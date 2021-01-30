@@ -1,11 +1,12 @@
 import { SwapOrder } from '@gliaswap/commons';
 import { useLocalStorage } from '@rehooks/local-storage';
+import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks';
 import { useCallback, useEffect, useMemo } from 'react';
 
 export interface PendingCancelOrder {
   txHash: string;
-  timestamp: number;
+  timestamp: string;
 }
 
 export type UsePendingCancelOrders = [
@@ -22,30 +23,24 @@ export function usePendingCancelOrders(): UsePendingCancelOrders {
 
   const addPendingCancelOrder = useCallback(
     (txHash: string) => {
-      setPendingCancelOrders([...pendingCancelOrders, { timestamp: Date.now(), txHash }]);
+      setPendingCancelOrders([...pendingCancelOrders, { timestamp: `${Date.now()}`, txHash }]);
     },
     [pendingCancelOrders, setPendingCancelOrders],
   );
 
-  useClearCancelPendingOrderInterval();
-
-  return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders];
-}
-
-export function useClearCancelPendingOrderInterval() {
-  const [pendingCancelOrders, , setPendingCancelOrders] = usePendingCancelOrders();
   useEffect(() => {
     const halfHour = 30 * 60 * 1000;
     const interval = setInterval(() => {
-      const now = Date.now();
       setPendingCancelOrders(
         pendingCancelOrders.filter((p) => {
-          return p.timestamp + halfHour < now;
+          return new BigNumber(p.timestamp).plus(halfHour).isGreaterThan(Date.now());
         }),
       );
-    }, 10e3);
+    }, 30e3);
     return () => clearInterval(interval);
   }, [pendingCancelOrders, setPendingCancelOrders]);
+
+  return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders];
 }
 
 export function useSwapOrders(orders: SwapOrder[]) {
