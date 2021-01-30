@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as lumos from '@ckb-lumos/base';
 import * as ckbToolkit from 'ckb-js-toolkit';
-import * as constants from '@gliaswap/constants';
 
 import { Cell, cellConver, CellOutput, OutPoint } from '.';
 import * as config from '../config';

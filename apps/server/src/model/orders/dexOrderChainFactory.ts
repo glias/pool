@@ -76,8 +76,6 @@ export class DexOrderChainFactory {
 
     const nextCell = this.matchNextOrderCell(nextTx, inputOutPoint);
     orderCell.nextOrderCell = nextCell;
-    // console.log(inputOutPoint);
-    // console.log(nextCell.tx.transaction.hash);
 
     if (!this.nextCellIsOrderCell(orderCell, nextCell)) {
       return orderCell;
@@ -139,7 +137,6 @@ export class DexOrderChainFactory {
         if (!scriptEquals.matchLockScriptWapper(lock, output.lock)) {
           return;
         }
-
         const data = x.transaction.outputsData[index];
         const bridgeInfoResult = bridgeInfoMatch ? bridgeInfoMatch.match(x.transaction.hash) : null;
         const isIn = bridgeInfoResult ? bridgeInfoResult.isIn : null;
