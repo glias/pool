@@ -782,7 +782,7 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
-    const inputCells = [requestCell].concat(collectedCells.inputCells);
+    const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP].concat(userLockDeps);
@@ -864,7 +864,7 @@ export class TxBuilderService {
     const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
       return cellConver.converToInput(cell);
     });
-    const inputCells = [requestCell].concat(collectedCells.inputCells);
+    const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
     const cellDeps = [config.SWAP_ORDER_LOCK_DEP].concat(userLockDeps);
