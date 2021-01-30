@@ -14,6 +14,7 @@ app.use(async function (ctx, next) {
   try {
     await next();
   } catch (err) {
+    console.error(err);
     ctx.status = err.statusCode || err.status || 500;
     ctx.body = { stack: err.stack, message: err.message };
   }

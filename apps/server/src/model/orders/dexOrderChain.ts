@@ -77,9 +77,14 @@ export abstract class DexOrderChain {
   }
 
   equals(orderCell: DexOrderChain): boolean {
-    return (
-      this.equalScript(this._cell.lock, orderCell._cell.lock) && this.equalScript(this._cell.type, orderCell._cell.type)
-    );
+    if (this.cell.type) {
+      return (
+        this.equalScript(this._cell.lock, orderCell._cell.lock) &&
+        this.equalScript(this._cell.type, orderCell._cell.type)
+      );
+    }
+
+    return this.equalScript(this._cell.lock, orderCell._cell.lock);
   }
 
   getOrders(): DexOrderChain[] {

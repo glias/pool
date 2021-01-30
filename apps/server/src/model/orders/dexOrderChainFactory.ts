@@ -11,8 +11,6 @@ class SwapOrderMatcher implements OrderMatcher {
   // swap order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
   // argsLen = 228
   match(argsData: string): boolean {
-    console.log(argsData.length);
-
     if (argsData.length === 212) {
       return true;
     }
@@ -78,6 +76,9 @@ export class DexOrderChainFactory {
 
     const nextCell = this.matchNextOrderCell(nextTx, inputOutPoint);
     orderCell.nextOrderCell = nextCell;
+    // console.log(inputOutPoint);
+    // console.log(nextCell.tx.transaction.hash);
+
     if (!this.nextCellIsOrderCell(orderCell, nextCell)) {
       return orderCell;
     }
@@ -92,7 +93,8 @@ export class DexOrderChainFactory {
 
   private matchNextOrderCell(nextTx: TransactionWithStatus, targetInputOutPoint: string): DexOrderChain {
     const index = this.matchIndexOfInputInArray(nextTx.transaction.inputs, targetInputOutPoint);
-    const output = nextTx.transaction.outputs[index];
+    const output =
+      nextTx.transaction.outputs.length === 1 ? nextTx.transaction.outputs[0] : nextTx.transaction.outputs[index];
     const data = nextTx.transaction.outputsData[index];
 
     return this.isSwapOrder
