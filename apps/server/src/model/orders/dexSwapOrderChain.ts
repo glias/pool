@@ -96,6 +96,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     if (!this._isOrder && this._bridgeInfo) {
       return null;
     }
+
     return CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeArgs(this.cell.lock.args);
   }
 
