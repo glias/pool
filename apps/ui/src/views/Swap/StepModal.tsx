@@ -60,6 +60,7 @@ export const StepModal = () => {
   const type = currentOrder?.type!;
   const tokenA = currentOrder?.amountIn! ?? Object.create(null);
   const tokenB = currentOrder?.amountOut! ?? Object.create(null);
+  const stageStatus = currentOrder?.stage.status;
   const orderSteps = useMemo(() => {
     return currentOrder?.stage.steps ?? [];
   }, [currentOrder?.stage.steps]);
@@ -94,7 +95,7 @@ export const StepModal = () => {
           isEth: false,
         },
         {
-          title: i18n.t('swap.progress.sucess'),
+          title: i18n.t(stageStatus === 'canceling' ? 'actions.cancel-order' : 'swap.progress.sucess'),
           description: `${tokenA.symbol} ➜ CKB`,
           txHash: orderSteps?.[3]?.transactionHash,
           isEth: false,
@@ -158,13 +159,13 @@ export const StepModal = () => {
         isEth: false,
       },
       {
-        title: i18n.t('swap.progress.sucess'),
+        title: i18n.t(stageStatus === 'canceling' ? 'actions.cancel-order' : 'swap.progress.sucess'),
         description: `${tokenA.symbol} ➜ ${tokenB.symbol}`,
         txHash: orderSteps?.[3]?.transactionHash,
         isEth: false,
       },
     ];
-  }, [type, isCrossIn, isCrossOut, orderSteps, tokenA?.symbol, tokenB?.symbol]);
+  }, [type, isCrossIn, isCrossOut, orderSteps, tokenA?.symbol, tokenB?.symbol, stageStatus]);
 
   const currentIndex = useMemo(() => {
     for (let i = progress.length - 1; i >= 0; i--) {

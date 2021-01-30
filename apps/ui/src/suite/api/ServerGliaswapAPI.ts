@@ -47,6 +47,7 @@ import {
   CellDep,
   DepType,
 } from '@lay2/pw-core';
+import { uniqWith } from 'lodash';
 
 const api = new DummyGliaswapAPI();
 
@@ -252,11 +253,21 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   toPwTransactionInstance(transaction: Transaction['raw']) {
     const { inputCells } = transaction;
     const outputs = (transaction as any).outputCells;
-    const tx = new Transaction(new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell)), [
-      Builder.WITNESS_ARGS.Secp256k1,
-    ]);
+    const cellDeps = transaction.cellDeps.map(
+      (cd) =>
+        new CellDep(
+          cd.depType === 'code' ? DepType.code : DepType.depGroup,
+          new OutPoint(cd.outPoint.txHash, cd.outPoint.index),
+        ),
+    );
+    const tx = new Transaction(
+      new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell), cellDeps),
+      [Builder.WITNESS_ARGS.Secp256k1],
+    );
 
     tx.raw.cellDeps.push(SUDT_DEP);
+
+    tx.raw.cellDeps = uniqWith(tx.raw.cellDeps, (a, b) => a.sameWith(b));
 
     return tx.validate();
   }

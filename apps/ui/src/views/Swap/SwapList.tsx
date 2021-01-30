@@ -11,6 +11,7 @@ import { useGlobalConfig } from 'contexts/config';
 import { useCallback, useMemo } from 'react';
 import { SwapItem } from './SwapItem';
 import { useSwapContainer } from './context';
+import { useSwapOrders } from 'hooks/usePendingCancelOrders';
 
 const ListContainer = styled.div`
   .ant-list-item {
@@ -72,6 +73,8 @@ export const SwapList: React.FC = () => {
     return [...crossChainOrders, ...(data ?? [])];
   }, [data, crossChainOrders]);
 
+  const matchedOrders = useSwapOrders(orderList);
+
   const renderItem = useCallback((order: SwapOrder) => {
     return <SwapItem order={order} />;
   }, []);
@@ -83,7 +86,7 @@ export const SwapList: React.FC = () => {
         <List
           pagination={{ position: 'bottom' }}
           bordered={false}
-          dataSource={orderList}
+          dataSource={matchedOrders}
           loading={status === 'loading'}
           renderItem={renderItem}
         />
