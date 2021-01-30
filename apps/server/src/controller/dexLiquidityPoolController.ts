@@ -99,11 +99,15 @@ export default class DexLiquidityPoolController {
     const req = <{ lock: Script; poolId: string }>ctx.request.body;
     const result = await this.service.getLiquidityPoolByPoolId(req.poolId, cellConver.converScript(req.lock));
     ctx.status = 200;
-    ctx.body = this.toLiquidityInfo(result);
+    if (result) {
+      ctx.body = this.toLiquidityInfo(result);
+    }
+
+    ctx.body = null;
   }
 
   private toLiquidityInfo(poolInfo: PoolInfo) {
-    if (poolInfo) {
+    if (poolInfo.lpToken) {
       return {
         poolId: poolInfo.poolId,
         lpToken: poolInfo.lpToken,
