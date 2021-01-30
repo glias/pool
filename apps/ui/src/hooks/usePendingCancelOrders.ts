@@ -1,40 +1,65 @@
 import { SwapOrder } from '@gliaswap/commons';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { useGliaswap } from 'hooks';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-export type TxHash = string;
+export interface PendingCancelOrder {
+  txHash: string;
+  timestamp: number;
+}
 
-export type UsePendingCancelOrders = [TxHash[], (txHash: TxHash) => void, (txHashes: TxHash[]) => void];
+export type UsePendingCancelOrders = [
+  PendingCancelOrder[],
+  (txHash: string) => void,
+  (txHashes: PendingCancelOrder[]) => void,
+];
 
 export function usePendingCancelOrders(): UsePendingCancelOrders {
   const { currentUserLock } = useGliaswap();
   const namespace = `amm-pending-cancel-orders-/${currentUserLock?.args ?? 'defaults'}`;
 
-  const [pendingCancelOrders, setPendingCancelOrders] = useLocalStorage<TxHash[]>(namespace, []);
+  const [pendingCancelOrders, setPendingCancelOrders] = useLocalStorage<PendingCancelOrder[]>(namespace, []);
 
   const addPendingCancelOrder = useCallback(
     (txHash: string) => {
-      setPendingCancelOrders([...pendingCancelOrders, txHash]);
+      setPendingCancelOrders([...pendingCancelOrders, { timestamp: Date.now(), txHash }]);
     },
     [pendingCancelOrders, setPendingCancelOrders],
   );
 
+  useClearCancelPendingOrderInterval();
+
   return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders];
+}
+
+export function useClearCancelPendingOrderInterval() {
+  const [pendingCancelOrders, , setPendingCancelOrders] = usePendingCancelOrders();
+  useEffect(() => {
+    const halfHour = 30 * 60 * 1000;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setPendingCancelOrders(
+        pendingCancelOrders.filter((p) => {
+          return p.timestamp + halfHour < now;
+        }),
+      );
+    }, 10e3);
+    return () => clearInterval(interval);
+  }, [pendingCancelOrders, setPendingCancelOrders]);
 }
 
 export function useSwapOrders(orders: SwapOrder[]) {
   const [pendingCancelOrders] = usePendingCancelOrders();
   return useMemo(() => {
     return orders.map((o) => {
-      const pendingOrder = pendingCancelOrders.find((p) => p === o.transactionHash);
+      const pendingOrder = pendingCancelOrders.find((p) => p.txHash === o.transactionHash);
       if (pendingOrder) {
         return {
           ...o,
           stage: {
             ...o.stage,
             status: 'canceling',
-            steps: [...o.stage.steps, { transactionHash: pendingOrder, index: '0x', errorMessage: '' }],
+            steps: [...o.stage.steps, { transactionHash: pendingOrder.txHash, index: '0x', errorMessage: '' }],
           },
         } as SwapOrder;
       }
