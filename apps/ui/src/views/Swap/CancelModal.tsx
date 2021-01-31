@@ -1,6 +1,6 @@
 import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
 import { Builder, Transaction } from '@lay2/pw-core';
-import { Form, Modal } from 'antd';
+import { Form, message, Modal } from 'antd';
 import { AssetSymbol } from 'components/Asset';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { ModalContainer } from 'components/ModalContainer';
@@ -146,13 +146,24 @@ export const CancelModal = () => {
     return `${fee} CKB`;
   }, [cancelTx, isFetching]);
 
+  const onCancel = useCallback(() => {
+    if (isSending) {
+      message.warn({ content: i18n.t('validation.confirming') });
+      return;
+    }
+    setCancelModalVisable(false);
+  }, [setCancelModalVisable, isSending]);
+
   return (
     <Container
       title={i18n.t('swap.cancel-modal.review')}
       footer={null}
       visible={cancelModalVisable}
-      onCancel={() => setCancelModalVisable(false)}
+      onCancel={onCancel}
       width="360px"
+      maskClosable={!isSending}
+      closable={!isSending}
+      keyboard={!isSending}
     >
       <Form layout="vertical">
         <Form.Item label={i18n.t('swap.cancel-modal.operation')}>

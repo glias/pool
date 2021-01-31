@@ -64,7 +64,8 @@
       "decimal": "The value is up to {{decimal}} decimal places",
       "gt-max": "The value should be less than Max",
       "liquid": "Insufficient liquidity for this trade",
-      "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet."
+      "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet.",
+      "confirming": "Please confirm or cancel the transaction in your wallet."
     }
   }
 }

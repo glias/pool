@@ -2,6 +2,7 @@ import { SwapOrder } from '@gliaswap/commons';
 import { useLocalStorage } from '@rehooks/local-storage';
 import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks';
+import { groupBy, values } from 'lodash';
 import { useCallback, useEffect, useMemo } from 'react';
 
 export interface PendingCancelOrder {
@@ -43,11 +44,17 @@ export function usePendingCancelOrders(): UsePendingCancelOrders {
   return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders];
 }
 
+export function sortByTimestamp<T extends SwapOrder>(a: T, b: T): number {
+  return new BigNumber(a.timestamp).isLessThan(b.timestamp) ? 1 : -1;
+}
+
 export function useSwapOrders(orders: SwapOrder[]) {
   const [pendingCancelOrders] = usePendingCancelOrders();
   return useMemo(() => {
-    return orders.map((o) => {
-      const pendingOrder = pendingCancelOrders.find((p) => p.txHash === o.stage?.steps?.[0]?.transactionHash);
+    const res = orders.map((o) => {
+      const pendingOrder = pendingCancelOrders.find(
+        (p) => p.txHash === o.stage?.steps?.[0]?.transactionHash || p.txHash === o.transactionHash,
+      );
       if (pendingOrder) {
         return {
           ...o,
@@ -60,5 +67,7 @@ export function useSwapOrders(orders: SwapOrder[]) {
       }
       return o;
     });
+    const [pending = [], rest = []] = values(groupBy(res, (o) => (o.stage.status === 'pending' ? 'pending' : 'rest')));
+    return pending.sort(sortByTimestamp).concat(rest.sort(sortByTimestamp));
   }, [orders, pendingCancelOrders]);
 }

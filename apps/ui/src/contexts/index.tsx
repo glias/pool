@@ -30,7 +30,7 @@ export const GliaswapProvider: React.FC = (props) => {
 
   useEffect(() => {
     (async () => {
-      const hide = message.loading('Loading assets...');
+      const hide = message.loading('Loading assets...', 0);
       const list = await api.getAssetList();
       hide();
       setAssetList(list);
