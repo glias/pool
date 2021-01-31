@@ -1,4 +1,4 @@
-import { Skeleton, Tag } from 'antd';
+import { Empty, Skeleton, Tag, Typography } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
@@ -8,12 +8,47 @@ import i18n from 'i18n';
 import React from 'react';
 import { truncateMiddle } from 'utils';
 
+const { Text } = Typography;
+
 interface LiquidityInfoProps {
   poolId: string;
 }
 
+export const UserLiquidityInfo: React.FC = () => {
+  const { userLiquidityQuery } = useLiquidityQuery();
+  const userLiquidity = userLiquidityQuery.data;
+
+  if (!userLiquidity) return null;
+
+  return (
+    <>
+      <SpaceBetweenRow>
+        <div className="label">{i18n.t('Your LP Token')}</div>
+        <div>
+          {userLiquidity?.lpToken ? (
+            <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
+          ) : (
+            '-'
+          )}
+          <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
+        </div>
+      </SpaceBetweenRow>
+      <SpaceBetweenRow>
+        <div className="label">{i18n.t('Pool Share')}</div>
+        <div>{userLiquidity?.share ? (userLiquidity.share * 100).toFixed(2) + ' %' : '-'} </div>
+      </SpaceBetweenRow>
+      <SpaceBetweenRow>
+        <div className="label">{i18n.t('Your Liquidity')}</div>
+        <div>
+          <AssetBalanceList assets={userLiquidity?.assets ?? []} hideSymbolIcon />
+        </div>
+      </SpaceBetweenRow>
+    </>
+  );
+};
+
 export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
-  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery();
+  const { poolLiquidityQuery } = useLiquidityQuery();
 
   if (poolLiquidityQuery.isLoading) {
     return (
@@ -24,7 +59,13 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
   }
 
   const poolLiquidity = poolLiquidityQuery.data;
-  const userLiquidity = userLiquidityQuery.data;
+
+  if (!poolLiquidity)
+    return (
+      <Section>
+        <Empty description={<Text type="secondary">{i18n.t('The pool is not exists')}</Text>} />
+      </Section>
+    );
 
   return (
     <Section>
@@ -42,26 +83,7 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
           </a>
         </div>
       </SpaceBetweenRow>
-      <SpaceBetweenRow>
-        <div className="label">{i18n.t('Your LP Token')}</div>
-        <div>
-          {userLiquidity?.lpToken ? (
-            <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
-          ) : (
-            '-'
-          )}
-        </div>
-      </SpaceBetweenRow>
-      <SpaceBetweenRow>
-        <div className="label">{i18n.t('Pool Share')}</div>
-        <div>{userLiquidity?.share ? (userLiquidity.share * 100).toFixed(2) + ' %' : '-'} </div>
-      </SpaceBetweenRow>
-      <SpaceBetweenRow>
-        <div className="label">{i18n.t('Your Liquidity')}</div>
-        <div>
-          <AssetBalanceList assets={userLiquidity?.assets ?? []} hideSymbolIcon />
-        </div>
-      </SpaceBetweenRow>
+      <UserLiquidityInfo />
     </Section>
   );
 };

@@ -14,6 +14,7 @@ export type UsePendingCancelOrders = [
   PendingCancelOrder[],
   (txHash: string) => void,
   (txHashes: PendingCancelOrder[]) => void,
+  { containsTxHash: (txHash: string) => boolean },
 ];
 
 export function usePendingCancelOrders(): UsePendingCancelOrders {
@@ -29,6 +30,14 @@ export function usePendingCancelOrders(): UsePendingCancelOrders {
     [pendingCancelOrders, setPendingCancelOrders],
   );
 
+  const hashes = useMemo(() => {
+    return new Set(pendingCancelOrders.map((order) => order.txHash));
+  }, [pendingCancelOrders]);
+
+  const containsTxHash = (txHash: string) => {
+    return hashes.has(txHash);
+  };
+
   useEffect(() => {
     const halfHour = 30 * 60 * 1000;
     const interval = setInterval(() => {
@@ -41,7 +50,7 @@ export function usePendingCancelOrders(): UsePendingCancelOrders {
     return () => clearInterval(interval);
   }, [pendingCancelOrders, setPendingCancelOrders]);
 
-  return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders];
+  return [pendingCancelOrders, addPendingCancelOrder, setPendingCancelOrders, { containsTxHash }];
 }
 
 export function sortByTimestamp<T extends SwapOrder>(a: T, b: T): number {

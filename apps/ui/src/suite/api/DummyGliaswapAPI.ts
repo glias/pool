@@ -8,24 +8,24 @@ import {
   GenerateSwapTransactionPayload,
   GliaswapAPI,
   LiquidityInfo,
-  LiquidityOrderSummary,
   LiquidityPoolFilter,
+  LiquidityRequestSummary,
   SerializedTransactionToSignWithFee,
   SwapOrder,
 } from '@gliaswap/commons';
-
 import { Transaction } from '@lay2/pw-core';
+import CKB from '@nervosnetwork/ckb-sdk-core';
+import { assetList } from 'mock/asset-list';
+import { swapOrders } from 'mock/order-list';
+import { CKB_NODE_URL } from 'suite/constants';
 import { TransactionConfig } from 'web3-core';
-
 import { ckbNativeAsset, ckbSudtGlia } from '../placeholder/assets';
 
-import { swapOrders } from 'mock/order-list';
-import { assetList } from 'mock/asset-list';
-import CKB from '@nervosnetwork/ckb-sdk-core';
-import { CKB_NODE_URL } from 'suite/constants';
+const dummyPoolId = '0x78320c53ae665b97c4f9ec699d23fb59cfac959ec3d780c853760a449258bc2f';
 
 export class DummyGliaswapAPI implements GliaswapAPI {
   ckb = new CKB(CKB_NODE_URL);
+
   generateCancelRequestTransaction(
     _payload: GenerateCancelRequestTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
@@ -58,7 +58,9 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
 
-  async cancelOperation(_txHash: string, _lock: CKBComponents.Script): Promise<SerializedTransactionToSignWithFee> {
+  async generateCancelLiquidityRequestTransaction(
+    _payload: GenerateCancelRequestTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
     return ({} as any) as SerializedTransactionToSignWithFee;
   }
 
@@ -77,7 +79,7 @@ export class DummyGliaswapAPI implements GliaswapAPI {
   async getLiquidityPools(_filter?: LiquidityPoolFilter): Promise<LiquidityInfo[]> {
     return [
       {
-        poolId: '0x1',
+        poolId: dummyPoolId,
         assets: [
           { ...ckbNativeAsset, balance: '9876543210' },
           { ...ckbSudtGlia, balance: '1234567890' },
@@ -90,7 +92,7 @@ export class DummyGliaswapAPI implements GliaswapAPI {
 
   getLiquidityInfo(): Promise<LiquidityInfo> {
     return Promise.resolve({
-      poolId: '0x1',
+      poolId: dummyPoolId,
       assets: [
         { ...ckbNativeAsset, balance: '9876543210' },
         { ...ckbSudtGlia, balance: '1234567890' },
@@ -100,36 +102,35 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     });
   }
 
-  getAddLiquidityOrderSummaries(): Promise<LiquidityOrderSummary[]> {
-    return Promise.resolve([
+  async getLiquidityOperationSummaries(): Promise<LiquidityRequestSummary[]> {
+    return [
       {
-        txHash: '0x123456789',
-        poolId: '0x1',
+        txHash: '0x78320c53ae665b97c4f9ec699d23fb59cfac959ec3d780c853760a449258bc2f',
+        poolId: dummyPoolId,
         time: '2021-01-01 11:11:11',
         model: 'UNISWAP',
         assets: [
-          { ...ckbNativeAsset, balance: '1234567890' },
-          { ...ckbSudtGlia, balance: '9876543210' },
+          { ...ckbNativeAsset, balance: '123456789' },
+          { ...ckbSudtGlia, balance: '123456789' },
         ],
         status: 'pending',
+        lpToken: { ...ckbSudtGlia, balance: '123456789' },
+        type: 'add',
       },
-    ]);
-  }
-
-  getRemoveLiquidityOrderSummaries(): Promise<LiquidityOrderSummary[]> {
-    return Promise.resolve([
       {
-        txHash: '0x123456789',
-        poolId: '0x1',
+        txHash: '0x28ca89c6491ac4ac43f2f37c47fffafaae0d35ac8cc5251005ee72c399a20685',
+        poolId: dummyPoolId,
         time: '2021-01-01 11:11:11',
         model: 'UNISWAP',
         assets: [
-          { ...ckbNativeAsset, balance: '1234567890' },
-          { ...ckbSudtGlia, balance: '9876543210' },
+          { ...ckbNativeAsset, balance: '123456789' },
+          { ...ckbSudtGlia, balance: '123456789' },
         ],
         status: 'pending',
+        lpToken: { ...ckbSudtGlia, balance: '1' },
+        type: 'remove',
       },
-    ]);
+    ];
   }
 
   getSwapOrders(): Promise<SwapOrder[]> {

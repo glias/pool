@@ -1,4 +1,17 @@
-import { Amount, Cell, CellDep, DepType, HashType, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
+import {
+  Amount,
+  AmountUnit,
+  Builder,
+  Cell,
+  CellDep,
+  DepType,
+  HashType,
+  OutPoint,
+  RawTransaction,
+  Script,
+  Transaction,
+} from '@lay2/pw-core';
+import { uniqWith } from 'lodash';
 
 export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
@@ -82,7 +95,7 @@ function serializeOutputCell(cell: Cell): OutputCell {
 function deserializeCellDeps(dep: CKBComponents.CellDep): CellDep {
   return new CellDep(
     dep.depType === 'depGroup' ? DepType.depGroup : DepType.code,
-    new OutPoint(dep.outPoint.txHash, dep.outPoint.txHash),
+    new OutPoint(dep.outPoint.txHash, dep.outPoint.index),
   );
 }
 
@@ -90,20 +103,40 @@ function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
   return dep.serializeJson() as CKBComponents.CellDep;
 }
 
-function deserializeTransactionToSign(serialized: SerializedTransactonToSign): Transaction {
-  const inputCells: Cell[] = serialized.inputCells.map((cell) => deserializeInputCell(cell));
-  const outputs: Cell[] = serialized.outputCells.map((cell) => deserializeOutputCell(cell));
-  const cellDeps: CellDep[] = serialized.cellDeps.map(deserializeCellDeps);
-
-  const raw = new RawTransaction(inputCells, outputs, cellDeps, serialized.headerDeps, serialized.version);
-  return new Transaction(
-    raw,
-    serialized.witnessArgs.map((arg) => ({
-      input_type: arg.inputType,
-      lock: arg.lock,
-      output_type: arg.outputType,
-    })),
+function fromJSONToPwCell(cell) {
+  const { data } = cell;
+  if (cell.index && cell.txHash) {
+    cell.outPoint = {
+      index: cell.index,
+      txHash: cell.txHash,
+    };
+  }
+  return new Cell(
+    new Amount(cell.capacity, AmountUnit.shannon),
+    new Script(cell.lock.codeHash, cell.lock.args, cell.lock.hashType),
+    cell.type ? new Script(cell.type.codeHash, cell.type.args, cell.type.hashType) : undefined,
+    cell.outPoint ? new OutPoint(cell.outPoint.txHash, cell.outPoint.index) : undefined,
+    data ?? '0x',
   );
+}
+
+function deserializeTransactionToSign(transaction: SerializedTransactonToSign): Transaction {
+  // TODO remove it when the server API fixed
+  const SUDT_DEP = new CellDep(
+    DepType.code,
+    new OutPoint('0xe12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769', '0x0'),
+  );
+
+  const cellDeps: CellDep[] = transaction.cellDeps.map(deserializeCellDeps);
+  const { inputCells } = transaction;
+  const outputs = transaction.outputCells;
+  const tx = new Transaction(
+    new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell), cellDeps),
+    [Builder.WITNESS_ARGS.Secp256k1],
+  );
+  tx.raw.cellDeps.push(SUDT_DEP);
+  tx.raw.cellDeps = uniqWith(tx.raw.cellDeps, (a, b) => a.sameWith(b));
+  return tx.validate();
 }
 
 function serializedSignedTransaction(transaction: Transaction): CKBComponents.RawTransaction {

@@ -1,4 +1,18 @@
-import { CkbAssetWithBalance, TransactionStatus } from '.';
+import { CkbAssetWithBalance } from '.';
+
+export type OperationRequestStatus =
+  // the request transaction is pending in the transaction pool
+  | 'pending'
+  // the request transaction is committed and waiting for aggregating
+  | 'open'
+  // the cancel request transaction is pending in transaction pool
+  | 'canceling';
+
+export type LiquidityOperationType =
+  // add liquidity
+  | 'add'
+  // remove liquidity
+  | 'remove';
 
 export type LiquidityAssetWithBalance = CkbAssetWithBalance;
 export type LPTokenWithBalance = CkbAssetWithBalance;
@@ -8,44 +22,27 @@ export type PoolModel = 'UNISWAP';
 
 export interface PoolInfo {
   poolId: string;
-  assets: CkbAssetWithBalance[];
+  assets: LiquidityAssetWithBalance[];
   model: PoolModel;
 }
 
 export interface LiquidityInfo extends PoolInfo {
   // the liquidity provider token corresponding to the liquidity pool
   lpToken: LPTokenWithBalance;
-  // the liquidity assets in the pool
-  assets: LiquidityAssetWithBalance[];
 }
 
-export interface LiquidityOrderSummary extends PoolInfo {
+export interface LiquidityRequestSummary extends PoolInfo {
   txHash: string;
   // yyyy-MM-dd HH:mm:ss
   time: string;
-  status: TransactionStatus;
+  status: OperationRequestStatus;
   assets: LiquidityAssetWithBalance[];
+  lpToken: LPTokenWithBalance;
+  type: LiquidityOperationType;
 }
 
 export interface PoolShareInfo {
   changedShare: number;
   // fee for aggregator
   requestFee: LiquidityAssetWithBalance;
-}
-
-export function calcAddPoolShareInfo(poolLiquidity: LiquidityInfo, added: LiquidityAssetWithBalance[]): PoolShareInfo {
-  if (poolLiquidity.model === 'UNISWAP') {
-    // TODO implement the liquidity fee
-    const [addedA, addedB] = added;
-    const [poolA, poolB] = poolLiquidity.assets;
-    console.log(addedA, addedB, poolA, poolB);
-
-    // return {};
-  }
-
-  const lpToken = poolLiquidity.lpToken;
-  return {
-    requestFee: { ...lpToken, balance: '0' },
-    changedShare: 0,
-  };
 }

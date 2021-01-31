@@ -2,77 +2,45 @@ import {
   Asset,
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
+  EthAsset,
   EthErc20Asset,
+  EthErc20AssetWithBalance,
   EthNativeAssetWithBalance,
   GenerateAddLiquidityTransactionPayload,
   GenerateCancelRequestTransactionPayload,
   GenerateCreateLiquidityPoolTransactionPayload,
   GenerateCreateLiquidityPoolTransactionResponse,
   GenerateGenesisLiquidityTransactionPayload,
+  GenerateRemoveLiquidityTransactionPayload,
   GenerateSwapTransactionPayload,
   getCkbChainSpec,
   GliaswapAPI,
   GliaswapAssetWithBalance,
   isCkbChainSpec,
+  isEthErc20Asset,
+  isEthNativeAsset,
   LiquidityInfo,
   LiquidityInfoFilter,
-  LiquidityOrderSummary,
-  LiquidityOrderSummaryFilter,
+  LiquidityOperationSummaryFilter,
   LiquidityPoolFilter,
+  LiquidityRequestSummary,
   Maybe,
   PoolInfo,
+  Script as CkbScript,
   SerializedTransactionToSignWithFee,
+  SerializedTransactonToSign,
   ShadowFromEthWithBalance,
   SwapOrder,
-  EthErc20AssetWithBalance,
-  isEthNativeAsset,
-  isEthErc20Asset,
-  EthAsset,
-  Script as CkbScript,
+  TransactionHelper,
 } from '@gliaswap/commons';
-import Axios, { AxiosInstance } from 'axios';
-import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
-import Web3 from 'web3';
+import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
+import Axios, { AxiosInstance } from 'axios';
+// import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
+import { createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
-import {
-  Amount,
-  AmountUnit,
-  Cell,
-  Script,
-  Transaction,
-  OutPoint,
-  RawTransaction,
-  Builder,
-  CellDep,
-  DepType,
-} from '@lay2/pw-core';
-import { uniqWith } from 'lodash';
-
-const api = new DummyGliaswapAPI();
-
-function fromJSONToPwCell(cell: any) {
-  const { data } = cell;
-  if (cell.index && cell.txHash) {
-    cell.outPoint = {
-      index: cell.index,
-      txHash: cell.txHash,
-    };
-  }
-  // debugger;
-  return new Cell(
-    new Amount(cell.capacity as any, AmountUnit.shannon),
-    new Script(cell.lock.codeHash, cell.lock.args, cell.lock.hashType),
-    cell.type ? new Script(cell.type.codeHash, cell.type.args, cell.type.hashType) : undefined,
-    cell.outPoint ? new OutPoint(cell.outPoint.txHash, cell.outPoint.index) : undefined,
-    data ?? '0x',
-  );
-}
-
-export const SUDT_DEP = new CellDep(
-  DepType.code,
-  new OutPoint('0xe12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769', '0x0'),
-);
+import Web3 from 'web3';
+import * as ServerTypes from './types';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -94,28 +62,36 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  cancelOperation(_txHash: string, _lock: CkbScript): Promise<SerializedTransactionToSignWithFee> {
-    return Promise.resolve({} as any);
+  async generateCancelLiquidityRequestTransaction(
+    payload: GenerateCancelRequestTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
+    const res = await this.axios.post<SerializedTransactionToSignWithFee>('/liquidity-pool/orders/cancel', payload);
+    if (!res.data.transactionToSign) {
+      // @ts-ignore
+      res.data.transactionToSign = res.data.tx;
+    }
+    return res.data;
   }
 
   async generateAddLiquidityTransaction(
     payload: GenerateAddLiquidityTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
+    const res = await this.axios.post('/liquidity-pool/orders/add-liquidity', { ...payload });
+
+    return {
+      transactionToSign: res.data.tx as SerializedTransactonToSign,
+      fee: res.data.fee as string,
+    };
+  }
+
+  async generateRemoveLiquidityTransaction(
+    payload: GenerateRemoveLiquidityTransactionPayload,
+  ): Promise<SerializedTransactionToSignWithFee> {
     const res = await this.axios.post<SerializedTransactionToSignWithFee>(
-      '/liquidity-pool/orders/add-liquidity',
+      '/liquidity-pool/orders/remove-liquidity',
       payload,
     );
-
     return res.data;
-  }
-
-  generateRemoveLiquidityTransaction(): Promise<SerializedTransactionToSignWithFee> {
-    // TODO replace with server api
-    return Promise.resolve({ fee: (Math.random() * 10 ** 8).toFixed(8), transactionToSign: {} as any });
-  }
-
-  getAddLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
-    return Promise.resolve([]);
   }
 
   async getAssetsWithBalance(
@@ -129,7 +105,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
       return res.data;
     }
 
-    // @ts-ignore
     const nervosChainSpecs = assets.filter(isCkbChainSpec).map(getCkbChainSpec);
     const ckbAssets = await this.axios.post<
       (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowFromEthWithBalance)[]
@@ -183,8 +158,18 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return [];
   }
 
-  getLiquidityInfo(_filter: LiquidityInfoFilter): Promise<Maybe<LiquidityInfo>> {
-    return api.getLiquidityInfo();
+  // TODO uncomment me when server api is fixed
+  async getLiquidityInfo(filter: LiquidityInfoFilter): Promise<Maybe<LiquidityInfo>> {
+    const res = await this.axios.post('/liquidity-pool/pool-id', {
+      poolId: filter.poolId,
+      lock: filter.lock,
+    });
+
+    if (!res.data) return;
+    // TODO DONT create asset here, use the server response
+    if (!res.data.lpToken)
+      res.data.lpToken = createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total);
+    return res.data;
   }
 
   async getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
@@ -192,8 +177,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  getRemoveLiquidityOrderSummaries(_filter: LiquidityOrderSummaryFilter): Promise<LiquidityOrderSummary[]> {
-    return Promise.resolve([]);
+  // TODO uncomment me when server api is fixed
+  async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityRequestSummary[]> {
+    const res = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
+    return ServerTypes.transformLiquidityOperationInfo(res.data);
   }
 
   async getSwapOrders(lock: CkbScript, ethAddress: string): Promise<SwapOrder[]> {
@@ -208,14 +195,8 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
-    const { data } = await this.axios.post('/swap/orders/cancel', {
-      txHash,
-      lock,
-    });
-
-    return {
-      tx: this.toPwTransactionInstance(data.tx),
-    };
+    const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock });
+    return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
 
   async swapNormalOrder(
@@ -244,32 +225,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         address: '',
       },
     });
-
+    const tx = TransactionHelper.deserializeTransactionToSign(data.tx);
     return {
-      tx: this.toPwTransactionInstance(data.tx),
+      tx,
     };
-  }
-
-  toPwTransactionInstance(transaction: Transaction['raw']) {
-    const { inputCells } = transaction;
-    const outputs = (transaction as any).outputCells;
-    const cellDeps = transaction.cellDeps.map(
-      (cd) =>
-        new CellDep(
-          cd.depType === 'code' ? DepType.code : DepType.depGroup,
-          new OutPoint(cd.outPoint.txHash, cd.outPoint.index),
-        ),
-    );
-    const tx = new Transaction(
-      new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell), cellDeps),
-      [Builder.WITNESS_ARGS.Secp256k1],
-    );
-
-    tx.raw.cellDeps.push(SUDT_DEP);
-
-    tx.raw.cellDeps = uniqWith(tx.raw.cellDeps, (a, b) => a.sameWith(b));
-
-    return tx.validate();
   }
 
   generateCancelRequestTransaction(

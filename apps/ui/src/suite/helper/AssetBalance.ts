@@ -43,8 +43,12 @@ export class BalanceWithoutDecimal extends CommonsBalance {
     return new BalanceWithoutDecimal(asset.balance, asset.decimals);
   }
 
-  newValue(this: BalanceWithoutDecimal, value: BigNumber.Value): BalanceWithoutDecimal {
-    return new BalanceWithoutDecimal(value, this.assetDecimals);
+  newValue(
+    this: BalanceWithoutDecimal,
+    value: BigNumber.Value | ((value: BigNumber) => BigNumber.Value),
+  ): BalanceWithoutDecimal {
+    const newVal = typeof value === 'function' ? value(this.value) : value;
+    return new BalanceWithoutDecimal(newVal, this.assetDecimals);
   }
 
   withDecimal(): BalanceWithDecimal {

@@ -1,13 +1,10 @@
 import {
   Asset,
-  Balanced,
+  AssetWithBalance,
+  ChainSpec,
   GliaswapAssetWithBalance,
   isCkbNativeAsset,
   isCkbSudtAsset,
-  // isEthErc20Dai,
-  // isEthErc20Usdc,
-  // isEthErc20Usdt,
-  // isEthNativeAsset,
   utils,
 } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
@@ -38,17 +35,24 @@ export function calcTotalBalance(asset: Asset | GliaswapAssetWithBalance): BigNu
   return BN(0);
 }
 
-export function createAssetWithBalance<T extends Asset>(asset: T, balance: BigNumber.Value = 0): T & Balanced {
+export function createAssetWithBalance<T extends ChainSpec>(
+  asset: T | Partial<Asset>,
+  balance: BigNumber.Value = 0,
+): T & AssetWithBalance {
   return {
+    chainType: 'Nervos',
+    name: 'unknown',
+    symbol: 'unknown',
+    decimals: 0,
     ...asset,
-    balance: BN(balance).toString(),
-  };
+    balance: BN(balance).decimalPlaces(0, BigNumber.ROUND_FLOOR).toString(),
+  } as T & AssetWithBalance;
 }
 
 export function inputToAssetBalance(input: string, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
   return BN(input)
     .times(10 ** asset.decimals)
-    .decimalPlaces(decimalPlaces, BigNumber.ROUND_DOWN);
+    .decimalPlaces(decimalPlaces, BigNumber.ROUND_FLOOR);
 }
 
 export function assetBalanceToInput(balance: BigNumber.Value, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
