@@ -73,10 +73,15 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getStatus(): string {
     const orders = this.getOrders();
+
     if (orders.length === 1) {
       if (this.tx.txStatus.status === 'pending') {
         return ORDER_STATUS.PENDING;
       }
+      return ORDER_STATUS.OPEN;
+    }
+
+    if (this.getLastOrder().tx.txStatus.status === 'pending') {
       return ORDER_STATUS.OPEN;
     }
 

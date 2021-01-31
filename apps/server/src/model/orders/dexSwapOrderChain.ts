@@ -126,6 +126,10 @@ export class DexSwapOrderChain extends DexOrderChain {
         return ORDER_STATUS.OPEN;
       }
 
+      if (this.getLastOrder().tx.txStatus.status === 'pending') {
+        return ORDER_STATUS.OPEN;
+      }
+
       return ORDER_STATUS.COMPLETED;
     }
 
