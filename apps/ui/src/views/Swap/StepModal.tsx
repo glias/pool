@@ -250,11 +250,7 @@ export const StepModal = () => {
       width="360px"
     >
       <section className="step">
-        <Steps
-          direction="vertical"
-          size="small"
-          current={currentIndex === progress.length - 1 ? currentIndex + 1 : currentIndex}
-        >
+        <Steps direction="vertical" size="small" current={currentIndex}>
           {progress.map((p, i) => {
             const title = p.txHash ? (
               <a target="_blank" rel="noopener noreferrer" href={buildURL(p.txHash, p.isEth)}>

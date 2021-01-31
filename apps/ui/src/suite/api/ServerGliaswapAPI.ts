@@ -31,50 +31,16 @@ import {
   SerializedTransactonToSign,
   ShadowFromEthWithBalance,
   SwapOrder,
+  TransactionHelper,
 } from '@gliaswap/commons';
-import {
-  Amount,
-  AmountUnit,
-  Builder,
-  Cell,
-  CellDep,
-  DepType,
-  OutPoint,
-  RawTransaction,
-  Script,
-  Transaction,
-} from '@lay2/pw-core';
+import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import Axios, { AxiosInstance } from 'axios';
-import { uniqWith } from 'lodash';
 // import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
 import { createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
 import * as ServerTypes from './types';
-
-function fromJSONToPwCell(cell: any) {
-  const { data } = cell;
-  if (cell.index && cell.txHash) {
-    cell.outPoint = {
-      index: cell.index,
-      txHash: cell.txHash,
-    };
-  }
-
-  return new Cell(
-    new Amount(cell.capacity as any, AmountUnit.shannon),
-    new Script(cell.lock.codeHash, cell.lock.args, cell.lock.hashType),
-    cell.type ? new Script(cell.type.codeHash, cell.type.args, cell.type.hashType) : undefined,
-    cell.outPoint ? new OutPoint(cell.outPoint.txHash, cell.outPoint.index) : undefined,
-    data ?? '0x',
-  );
-}
-
-export const SUDT_DEP = new CellDep(
-  DepType.code,
-  new OutPoint('0xe12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769', '0x0'),
-);
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -230,7 +196,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
     const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock });
-    return { tx: this.toPwTransactionInstance(data.tx) };
+    return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
 
   async swapNormalOrder(
@@ -259,32 +225,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         address: '',
       },
     });
-
+    const tx = TransactionHelper.deserializeTransactionToSign(data.tx);
     return {
-      tx: this.toPwTransactionInstance(data.tx),
+      tx,
     };
-  }
-
-  toPwTransactionInstance(transaction: Transaction['raw']) {
-    const { inputCells } = transaction;
-    const outputs = (transaction as any).outputCells;
-    const cellDeps = transaction.cellDeps.map(
-      (cd) =>
-        new CellDep(
-          cd.depType === 'code' ? DepType.code : DepType.depGroup,
-          new OutPoint(cd.outPoint.txHash, cd.outPoint.index),
-        ),
-    );
-    const tx = new Transaction(
-      new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell), cellDeps),
-      [Builder.WITNESS_ARGS.Secp256k1],
-    );
-
-    tx.raw.cellDeps.push(SUDT_DEP);
-
-    tx.raw.cellDeps = uniqWith(tx.raw.cellDeps, (a, b) => a.sameWith(b));
-
-    return tx.validate();
   }
 
   generateCancelRequestTransaction(

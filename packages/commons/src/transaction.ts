@@ -11,6 +11,7 @@ import {
   Script,
   Transaction,
 } from '@lay2/pw-core';
+import { uniqWith } from 'lodash';
 
 export type TransactionStatus = 'pending' | 'proposed' | 'committed';
 
@@ -102,7 +103,7 @@ function serializeCellDep(dep: CellDep): CKBComponents.CellDep {
   return dep.serializeJson() as CKBComponents.CellDep;
 }
 
-function fromJSONToPwCell(cell: any) {
+function fromJSONToPwCell(cell) {
   const { data } = cell;
   if (cell.index && cell.txHash) {
     cell.outPoint = {
@@ -111,7 +112,7 @@ function fromJSONToPwCell(cell: any) {
     };
   }
   return new Cell(
-    new Amount(cell.capacity as any, AmountUnit.shannon),
+    new Amount(cell.capacity, AmountUnit.shannon),
     new Script(cell.lock.codeHash, cell.lock.args, cell.lock.hashType),
     cell.type ? new Script(cell.type.codeHash, cell.type.args, cell.type.hashType) : undefined,
     cell.outPoint ? new OutPoint(cell.outPoint.txHash, cell.outPoint.index) : undefined,
@@ -128,12 +129,13 @@ function deserializeTransactionToSign(transaction: SerializedTransactonToSign): 
 
   const cellDeps: CellDep[] = transaction.cellDeps.map(deserializeCellDeps);
   const { inputCells } = transaction;
-  const outputs = (transaction as any).outputCells;
+  const outputs = transaction.outputCells;
   const tx = new Transaction(
     new RawTransaction(inputCells.map(fromJSONToPwCell), outputs.map(fromJSONToPwCell), cellDeps),
     [Builder.WITNESS_ARGS.Secp256k1],
   );
   tx.raw.cellDeps.push(SUDT_DEP);
+  tx.raw.cellDeps = uniqWith(tx.raw.cellDeps, (a, b) => a.sameWith(b));
   return tx.validate();
 }
 
