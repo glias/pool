@@ -1,6 +1,6 @@
 import { isEthAsset, buildPendingSwapOrder, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
-import { Form, Modal } from 'antd';
+import { Form, message, Modal } from 'antd';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { TableRow } from 'components/TableRow';
 import i18n from 'i18n';
@@ -129,13 +129,23 @@ export const SwapModal = () => {
     }
   }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder, resetForm]);
 
+  const onCancel = useCallback(() => {
+    if (isPlacingOrder) {
+      message.warn({ content: i18n.t('validation.confirming') });
+      return;
+    }
+    setReviewModalVisable(false);
+  }, [setReviewModalVisable, isPlacingOrder]);
+
   return (
     <Container
       title={i18n.t('swap.cancel-modal.review')}
       footer={null}
       visible={reviewModalVisable}
-      onCancel={() => setReviewModalVisable(false)}
+      onCancel={onCancel}
       width="360px"
+      maskClosable={!isPlacingOrder}
+      keyboard={!isPlacingOrder}
     >
       <Form layout="vertical">
         <Form.Item label={i18n.t('swap.cancel-modal.operation')}>

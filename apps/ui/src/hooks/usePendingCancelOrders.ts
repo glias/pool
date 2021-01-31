@@ -67,7 +67,7 @@ export function useSwapOrders(orders: SwapOrder[]) {
       }
       return o;
     });
-    const [pending, rest] = values(groupBy(res, (o) => (o.stage.status === 'pending' ? 'pending' : 'rest')));
+    const [pending = [], rest = []] = values(groupBy(res, (o) => (o.stage.status === 'pending' ? 'pending' : 'rest')));
     return pending.sort(sortByTimestamp).concat(rest.sort(sortByTimestamp));
   }, [orders, pendingCancelOrders]);
 }
