@@ -35,7 +35,7 @@ export const useSwapTable = ({
 
   const disabled = useMemo(() => {
     if (currentUserLock == null) {
-      return false;
+      return true;
     }
     return isPayInvalid || isReceiveInvalid;
   }, [isPayInvalid, isReceiveInvalid, currentUserLock]);

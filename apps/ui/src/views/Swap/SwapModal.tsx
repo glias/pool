@@ -72,10 +72,19 @@ export const SwapModal = () => {
   const placeLockOrder = useCallback(async () => {
     if (currentEthTx) {
       const txHash = await sendEthTransaction(currentEthTx);
-      const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
+      const shadowAsset =
+        swapMode === SwapMode.CrossChainOrder
+          ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
+          : null;
+      const pendingOrder = buildPendingSwapOrder(
+        shadowAsset ? { ...shadowAsset, balance: tokenA.balance } : tokenA,
+        tokenB,
+        txHash,
+        shadowAsset ? SwapOrderType.CrossChainOrder : SwapOrderType.CrossChain,
+      );
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
     }
-  }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders]);
+  }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders, swapMode, shadowEthAssets]);
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
