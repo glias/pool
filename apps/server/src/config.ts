@@ -38,7 +38,7 @@ export const INFO_LOCK_CODE_HASH =
 export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
 
 export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0xd47ff6eaf8c720c96e91052005b124483499ebd2048156500bc5a5e2391dfc0b';
+  process.env.INFO_TYPE_CODE_HASH || '0xb22fd3b0dffa66fa131bba847f934bfd41d3512a6da829ead431d174ec33e1ee';
 export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
 
 export const SUDT_TYPE_CODE_HASH =

@@ -101,9 +101,9 @@ export default class DexLiquidityPoolController {
     ctx.status = 200;
     if (result) {
       ctx.body = this.toLiquidityInfo(result);
+    } else {
+      ctx.body = null;
     }
-
-    ctx.body = null;
   }
 
   private toLiquidityInfo(poolInfo: PoolInfo) {
