@@ -3,7 +3,7 @@ dotenv.config();
 import { CellInfoSerializationHolderFactory, LiquidityOrderCellArgs, Script } from '.';
 
 export const LIQUIDITY_ORDER_LOCK_SCRIPT = new Script(
-  process.env.LIQUIDITY_REQ_LOCK_CODE_HASH || '0xe29e05537c84f459b706753df58ad8b43c346d7ff7d7926c58237ef9b0a7bbf3',
+  process.env.LIQUIDITY_REQ_LOCK_CODE_HASH || '0x4c454e1e1d7361d0f0339eba7f8cb88842c547f5a414d0da76c9d5da2ab2ffe2',
   process.env.LIQUIDITY_REQ_LOCK_HASH_TYPE || 'data',
   'user_lock_hash',
 );
