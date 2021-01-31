@@ -57,6 +57,10 @@ export function sortByTimestamp<T extends SwapOrder>(a: T, b: T): number {
   return new BigNumber(a.timestamp).isLessThan(b.timestamp) ? 1 : -1;
 }
 
+export function sortByTimestamp<T extends SwapOrder>(a: T, b: T): number {
+  return new BigNumber(a.timestamp).isLessThan(b.timestamp) ? 1 : -1;
+}
+
 export function useSwapOrders(orders: SwapOrder[]) {
   const [pendingCancelOrders] = usePendingCancelOrders();
   return useMemo(() => {
