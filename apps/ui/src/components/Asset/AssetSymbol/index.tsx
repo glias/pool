@@ -1,3 +1,4 @@
+import { QuestionOutlined } from '@ant-design/icons';
 import { Asset } from '@gliaswap/commons';
 import React from 'react';
 import styled from 'styled-components';
@@ -39,14 +40,11 @@ const AssetSymbolWrapper = styled.span<WrapperProps>`
 
 export const AssetSymbol = (props: TokenProps & WrapperProps & React.HTMLAttributes<HTMLSpanElement>) => {
   const { asset, hideSymbolText, hideSymbolIcon, ...others } = props;
+  const logo = asset.logoURI ? <img alt={asset.symbol} src={asset.logoURI} /> : <QuestionOutlined />;
 
   return (
     <AssetSymbolWrapper iconBackground={getIconBackgroundColor(asset)} {...others}>
-      {!hideSymbolIcon && (
-        <span className="icon">
-          <img alt={asset.symbol} src={asset.logoURI} />
-        </span>
-      )}
+      {!hideSymbolIcon && <span className="icon">{logo}</span>}
       {!hideSymbolText && <span className="symbol-text">{asset.symbol}</span>}
     </AssetSymbolWrapper>
   );

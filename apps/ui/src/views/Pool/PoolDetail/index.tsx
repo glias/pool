@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { LiquidityInfo } from './LiquidityInfo';
 import { LiquidityOperation } from './LiquidityOperation';
-import { LiquidityRequestList } from 'views/Pool/PoolDetail/LiquidityRequestList';
+import { LiquidityOperationList } from 'views/Pool/PoolDetail/LiquidityOperationList';
 
 export const PoolDetail: React.FC = () => {
   const { poolId } = useParams<{ poolId: string }>();
@@ -10,7 +10,7 @@ export const PoolDetail: React.FC = () => {
     <>
       <LiquidityInfo poolId={poolId} />
       <LiquidityOperation poolId={poolId} />
-      <LiquidityRequestList poolId={poolId} />
+      <LiquidityOperationList poolId={poolId} />
     </>
   );
 };

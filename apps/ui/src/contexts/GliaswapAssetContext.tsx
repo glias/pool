@@ -47,7 +47,8 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   const { data, status } = useQuery(
     ['getAssetsWithBalance', api, lockScript],
     () => api.getAssetsWithBalance(lockScript!, assetList, currentEthAddress, raw.web3),
-    { refetchInterval: 3000, enabled: lockScript != null && !!raw.web3 },
+    // TODO: use the env to define the
+    { refetchInterval: 10000, enabled: lockScript != null && !!raw.web3 },
   );
 
   const setBalance = useCallback(

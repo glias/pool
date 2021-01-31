@@ -10,8 +10,9 @@ import { useAddLiquidity } from 'hooks/useAddLiquidity';
 import i18n from 'i18n';
 import { zip } from 'lodash';
 import React, { useState } from 'react';
+import { useMutation } from 'react-query';
 import styled from 'styled-components';
-import { assetBalanceToInput, BalanceWithDecimal, createAssetWithBalance } from 'suite';
+import { assetBalanceToInput, BalanceWithDecimal, BalanceWithoutDecimal, createAssetWithBalance } from 'suite';
 import { RequestFeeLabel } from './components/RequestFeeLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
 import { OperationConfirmModal } from './OperationConfirmModal';
@@ -84,10 +85,20 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     generateAddLiquidityTransaction,
     userFreeAssets,
     onUserInputReadyToAddLiquidity,
-    addShare,
+    readyToAddShare,
     readyToAddLiquidity,
+    sendReadyToAddLiquidityTransaction,
   } = useAddLiquidity();
   const [userAsset1, userAsset2] = userFreeAssets;
+
+  const { isLoading, mutateAsync: sendAddLiquidityTransaction } = useMutation(
+    'sendReadyToAddLiquidityTransaction',
+    async () => {
+      const txHash = await sendReadyToAddLiquidityTransaction();
+      setConfirming(false);
+      return txHash;
+    },
+  );
 
   function validateAmount(balance: BalanceWithDecimal, asset: AssetWithBalance): string | undefined {
     const balanceWithDecimals = balance.value;
@@ -123,7 +134,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   function onAsset1Changed(val: string, form: FormikProps<InputFields>) {
     if (!val) return form.setValues({ amount1: '', amount2: '' });
-    if (!/\d*(\.\d*)?/.test(val)) return;
+    if (!/^\d*(\.\d*)?$/.test(val)) return;
 
     const [, balance2] = onUserInputReadyToAddLiquidity(val, 0);
     form.setValues({ amount1: val, amount2: balance2.withDecimal().toHumanize() });
@@ -159,7 +170,20 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
           <Form layout="vertical">
             <Form.Item name="amount1" label={i18n.t('Asset 1')}>
               <div className="label-max">
-                <HumanizeBalance asset={liquidityAsset1} value={userAsset1?.balance ?? '0'} />
+                <HumanizeBalance
+                  onClick={() =>
+                    onAsset1Changed(
+                      BalanceWithoutDecimal.fromAsset(userAsset1)
+                        // minus 0.1 ckb as the transaction fee
+                        .newValue((val) => val.minus(10000000))
+                        .withDecimal()
+                        .toHumanize(userAsset1.decimals),
+                      form,
+                    )
+                  }
+                  asset={liquidityAsset1}
+                  value={userAsset1?.balance ?? '0'}
+                />
               </div>
               <Input
                 autoComplete="off"
@@ -174,7 +198,16 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <PlusOutlined className="plus-icon" />
             <Form.Item name="amount2" label={i18n.t('Asset 2')}>
               <div className="label-max">
-                <HumanizeBalance asset={liquidityAsset1} value={userAsset2?.balance ?? '0'} />
+                <HumanizeBalance
+                  onClick={() =>
+                    onAsset2Changed(
+                      BalanceWithoutDecimal.fromAsset(userAsset2).withDecimal().toHumanize(userAsset2.decimals),
+                      form,
+                    )
+                  }
+                  asset={liquidityAsset1}
+                  value={userAsset2?.balance ?? '0'}
+                />
               </div>
               <Input
                 autoComplete="off"
@@ -195,7 +228,13 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             </SpaceBetweenRow>
             <SpaceBetweenRow>
               <div className="label">{i18n.t('Add Pool Share')}</div>
-              <div>{!addShare ? '-' : addShare < 1e-4 ? '< 0.01%' : (addShare * 100).toFixed(2) + ' %'}</div>
+              <div>
+                {!readyToAddShare
+                  ? '-'
+                  : readyToAddShare < 1e-4
+                  ? '< 0.01%'
+                  : (readyToAddShare * 100).toFixed(2) + ' %'}
+              </div>
             </SpaceBetweenRow>
             <SpaceBetweenRow>
               <div className="label">
@@ -215,8 +254,8 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
       <OperationConfirmModal
         visible={confirming}
-        onOk={() => Promise.resolve()}
-        onCancel={() => setConfirming(false)}
+        onOk={() => sendAddLiquidityTransaction()}
+        onCancel={() => !isLoading && setConfirming(false)}
         operation={<Text strong>{i18n.t('Add Liquidity')}</Text>}
       >
         <div className="label">{i18n.t('Add')}</div>
@@ -232,7 +271,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
         <div className="label">{i18n.t('Receive(EST)')}</div>
         <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
           <div>
-            <HumanizeBalance asset={liquidityAsset1} value={addShare} />
+            <HumanizeBalance asset={liquidityAsset1} value={readyToAddShare} />
           </div>
           <div>
             <PoolAssetSymbol assets={poolAssets} />

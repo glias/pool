@@ -8,7 +8,7 @@ import {
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
   LiquidityInfo,
-  LiquidityOrderSummary,
+  LiquidityRequestSummary,
   LPTokenWithBalance,
   Maybe,
   PoolInfo,
@@ -26,7 +26,7 @@ export interface LiquidityInfoFilter {
   lock?: Script;
 }
 
-export interface LiquidityOrderSummaryFilter {
+export interface LiquidityOperationSummaryFilter {
   poolId: string;
   lock: Script;
 }
@@ -107,9 +107,7 @@ export interface GliaswapAPI {
    */
   getLiquidityInfo: (filter: LiquidityInfoFilter) => Promise<Maybe<LiquidityInfo>>;
 
-  getAddLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
-
-  getRemoveLiquidityOrderSummaries: (filter: LiquidityOrderSummaryFilter) => Promise<LiquidityOrderSummary[]>;
+  getLiquidityOperationSummaries: (filter: LiquidityOperationSummaryFilter) => Promise<LiquidityRequestSummary[]>;
 
   getSwapOrders: (lock: Script, ethAddress: string) => Promise<SwapOrder[]>;
 
@@ -140,9 +138,7 @@ export interface GliaswapAPI {
 
   generateSwapTransaction: (payload: GenerateSwapTransactionPayload) => Promise<SerializedTransactionToSignWithFee>;
 
-  generateCancelRequestTransaction: (
+  generateCancelLiquidityRequestTransaction: (
     payload: GenerateCancelRequestTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
-
-  cancelOperation: (txHash: string, lock: Script) => Promise<SerializedTransactionToSignWithFee>;
 }

@@ -6,7 +6,7 @@ import styled from 'styled-components';
 interface LiquidityOperationConfirmProps {
   operation: React.ReactNode;
   confirm?: React.ReactNode;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
   onCancel?: () => void;
   className?: string;
   visible?: boolean;
