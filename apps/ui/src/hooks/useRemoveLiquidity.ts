@@ -1,4 +1,5 @@
 import { CkbAssetWithBalance, Maybe, SerializedTransactionToSignWithFee } from '@gliaswap/commons';
+import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks/useGliaswap';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
@@ -9,7 +10,7 @@ import { BalanceWithoutDecimal, BN, createAssetWithBalance } from 'suite';
 function calcMinAmountWithSlippage(balance: string, slippage: number) {
   return BN(balance)
     .times(1 - slippage)
-    .decimalPlaces(0)
+    .decimalPlaces(0, BigNumber.ROUND_FLOOR)
     .toString();
 }
 

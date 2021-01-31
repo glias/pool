@@ -57,7 +57,7 @@ export type GliaswapAssetWithBalance =
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
-export function isCkbChainSpec(spec: ChainSpec): spec is CkbChainSpec {
+export function isCkbChainSpec<T extends ChainSpec>(spec: T): spec is T & CkbChainSpec {
   return propEq(spec, 'chainType', 'Nervos') && has(spec, 'typeHash');
 }
 
@@ -65,7 +65,7 @@ export function getCkbChainSpec<T extends CkbChainSpec>(spec: T): CkbChainSpec {
   return { typeHash: spec.typeHash, chainType: spec.chainType };
 }
 
-export function isEthereumChainSpec(spec: ChainSpec): spec is EthChainSpec {
+export function isEthereumChainSpec<T extends ChainSpec>(spec: T): spec is T & EthChainSpec {
   return propEq(spec, 'chainType', 'Ethereum') && has(spec, 'address');
 }
 
