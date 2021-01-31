@@ -12,6 +12,8 @@ import {
   INFO_LOCK_CODE_HASH,
   INFO_LOCK_HASH_TYPE,
   POOL_INFO_TYPE_ARGS,
+  SUDT_TYPE_CODE_HASH,
+  SUDT_TYPE_HASH_TYPE,
 } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 
@@ -38,7 +40,7 @@ export class DexLiquidityPoolService {
       type: infoCell.tokenB.typeScript.toLumosScript(),
       order: 'desc',
     };
-    const addOrders = await this.dexRepository.collectTransactions(queryOptions);
+    const addOrders = await this.dexRepository.collectTransactions(queryOptions, true);
     const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
     orders.forEach((x) => liquidityOrders.push(x));
 
@@ -51,7 +53,7 @@ export class DexLiquidityPoolService {
     );
 
     queryOptions.type = infoTypeScript.toLumosScript();
-    const removeTxs = await this.dexRepository.collectTransactions(queryOptions);
+    const removeTxs = await this.dexRepository.collectTransactions(queryOptions, true);
     const removeOrders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, removeTxs, null);
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
@@ -119,8 +121,10 @@ export class DexLiquidityPoolService {
         )
         .toString();
 
-      poolInfo.lpToken = new Token(poolInfo.infoCell.cellOutput.type.toHash());
-      poolInfo.lpToken.balance = lpTokenAmount;
+      poolInfo.lpToken = new Token(
+        new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, poolInfo.infoCell.cellOutput.lock.toHash()).toHash(),
+      );
+      poolInfo.lpToken.balance = lpTokenAmount ? '0' : lpTokenAmount;
 
       userLiquiditys.push(poolInfo);
     }
@@ -159,8 +163,12 @@ export class DexLiquidityPoolService {
       // Prevent modification to the same tokenA
       const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
       tokenA.balance = argsData.ckbReserve.toString();
+
       poolInfos.push({
         total: argsData.totalLiquidity.toString(),
+        lpToken: new Token(
+          new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
+        ),
         poolId: type.toHash(),
         tokenA: tokenA,
         tokenB: tokenB,
