@@ -244,6 +244,7 @@ export default class DexLiquidityPoolController {
     ctx.body = result.map((x) => {
       return {
         poolId: x.poolId,
+        timestamp: parseInt(x.timestamp, 16),
         transactionHash: x.transactionHash,
         tokenA: x.amountIn.toAsset(),
         tokenB: x.amountOut.toAsset(),
