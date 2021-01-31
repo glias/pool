@@ -90,7 +90,7 @@ export class BridgeInfoMatchChainFactory {
       ),
     );
     // handels.push(new ChainHandle(true, false, crossTxs.ckb_to_eth));
-    // isOrder = true， is = true
+    // isOrder = true， isIn = true
     handels.push(
       new ChainHandle(
         true,

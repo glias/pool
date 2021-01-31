@@ -91,6 +91,11 @@ export class DexLiquidityChain extends DexOrderChain {
   buildStep(): Step[] {
     const orders = this.getOrders();
     const result: Step[] = [];
+    if (this.tx.txStatus.status !== 'pending') {
+      const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
+      result.push(step);
+    }
+
     orders.forEach((x) => {
       const step: Step = new Step(x.tx.transaction.hash, x.index.toString());
       result.push(step);

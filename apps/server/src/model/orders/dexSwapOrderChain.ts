@@ -140,6 +140,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     const orders = this.getOrders();
     const result: Step[] = [];
 
+    // only sudt => eth
     if (this._isIn === false) {
       const step: Step = new Step(this.tx.transaction.hash);
       result.push(step);
@@ -154,6 +155,11 @@ export class DexSwapOrderChain extends DexOrderChain {
     if (this._isIn) {
       const step: Step = new Step(this._bridgeInfo.eth_tx_hash);
       result.push(step);
+      result.push(step);
+    }
+
+    if (this.tx.txStatus.status !== 'pending') {
+      const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
       result.push(step);
     }
 
