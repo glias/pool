@@ -1,13 +1,13 @@
 import { WarningOutlined } from '@ant-design/icons';
-import { Spin } from 'antd';
+import { Spin, Tooltip } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
-import { QueryStatus } from 'react-query';
+import i18n from 'i18n';
+import React, { useMemo } from 'react';
+import { QueryObserverResult } from 'react-query';
 import styled from 'styled-components';
 
 interface UpdateStatusProps {
-  dataUpdatedAt?: number;
-  status: QueryStatus;
+  query: QueryObserverResult;
 
   timeFormat?: string;
 }
@@ -19,10 +19,12 @@ const UpdateStatusWrapper = styled.span`
 `;
 
 export const QueryTips: React.FC<UpdateStatusProps> = (props) => {
-  const { dataUpdatedAt, status, timeFormat = 'HH:mm:ss' } = props;
+  const { timeFormat = 'HH:mm:ss' } = props;
+  const { dataUpdatedAt, status } = props.query;
+
   const lastUpdated = useMemo(() => {
     if (!dataUpdatedAt) return null;
-    return dayjs(dataUpdatedAt).format(timeFormat);
+    return <Tooltip overlay={i18n.t(`last update at`)}>{dayjs(dataUpdatedAt).format(timeFormat)}</Tooltip>;
   }, [dataUpdatedAt, timeFormat]);
 
   const statusNode = useMemo(() => {

@@ -1,5 +1,5 @@
 import { ArrowDownOutlined, PlusOutlined } from '@ant-design/icons';
-import { AssetWithBalance, LiquidityInfo } from '@gliaswap/commons';
+import { AssetWithBalance, isCkbNativeAsset, LiquidityInfo } from '@gliaswap/commons';
 import { Typography } from 'antd';
 import { AssetBalanceList, AssetBaseQuotePrices, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
@@ -134,7 +134,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   function onAsset1Changed(val: string, form: FormikProps<InputFields>) {
     if (!val) return form.setValues({ amount1: '', amount2: '' });
-    if (!/^\d*(\.\d*)?$/.test(val)) return;
+    if (!/^\d*(\.\d*)?$/.test(val)) return form.setFieldValue('amount1', val.slice(0, -1));
 
     const [, balance2] = onUserInputReadyToAddLiquidity(val, 0);
     form.setValues({ amount1: val, amount2: balance2.withDecimal().toHumanize() });
@@ -142,17 +142,26 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   function onAsset2Changed(val: string, form: FormikProps<InputFields>) {
     if (!val) form.setValues({ amount1: '', amount2: '' });
-    if (!/\d+(\.\d*)?/.test(val)) return;
+    if (!/\d+(\.\d*)?/.test(val)) return form.setFieldValue('amount2', val.slice(0, -1));
 
     const [balance1] = onUserInputReadyToAddLiquidity(val, 1);
     form.setValues({ amount1: balance1.withDecimal().toHumanize(), amount2: val }, true);
+  }
+
+  function calcMaxAvailableBalance(assetWithBalance: AssetWithBalance): string {
+    return (
+      BalanceWithoutDecimal.fromAsset(assetWithBalance)
+        // minus 0.1 ckb as the transaction fee
+        .newValue((val) => (isCkbNativeAsset(assetWithBalance) ? val.minus(10 ** assetWithBalance.decimals) : val))
+        .withDecimal()
+        .toHumanize(assetWithBalance.decimals)
+    );
   }
 
   return (
     <AddLiquidityWrapper>
       <Formik<InputFields>
         initialValues={{ amount1: '', amount2: '' }}
-        validateOnChange={true}
         isInitialValid={false}
         initialTouched={{ amount1: true, amount2: true }}
         validate={validate}
@@ -171,16 +180,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <Form.Item name="amount1" label={i18n.t('Asset 1')}>
               <div className="label-max">
                 <HumanizeBalance
-                  onClick={() =>
-                    onAsset1Changed(
-                      BalanceWithoutDecimal.fromAsset(userAsset1)
-                        // minus 0.1 ckb as the transaction fee
-                        .newValue((val) => val.minus(10000000))
-                        .withDecimal()
-                        .toHumanize(userAsset1.decimals),
-                      form,
-                    )
-                  }
+                  onClick={() => onAsset1Changed(calcMaxAvailableBalance(userAsset1), form)}
                   asset={liquidityAsset1}
                   value={userAsset1?.balance ?? '0'}
                 />
@@ -191,6 +191,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
                 bordered={false}
                 name="amount1"
                 placeholder="0.0"
+                value={form.values.amount1}
                 onChange={(e) => onAsset1Changed(e.target.value, form)}
                 suffix={<AssetSymbol asset={liquidityAsset1} />}
               />
@@ -199,14 +200,8 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <Form.Item name="amount2" label={i18n.t('Asset 2')}>
               <div className="label-max">
                 <HumanizeBalance
-                  onClick={() =>
-                    onAsset2Changed(
-                      BalanceWithoutDecimal.fromAsset(userAsset2).withDecimal().toHumanize(userAsset2.decimals),
-                      form,
-                    )
-                  }
-                  asset={liquidityAsset1}
-                  value={userAsset2?.balance ?? '0'}
+                  onClick={() => onAsset2Changed(calcMaxAvailableBalance(userAsset2), form)}
+                  asset={userAsset2}
                 />
               </div>
               <Input
@@ -245,7 +240,12 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
               </div>
             </SpaceBetweenRow>
 
-            <SubmitButton block type="primary" disabled={!form.isValid || !form.values.amount1 || !form.values.amount2}>
+            <SubmitButton
+              style={{ marginTop: '32px' }}
+              block
+              type="primary"
+              disabled={!form.isValid || !form.values.amount1 || !form.values.amount2}
+            >
               {i18n.t('Add Liquidity')}
             </SubmitButton>
           </Form>

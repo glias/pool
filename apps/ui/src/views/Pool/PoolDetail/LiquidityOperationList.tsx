@@ -9,7 +9,6 @@ import dayjs from 'dayjs';
 import { exploreTypeHash } from 'envs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
-import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
@@ -87,13 +86,9 @@ const LiquidityOrderListWrapper = styled(Section)`
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const { api, currentUserLock } = useGliaswap();
   const poolId = props.poolId;
-  const [cancelingHashes, , , helper] = usePendingCancelOrders();
-  const query = useQuery<LiquidityRequestSummary[]>(
-    ['getLiquidityOperationSummaries', poolId, currentUserLock?.args, cancelingHashes],
-    async () => {
-      const operations = await api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId });
-      return operations.map((op) => (helper.containsTxHash(op.txHash) ? { ...op, status: 'canceling' } : op));
-    },
+  const query = useQuery(
+    ['getLiquidityOperationSummaries', poolId, currentUserLock?.args],
+    () => api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId }),
     { enabled: currentUserLock != null },
   );
 
@@ -119,7 +114,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <SpaceBetweenRow className="title">
         <div>
           {i18n.t('My Pending Request')}
-          <QueryTips {...query} />
+          <QueryTips query={query} />
         </div>
       </SpaceBetweenRow>
       <Divider style={{ margin: '4px 0 0' }} />
