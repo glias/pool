@@ -66,7 +66,7 @@
         }
     },
     {
-        "typeHash": "0x742774e54066350cb82d791b2ae88e397f1eb1810c7f746731588c44d567b789",
+        "typeHash": "0x71c0e6d4140695d734e92b099687a2277c1f5ee6dac6766c0de17653fe2c1813",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
@@ -84,7 +84,7 @@
         }
     },
     {
-        "typeHash": "0x71c0e6d4140695d734e92b099687a2277c1f5ee6dac6766c0de17653fe2c1813",
+        "typeHash": "0x742774e54066350cb82d791b2ae88e397f1eb1810c7f746731588c44d567b789",
         "typeScript": {
             "codeHash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
             "hashType": "type",
