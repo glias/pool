@@ -19,3 +19,6 @@ apps/server/lib
 
 # env
 apps/server/.env
+
+# history
+.history
