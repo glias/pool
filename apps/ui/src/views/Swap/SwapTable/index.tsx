@@ -10,7 +10,6 @@ import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
 import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowFromEthWithBalance } from '@gliaswap/commons';
-import { useGlobalConfig } from 'contexts/config';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
@@ -64,7 +63,6 @@ export const SwapTable: React.FC = () => {
     ckbEnoughMessage,
     form,
   } = useSwapContainer();
-  const { bridgeAPI } = useGlobalConfig();
   const {
     currentCkbAddress: ckbAddress,
     currentEthAddress: ethAddress,
@@ -72,6 +70,7 @@ export const SwapTable: React.FC = () => {
     realtimeAssets: assets,
     api,
     currentUserLock,
+    bridgeAPI,
   } = useGliaswap();
   const [setting] = useGlobalSetting();
   const { shadowEthAssets } = useGliaswapAssets();

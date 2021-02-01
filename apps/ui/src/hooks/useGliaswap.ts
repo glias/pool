@@ -19,6 +19,7 @@ import { ConnectStatus, useWalletAdapter, Web3ModalAdapter } from 'commons/Walle
 import { AdapterContextState } from 'commons/WalletAdapter/Provider';
 import { RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import { useMemo } from 'react';
+import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 interface GliaswapState {
   /**
@@ -41,11 +42,13 @@ interface GliaswapState {
   currentCkbAddress: string;
 
   currentEthAddress: string;
+
+  bridgeAPI: BridgeAPI;
 }
 
 export function useGliaswap(): GliaswapState {
   const adapter = useWalletAdapter<Web3ModalAdapter>();
-  const { assets, api } = useGliaswapContext();
+  const { assets, api, bridgeAPI } = useGliaswapContext();
 
   const currentUserLock = useMemo(() => {
     if (adapter.status === 'connected') return adapter.signer.address.toLockScript();
@@ -70,6 +73,7 @@ export function useGliaswap(): GliaswapState {
     currentUserLock,
     currentCkbAddress,
     currentEthAddress,
+    bridgeAPI,
   };
 }
 

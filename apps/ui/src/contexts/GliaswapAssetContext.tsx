@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { createAssetWithBalance } from 'suite';
+import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 export type RealtimeInfo<T> = {
   // unix timestamp milliseconds
@@ -17,6 +18,7 @@ type RealtimeAssetsWithBalance = RealtimeInfo<GliaswapAssetWithBalance[]>;
 interface AssetManagerState {
   assets: RealtimeAssetsWithBalance;
   api: GliaswapAPI;
+  bridgeAPI: BridgeAPI;
 }
 
 const AssetManagerContext = createContext<AssetManagerState | null>(null);
@@ -24,10 +26,11 @@ const AssetManagerContext = createContext<AssetManagerState | null>(null);
 type ProviderProps = React.PropsWithChildren<{
   assetList: Asset[];
   api: GliaswapAPI;
+  bridgeAPI: BridgeAPI;
 }>;
 
 export const Provider: React.FC<ProviderProps> = (props) => {
-  const { children, assetList, api } = props;
+  const { children, assetList, api, bridgeAPI } = props;
   const [assetsWithBalance, setAssetsWithBalance] = useState<RealtimeAssetsWithBalance>({
     lastUpdated: 0,
     value: assetList.map((asset) => ({ ...asset, balance: '0' } as GliaswapAssetWithBalance)),
@@ -86,7 +89,9 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   }, [status, assetList, setBalance, data]);
 
   return (
-    <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api }}>{children}</AssetManagerContext.Provider>
+    <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api, bridgeAPI }}>
+      {children}
+    </AssetManagerContext.Provider>
   );
 };
 

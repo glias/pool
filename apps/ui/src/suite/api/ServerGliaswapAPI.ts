@@ -49,6 +49,16 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   web3: Web3 | undefined;
 
+  private static instance: ServerGliaswapAPI;
+
+  public static getInstance() {
+    if (ServerGliaswapAPI.instance == null) {
+      ServerGliaswapAPI.instance = new ServerGliaswapAPI();
+    }
+
+    return ServerGliaswapAPI.instance;
+  }
+
   constructor(/*private ethFetcher: EthAssetFetcher, serverUrl?: string*/) {
     this.axios = Axios.create({ baseURL: `${process.env.REACT_APP_SERVER_URL}/v1` });
   }

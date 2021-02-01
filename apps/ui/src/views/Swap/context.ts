@@ -10,11 +10,10 @@ import {
   SwapOrder,
 } from '@gliaswap/commons';
 import PWCore, { Transaction } from '@lay2/pw-core';
-import { useGliaswap, useGliaswapAssets } from 'contexts';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
-import { useGlobalConfig } from 'contexts/config';
 import { crossChainOrdersCache } from 'cache/index';
 import BigNumber from 'bignumber.js';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
@@ -49,7 +48,7 @@ const useSwap = () => {
   const [tokenB, setTokenB] = useState<GliaswapAssetWithBalance>(Object.create(null) as GliaswapAssetWithBalance);
   const [pay, setPay] = useState('');
   const [receive, setReceive] = useState('');
-  const { currentEthAddress: ethAddress, adapter, currentCkbAddress, realtimeAssets } = useGliaswap();
+  const { currentEthAddress: ethAddress, adapter, currentCkbAddress, realtimeAssets, bridgeAPI } = useGliaswap();
   const [crossChainOrders, setCrossChainOrders] = useState<Array<SwapOrder>>(
     crossChainOrdersCache.get(currentCkbAddress),
   );
@@ -62,7 +61,6 @@ const useSwap = () => {
     }
   }, [adapter.status, currentCkbAddress]);
 
-  const { bridgeAPI } = useGlobalConfig();
   const { web3 } = adapter.raw;
   const swapMode = useMemo(() => {
     if (!tokenA || !tokenB) {
