@@ -58,7 +58,7 @@ export class DexLiquidityPoolService {
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
     return liquidityOrders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED)
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
