@@ -20,6 +20,10 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
 
   constructor(private txs: TransactionWithStatus[], private inputTxs?: TransactionWithStatus[]) {}
   matchTransactions(queryOptions: QueryOptions): TransactionWithStatus[] {
+    if (!this.txs) {
+      return [];
+    }
+
     if (!this.inputTxs) {
       throw new Error('inputTxs not undefined');
     }
