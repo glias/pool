@@ -29,7 +29,7 @@ export const LIQUIDITY_ORDER_LOCK_CODE_HASH =
   process.env.LIQUIDITY_ORDER_LOCK_CODE_HASH || '0x4c454e1e1d7361d0f0339eba7f8cb88842c547f5a414d0da76c9d5da2ab2ffe2';
 export const LIQUIDITY_ORDER_LOCK_HASH_TYPE = process.env.LIQUIDITY_ORDER_LOCK_HASH_TYPE || 'data';
 export const SWAP_ORDER_LOCK_CODE_HASH =
-  process.env.SWAP_ORDER_LOCK_CODE_HASH || '0x65aff39b362950feb6172cf787158f02c969ca5fb289024d191f530c9aa379da';
+  process.env.SWAP_ORDER_LOCK_CODE_HASH || '0x54a0fc9709b02c18eb4046727ca12fc84bef915171e9aa3284fc2d066dc7c9ea';
 export const SWAP_ORDER_LOCK_HASH_TYPE = process.env.SWAP_ORDER_LOCK_HASH_TYPE || 'data';
 
 // INFO CELL
@@ -38,7 +38,7 @@ export const INFO_LOCK_CODE_HASH =
 export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
 
 export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0xb22fd3b0dffa66fa131bba847f934bfd41d3512a6da829ead431d174ec33e1ee';
+  process.env.INFO_TYPE_CODE_HASH || '0x9e376a7d065d3bbdbea6a42592777f86b4e0375a44c036a024a04a31d5eb2ed5';
 export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
 
 export const SUDT_TYPE_CODE_HASH =
@@ -97,7 +97,7 @@ export const LIQUIDITY_ORDER_LOCK_DEP = {
 export const SWAP_ORDER_LOCK_DEP = {
   outPoint: {
     txHash:
-      process.env.SWAP_ORDER_LOCK_DEP_TX_HASH || '0xe5b9ce9a6fb4fba9c58e137924ba6e7d5fbf54bbea9a47c17031fd71bdc7061f',
+      process.env.SWAP_ORDER_LOCK_DEP_TX_HASH || '0x0fd664cfb9873de748eff0a9a5757b8d38485b4607ac11895a6eb74d27e5e80d',
     index: '0x0',
   },
   depType: 'code',
@@ -105,7 +105,7 @@ export const SWAP_ORDER_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH || ' 0x49a832732a2268468c3d70ed067188eb75007d1d434952d53d5b641024d84257',
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x72c5ca9e080c2416513121c4667e5e76e45965cbc8252f853b7093c6d0d12642',
     index: '0x0',
   },
   depType: 'code',
@@ -143,7 +143,7 @@ LOCK_DEPS[SECP256K1_LOCK_CODE_HASH] = [SECP256K1_LOCK_DEP];
 export const forceBridgeServerUrl = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://121.196.29.165:3003';
 
 export const TX_VERSION = '0x0';
-export const FEE_RATE = 1100;
+export const FEE_RATE = 1200;
 
 export const PW_WITNESS_ARGS = {
   Secp256k1: {
