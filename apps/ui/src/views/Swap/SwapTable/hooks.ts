@@ -14,8 +14,9 @@ import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
-import { SwapMode, usePoolInfo, useSwapContainer } from '../context';
+import { SwapMode, useSwapContainer } from '../context';
 import { calcBalance, calcPrice, calcPriceImpact } from './fee';
+import { useLiquidityPoolInfo } from 'hooks/useLiquidityPool';
 
 export type CurrentPoolInfo = [CkbAssetWithBalance, CkbSudtAssetWithBalance] | [];
 
@@ -35,7 +36,7 @@ export const useSwapTable = ({
   const [isPayInvalid, setIsPayInvalid] = useState(true);
   const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
   const { currentUserLock } = useGliaswap();
-  const { poolInfo } = usePoolInfo();
+  const { poolInfo } = useLiquidityPoolInfo({ refetchInterval: 5e3 });
 
   const disabled = useMemo(() => {
     if (currentUserLock == null) {
