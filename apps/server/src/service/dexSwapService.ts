@@ -44,12 +44,12 @@ export class DexSwapService {
     };
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
     const factory = new DexOrderChainFactory(OrderType.SWAP);
-    const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
-    ckbOrders.forEach((x) => orders.push(x));
+    // const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
+    // ckbOrders.forEach((x) => orders.push(x));
 
     return orders
       .filter((x) => {
-        if (SwapOrderType.CrossChainOrder === x.getType() && OrderType.SWAP === x.getType()) {
+        if (SwapOrderType.CrossChainOrder === x.getType() && SwapOrderType.Order === x.getType()) {
           if (x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING) {
             return true;
           }
