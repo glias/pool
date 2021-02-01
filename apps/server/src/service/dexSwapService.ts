@@ -3,9 +3,10 @@ import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionW
 import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
-import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
+import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
+import { SwapOrderType } from '../model/orders/dexSwapOrderChain';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -32,8 +33,8 @@ export class DexSwapService {
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
     const orders: DexOrderChain[] = [];
-    // const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
-    // crossOrders.forEach((x) => orders.push(x));
+    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    crossOrders.forEach((x) => orders.push(x));
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -42,12 +43,25 @@ export class DexSwapService {
       order: 'desc',
     };
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
-    const factory = new DexOrderChainFactory(true);
+    const factory = new DexOrderChainFactory(OrderType.SWAP);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     ckbOrders.forEach((x) => orders.push(x));
 
     return orders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .filter((x) => {
+        if (SwapOrderType.CrossChainOrder === x.getType() && OrderType.SWAP === x.getType()) {
+          if (x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING) {
+            return true;
+          }
+          return false;
+        }
+
+        if (SwapOrderType.CrossChain === x.getType() && x.getStatus() !== ORDER_STATUS.CANCELING) {
+          return true;
+        }
+
+        return false;
+      })
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
@@ -81,7 +95,8 @@ export class DexSwapService {
     }
 
     const orders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(true);
+    const factory = new DexOrderChainFactory(OrderType.CROSS_CHAIN);
+
     txs.forEach((x) => {
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);
       if (pureCrossOrders[0]) {

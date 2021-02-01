@@ -1,32 +1,46 @@
-import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus } from '..';
+import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus, CellOutput } from '..';
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
 import * as lumos from '@ckb-lumos/base';
+
 interface OrderMatcher {
-  match(argsData: string): boolean;
+  match(cell: CellOutput): boolean;
 }
 
 class SwapOrderMatcher implements OrderMatcher {
   // swap order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | sudtMin (u128, 16 bytes, 33..49) | ckbMin (u64, 8 bytes, 49..57) | info_type_hash_32 (32 bytes, 57..89) | tips (8 bytes, 89..97) | tips_sudt (16 bytes, 97..113)
   // argsLen = 228
-  match(argsData: string): boolean {
-    if (argsData.length === 212) {
+  match(cell: CellOutput): boolean {
+    if (cell.lock.args.length === 212) {
       return true;
     }
     return false;
+  }
+}
+
+class BridgeMatcher implements OrderMatcher {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  match(cell: CellOutput): boolean {
+    return true;
   }
 }
 
 class LiquidityOrderMatcher implements OrderMatcher {
   // liquidity order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | amountOutMin (u128, 16 bytes, 33..49) | sudt_type_hash (32 bytes, 49..81) | tips (8 bytes, 81..89) | tips_sudt (16 bytes, 89..105)
   // argsLen = 228
-  match(argsData: string): boolean {
-    if (argsData.length === 228) {
+  match(cell: CellOutput): boolean {
+    if (cell.lock.args.length === 228) {
       return true;
     }
     return false;
   }
+}
+
+export enum OrderType {
+  CROSS_CHAIN = 'crossChain',
+  SWAP = 'swap',
+  LIQUIDITY = 'liquidity',
 }
 
 export class DexOrderChainFactory {
@@ -36,9 +50,12 @@ export class DexOrderChainFactory {
   private readonly isSwapOrder: boolean;
   private orderMatcher: SwapOrderMatcher;
 
-  constructor(isSwapOrder: boolean) {
-    this.isSwapOrder = isSwapOrder;
+  constructor(orderType: string) {
+    this.isSwapOrder = orderType === OrderType.LIQUIDITY ? false : true;
     this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
+    if (orderType === OrderType.CROSS_CHAIN) {
+      this.orderMatcher = new BridgeMatcher();
+    }
     this.markTheCellThatHasBeenTracked = new Set();
   }
 
@@ -126,7 +143,7 @@ export class DexOrderChainFactory {
       });
 
       x.transaction.outputs.forEach((output, index) => {
-        if (!this.orderMatcher.match(output.lock.args)) {
+        if (!this.orderMatcher.match(output)) {
           return;
         }
 
