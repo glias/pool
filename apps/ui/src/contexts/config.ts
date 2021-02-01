@@ -6,8 +6,8 @@ import { BridgeAPI } from 'suite/api/bridgeAPI';
 import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
 
 export function useGlobalConfig() {
-  const api: GliaswapAPI = useConstant(() => new ServerGliaswapAPI());
-  const bridgeAPI = useConstant(() => new BridgeAPI());
+  const api: GliaswapAPI = useConstant(() => ServerGliaswapAPI.getInstance());
+  const bridgeAPI = useConstant(() => BridgeAPI.getInstance());
 
   const adapter = useConstant(
     () =>

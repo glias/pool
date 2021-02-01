@@ -6,7 +6,6 @@ import Web3 from 'web3';
 import axios from 'axios';
 import { RPC as ToolKitRpc } from 'ckb-js-toolkit';
 import { Builder, Cell, CellDep, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
-import type RPC from '@nervosnetwork/ckb-sdk-rpc';
 import { APPROVE_ABI, BRIDGE_SETTINGS } from './abi';
 
 const toHexString = (str: string | number) => {
@@ -19,9 +18,18 @@ export const toolkitRPC = new ToolKitRpc(CKB_NODE_URL);
 
 export class BridgeAPI {
   public bridgeSettings = BRIDGE_SETTINGS;
+  private static instance: BridgeAPI;
 
   constructor() {
     this.init();
+  }
+
+  public static getInstance() {
+    if (BridgeAPI.instance == null) {
+      BridgeAPI.instance = new BridgeAPI();
+    }
+
+    return BridgeAPI.instance;
   }
 
   async init() {

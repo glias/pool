@@ -25,7 +25,7 @@ import { message } from 'antd';
 import { useGlobalConfig } from './config';
 
 export const GliaswapProvider: React.FC = (props) => {
-  const { api, adapter } = useGlobalConfig();
+  const { api, adapter, bridgeAPI } = useGlobalConfig();
   const [assetList, setAssetList] = useState<Asset[]>([]);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export const GliaswapProvider: React.FC = (props) => {
     <QueryClientProvider client={queryClient}>
       <AdapterProvider adapter={adapter}>
         {assetList.length > 0 ? (
-          <AssetProvider api={api} assetList={assetList}>
+          <AssetProvider api={api} assetList={assetList} bridgeAPI={bridgeAPI}>
             {props.children}
           </AssetProvider>
         ) : null}
