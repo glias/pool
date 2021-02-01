@@ -49,7 +49,7 @@ export class DexSwapService {
 
     return orders
       .filter((x) => {
-        if (SwapOrderType.CrossChainOrder === x.getType() && OrderType.SWAP === x.getType()) {
+        if (SwapOrderType.CrossChainOrder === x.getType() && SwapOrderType.Order === x.getType()) {
           if (x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING) {
             return true;
           }
