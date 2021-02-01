@@ -233,6 +233,14 @@ export const SwapTable: React.FC = () => {
   const checkPay = useCallback(
     (_: unknown, value: string) => {
       const val = new BigNumber(value);
+      const valWithDecimal = val.times(10 ** tokenA.decimals);
+
+      if (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) {
+        if (valWithDecimal.isGreaterThan(payReserve)) {
+          setIsPayInvalid(true);
+          return Promise.reject(i18n.t('validation.liquid'));
+        }
+      }
 
       if (val.isLessThanOrEqualTo(0)) {
         setIsPayInvalid(true);
@@ -258,12 +266,20 @@ export const SwapTable: React.FC = () => {
 
       return Promise.resolve();
     },
-    [tokenA.decimals, payMax, setIsPayInvalid],
+    [tokenA.decimals, payMax, setIsPayInvalid, payReserve, swapMode],
   );
 
   const checkReceive = useCallback(
     (_: unknown, value: string) => {
       const val = new BigNumber(value);
+      const valWithDecimal = val.times(10 ** tokenB.decimals);
+
+      if (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) {
+        if (valWithDecimal.isGreaterThan(receiveReserve)) {
+          setIsReceiveInvalid(true);
+          return Promise.reject(i18n.t('validation.liquid'));
+        }
+      }
 
       if (val.isLessThanOrEqualTo(0)) {
         setIsReceiveInvalid(true);
@@ -278,13 +294,6 @@ export const SwapTable: React.FC = () => {
       if (!val.decimalPlaces(tokenB.decimals).isEqualTo(val)) {
         setIsReceiveInvalid(true);
         return Promise.reject(i18n.t('validation.decimal', { decimal: tokenB.decimals }));
-      }
-
-      if (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) {
-        const realVal = val.times(10 ** tokenB.decimals);
-        if (realVal.isGreaterThan(receiveReserve)) {
-          return Promise.reject(i18n.t('validation.liquid'));
-        }
       }
 
       setIsReceiveInvalid(false);

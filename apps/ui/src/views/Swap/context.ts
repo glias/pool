@@ -8,6 +8,7 @@ import {
   isEthNativeAsset,
   isShadowEthAsset,
   SwapOrder,
+  PoolInfo,
 } from '@gliaswap/commons';
 import PWCore, { Transaction } from '@lay2/pw-core';
 import { useGliaswap, useGliaswapAssets } from 'contexts';
@@ -20,6 +21,7 @@ import BigNumber from 'bignumber.js';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import i18n from 'i18n';
 import { Form } from 'antd';
+import { useQuery } from 'react-query';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -311,3 +313,41 @@ export const SwapContainer = createContainer(useSwap);
 export const SwapProvider = SwapContainer.Provider;
 
 export const useSwapContainer = SwapContainer.useContainer;
+
+export interface PoolInfoWithTimestamp {
+  lastUpdated: string;
+  value: PoolInfo[];
+}
+
+export function usePoolInfo() {
+  const [poolInfo, setPoolInfo] = useState<PoolInfoWithTimestamp>({ lastUpdated: `${Date.now()}`, value: [] });
+  const [isLoadingPoolInfo, setIsLoadingPollInfo] = useState(false);
+  const { api } = useGliaswap();
+
+  const { data, status } = useQuery(['getLiquidityPools', api], () => api.getLiquidityPools(), {
+    refetchInterval: 5e3,
+  });
+
+  useEffect(() => {
+    if (status === 'loading') {
+      setIsLoadingPollInfo(true);
+    }
+    if (data) {
+      setPoolInfo({
+        lastUpdated: `${Date.now()}`,
+        value: data,
+      });
+    }
+  }, [data, status]);
+
+  return {
+    poolInfo,
+    isLoadingPoolInfo,
+  };
+}
+
+export const PoolInfoContainer = createContainer(usePoolInfo);
+
+export const PoolInfoProvider = PoolInfoContainer.Provider;
+
+export const usePoolInfoContainer = PoolInfoContainer.useContainer;
