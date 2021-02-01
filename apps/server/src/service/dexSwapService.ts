@@ -6,6 +6,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
+import { SwapOrderType } from '../model/orders/dexSwapOrderChain';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -47,7 +48,20 @@ export class DexSwapService {
     ckbOrders.forEach((x) => orders.push(x));
 
     return orders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .filter((x) => {
+        if (SwapOrderType.CrossChainOrder === x.getType() && OrderType.SWAP === x.getType()) {
+          if (x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING) {
+            return true;
+          }
+          return false;
+        }
+
+        if (SwapOrderType.CrossChain === x.getType() && x.getStatus() !== ORDER_STATUS.CANCELING) {
+          return true;
+        }
+
+        return false;
+      })
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
