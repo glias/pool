@@ -1,4 +1,6 @@
 import {
+  CkbAssetWithBalance,
+  CkbSudtAssetWithBalance,
   EthErc20AssetWithBalance,
   GliaswapAssetWithBalance,
   isCkbNativeAsset,
@@ -8,13 +10,15 @@ import {
   ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
 import { FormInstance } from 'antd/lib/form';
-import BigNumber from 'bignumber.js';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
-import { useSwapContainer } from '../context';
+import { SwapMode, useSwapContainer } from '../context';
 import { calcBalance, calcPrice, calcPriceImpact } from './fee';
+import { useLiquidityPoolInfo } from 'hooks/useLiquidityPool';
+
+export type CurrentPoolInfo = [CkbAssetWithBalance, CkbSudtAssetWithBalance] | [];
 
 export const useSwapTable = ({
   form,
@@ -27,11 +31,12 @@ export const useSwapTable = ({
   tokenA: GliaswapAssetWithBalance;
   tokenB: GliaswapAssetWithBalance;
 }) => {
-  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive, isBid } = useSwapContainer();
-  const { ckbNativeAsset, ethNativeAsset } = useGliaswapAssets();
+  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive, isBid, swapMode } = useSwapContainer();
+  const { ckbNativeAsset, ethNativeAsset, shadowEthAssets } = useGliaswapAssets();
   const [isPayInvalid, setIsPayInvalid] = useState(true);
   const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
   const { currentUserLock } = useGliaswap();
+  const { poolInfo } = useLiquidityPoolInfo({ refetchInterval: 5e3 });
 
   const disabled = useMemo(() => {
     if (currentUserLock == null) {
@@ -40,13 +45,49 @@ export const useSwapTable = ({
     return isPayInvalid || isReceiveInvalid;
   }, [isPayInvalid, isReceiveInvalid, currentUserLock]);
 
+  const currentSudt = useMemo(() => {
+    switch (swapMode) {
+      case SwapMode.CrossChainOrder: {
+        if (isEthAsset(tokenA)) {
+          const sudt = shadowEthAssets.find((s) => s.shadowFrom.address === tokenA.address);
+          return sudt;
+        }
+        return undefined;
+      }
+      case SwapMode.NormalOrder: {
+        if (isCkbNativeAsset(tokenA)) {
+          return tokenB as CkbAssetWithBalance;
+        }
+        return tokenA as CkbAssetWithBalance;
+      }
+      case SwapMode.CrossIn:
+      case SwapMode.CrossOut:
+        return undefined;
+      default:
+        return undefined;
+    }
+  }, [tokenA, tokenB, swapMode, shadowEthAssets]);
+
+  const currentPoolInfo = useMemo(() => {
+    return (poolInfo.value.find((p) => p?.assets?.[1]?.typeHash === currentSudt?.typeHash)?.assets ??
+      []) as CurrentPoolInfo;
+  }, [currentSudt, poolInfo]);
+
   const payReserve = useMemo(() => {
-    return new BigNumber(10).pow(18).times(1).toString();
-  }, []);
+    const [ckb, sudt] = currentPoolInfo;
+    if (isBid) {
+      return ckb?.balance ?? '0';
+    }
+    return sudt?.balance ?? '0';
+  }, [isBid, currentPoolInfo]);
 
   const receiveReserve = useMemo(() => {
-    return new BigNumber(10).pow(8).times(10000).toString();
-  }, []);
+    const [ckb, sudt] = currentPoolInfo;
+    if (isBid) {
+      return sudt?.balance ?? '0';
+    }
+    return ckb?.balance ?? '0';
+  }, [isBid, currentPoolInfo]);
 
   useEffect(() => {
     setTokenA((t) => calcBalance(pay, t));
