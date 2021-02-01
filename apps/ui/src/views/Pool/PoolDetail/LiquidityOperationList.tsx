@@ -88,16 +88,16 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const { api, currentUserLock } = useGliaswap();
   const poolId = props.poolId;
   const [cancelingHashes, , , helper] = usePendingCancelOrders();
-  const query = useQuery<LiquidityRequestSummary[]>(
+  const query = useQuery(
     ['getLiquidityOperationSummaries', poolId, currentUserLock?.args, cancelingHashes],
-    async () => {
-      const operations = await api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId });
-      return operations.map((op) => (helper.containsTxHash(op.txHash) ? { ...op, status: 'canceling' } : op));
-    },
+    () => api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId }),
     { enabled: currentUserLock != null },
   );
 
-  const { data: summaries } = query;
+  const { data } = query;
+  const summaries = data?.map<LiquidityRequestSummary>((op) =>
+    helper.containsTxHash(op.txHash) ? { ...op, status: 'canceling' } : op,
+  );
 
   const { cancelLiquidityOperation } = useCancelLiquidityOperation();
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityRequestSummary | null>(null);
@@ -119,7 +119,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <SpaceBetweenRow className="title">
         <div>
           {i18n.t('My Pending Request')}
-          <QueryTips {...query} />
+          <QueryTips query={query} />
         </div>
       </SpaceBetweenRow>
       <Divider style={{ margin: '4px 0 0' }} />

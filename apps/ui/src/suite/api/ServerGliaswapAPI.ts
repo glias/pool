@@ -40,7 +40,8 @@ import Axios, { AxiosInstance } from 'axios';
 import { createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
-import * as ServerTypes from './types';
+import * as ServerTypes from 'suite/api/server-patch';
+import { merge } from 'lodash';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -177,8 +178,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
     if (!res.data) return;
     // TODO DONT create asset here, use the server response
-    if (!res.data.lpToken)
-      res.data.lpToken = createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total);
+    res.data.lpToken = merge(
+      createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total),
+      res.data.lpToken,
+    );
     return res.data;
   }
 
