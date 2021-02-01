@@ -9,7 +9,6 @@ import dayjs from 'dayjs';
 import { exploreTypeHash } from 'envs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
-import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
@@ -87,17 +86,13 @@ const LiquidityOrderListWrapper = styled(Section)`
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const { api, currentUserLock } = useGliaswap();
   const poolId = props.poolId;
-  const [cancelingHashes, , , helper] = usePendingCancelOrders();
   const query = useQuery(
-    ['getLiquidityOperationSummaries', poolId, currentUserLock?.args, cancelingHashes],
+    ['getLiquidityOperationSummaries', poolId, currentUserLock?.args],
     () => api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId }),
     { enabled: currentUserLock != null },
   );
 
-  const { data } = query;
-  const summaries = data?.map<LiquidityRequestSummary>((op) =>
-    helper.containsTxHash(op.txHash) ? { ...op, status: 'canceling' } : op,
-  );
+  const { data: summaries } = query;
 
   const { cancelLiquidityOperation } = useCancelLiquidityOperation();
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityRequestSummary | null>(null);
