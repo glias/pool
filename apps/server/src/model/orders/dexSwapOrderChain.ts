@@ -170,8 +170,4 @@ export class DexSwapOrderChain extends DexOrderChain {
 
     return result;
   }
-
-  get isOrder(): boolean {
-    return this._isOrder;
-  }
 }
