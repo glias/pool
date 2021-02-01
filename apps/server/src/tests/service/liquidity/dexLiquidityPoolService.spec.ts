@@ -3,16 +3,15 @@ import { DexLiquidityPoolService } from '../../../service/dexLiquidityPoolServic
 import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, POOL_INFO_TYPE_SCRIPT } from '../../../config';
 import { mockGliaPoolInfo } from './mockData';
 
-const mockRepository = MockRepositoryFactory.getDexRepositoryInstance();
-const service = new DexLiquidityPoolService(mockRepository);
-
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 sinonStubPromise(sinon);
 
 describe('/v1/liquidity-pool', () => {
+  const mockRepository = MockRepositoryFactory.getDexRepositoryInstance();
+  const service = new DexLiquidityPoolService(mockRepository);
   const mock = mockRepository.mockCollectCells();
-  beforeEach(async () => {
+  beforeEach(() => {
     const lock = {
       script: {
         code_hash: INFO_LOCK_CODE_HASH,
@@ -36,7 +35,7 @@ describe('/v1/liquidity-pool', () => {
       .resolves([mockGliaPoolInfo]);
   });
 
-  afterEach(async function () {
+  afterEach(function () {
     mock.restore();
   });
 
@@ -52,6 +51,8 @@ describe('/v1/liquidity-pool', () => {
 });
 
 describe('/v1/liquidity-pool/pool-id', () => {
+  const mockRepository = MockRepositoryFactory.getDexRepositoryInstance();
+  const service = new DexLiquidityPoolService(mockRepository);
   const mock = mockRepository.mockCollectCells();
   beforeEach(async () => {
     const lock = {
