@@ -84,7 +84,7 @@ export const SwapList: React.FC = () => {
       <Title>{i18n.t('swap.order-list.title')}</Title>
       <ListContainer>
         <List
-          pagination={{ position: 'bottom' }}
+          pagination={{ position: 'bottom', size: 'small' }}
           bordered={false}
           dataSource={matchedOrders}
           loading={status === 'loading'}

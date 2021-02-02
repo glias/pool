@@ -125,7 +125,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <Divider style={{ margin: '4px 0 0' }} />
 
       <List
-        pagination={{ position: 'bottom' }}
+        pagination={{ position: 'bottom', size: 'small' }}
         bordered={false}
         dataSource={summaries}
         renderItem={(summary) => (
