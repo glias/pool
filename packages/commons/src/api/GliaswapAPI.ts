@@ -119,7 +119,6 @@ export interface GliaswapAPI {
     lock: Script,
   ) => Promise<{ tx: Transaction }>;
 
-  // TODO generate transaction and the other data API
   generateCreateLiquidityPoolTransaction: (
     payload: GenerateCreateLiquidityPoolTransactionPayload,
   ) => Promise<GenerateCreateLiquidityPoolTransactionResponse>;

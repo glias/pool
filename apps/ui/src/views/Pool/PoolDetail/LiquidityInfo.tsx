@@ -24,14 +24,7 @@ export const UserLiquidityInfo: React.FC = () => {
     <>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Your LP Token')}</div>
-        <div>
-          {userLiquidity?.lpToken ? (
-            <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
-          ) : (
-            '-'
-          )}
-          <HumanizeBalance asset={userLiquidity.lpToken} value={userLiquidity.lpToken.balance} />
-        </div>
+        <div>{userLiquidity.lpToken ? <HumanizeBalance asset={userLiquidity.lpToken} /> : '-'}</div>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool Share')}</div>

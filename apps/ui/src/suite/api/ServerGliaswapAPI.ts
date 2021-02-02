@@ -36,12 +36,11 @@ import {
 import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import Axios, { AxiosInstance } from 'axios';
-// import { DummyGliaswapAPI } from 'suite/api/DummyGliaswapAPI';
+import { merge } from 'lodash';
+import * as ServerTypes from 'suite/api/server-patch';
 import { createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
-import * as ServerTypes from 'suite/api/server-patch';
-import { merge } from 'lodash';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -62,10 +61,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   constructor(/*private ethFetcher: EthAssetFetcher, serverUrl?: string*/) {
     this.axios = Axios.create({ baseURL: `${process.env.REACT_APP_SERVER_URL}/v1` });
-  }
-
-  setWeb3(web3: Web3) {
-    this.web3 = web3;
   }
 
   async getAssetList(): Promise<Asset[]> {
@@ -98,11 +93,12 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   async generateRemoveLiquidityTransaction(
     payload: GenerateRemoveLiquidityTransactionPayload,
   ): Promise<SerializedTransactionToSignWithFee> {
-    const res = await this.axios.post<SerializedTransactionToSignWithFee>(
-      '/liquidity-pool/orders/remove-liquidity',
-      payload,
-    );
-    return res.data;
+    const res = await this.axios.post('/liquidity-pool/orders/remove-liquidity', payload);
+
+    return {
+      fee: res.data.fee,
+      transactionToSign: res.data.tx,
+    };
   }
 
   async getAssetsWithBalance(
@@ -169,7 +165,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return [];
   }
 
-  // TODO uncomment me when server api is fixed
   async getLiquidityInfo(filter: LiquidityInfoFilter): Promise<Maybe<LiquidityInfo>> {
     const res = await this.axios.post('/liquidity-pool/pool-id', {
       poolId: filter.poolId,
@@ -190,7 +185,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  // TODO uncomment me when server api is fixed
   async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityRequestSummary[]> {
     const res = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
     return ServerTypes.transformLiquidityOperationInfo(res.data);
@@ -248,12 +242,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return {
       tx,
     };
-  }
-
-  generateCancelRequestTransaction(
-    _payload: GenerateCancelRequestTransactionPayload,
-  ): Promise<SerializedTransactionToSignWithFee> {
-    return Promise.resolve({} as any);
   }
 
   generateCreateLiquidityPoolTransaction(

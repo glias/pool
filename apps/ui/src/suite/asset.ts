@@ -44,21 +44,10 @@ export function createAssetWithBalance<T extends ChainSpec>(
     name: 'unknown',
     symbol: 'unknown',
     decimals: 0,
+    logoURI: '',
     ...asset,
     balance: BN(balance).decimalPlaces(0, BigNumber.ROUND_FLOOR).toString(),
   } as T & AssetWithBalance;
 }
 
-export function inputToAssetBalance(input: string, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
-  return BN(input)
-    .times(10 ** asset.decimals)
-    .decimalPlaces(decimalPlaces, BigNumber.ROUND_FLOOR);
-}
-
-export function assetBalanceToInput(balance: BigNumber.Value, asset: Asset, decimalPlaces = asset.decimals): BigNumber {
-  return BN(balance)
-    .times(10 ** -asset.decimals)
-    .decimalPlaces(decimalPlaces, BigNumber.ROUND_DOWN);
-}
-
-export { BalanceWithoutDecimal, BalanceWithDecimal } from './helper/AssetBalance';
+export { Amount } from './AssetBalance';

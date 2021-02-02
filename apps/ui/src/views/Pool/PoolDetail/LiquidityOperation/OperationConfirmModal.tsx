@@ -1,4 +1,5 @@
-import { Button, Modal } from 'antd';
+import { Button } from 'antd';
+import { ModalContainer } from 'components/ModalContainer';
 import i18n from 'i18n';
 import React, { useState } from 'react';
 import styled from 'styled-components';
@@ -39,7 +40,7 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
   }
 
   return (
-    <Modal onCancel={onCancel} width={360} title={i18n.t('Review')} visible={visible} footer={false}>
+    <ModalContainer onCancel={onCancel} width={360} title={i18n.t('Review')} visible={visible} footer={false}>
       <LiquidityOperationConfirmWrapper className={className}>
         <div className="label">{i18n.t('Operation')}</div>
         <div>{operation}</div>
@@ -48,6 +49,6 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
           {confirm ?? i18n.t('Confirm')}
         </Button>
       </LiquidityOperationConfirmWrapper>
-    </Modal>
+    </ModalContainer>
   );
 };

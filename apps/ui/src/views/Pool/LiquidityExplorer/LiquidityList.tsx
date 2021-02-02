@@ -2,7 +2,7 @@ import { PoolInfo } from '@gliaswap/commons';
 import { Empty } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { Section, SpaceBetweenRow } from 'components/Layout';
-import i18n from 'i18next';
+import i18n from 'i18n';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
@@ -14,6 +14,7 @@ const LiquidityListWrapper = styled.div`
     line-height: 14px;
     text-align: center;
     color: #fff;
+    padding: 4px 24px;
   }
 
   .liquidity-item {
@@ -41,12 +42,10 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
 
   return (
     <LiquidityListWrapper>
-      <Section transparent>
-        <SpaceBetweenRow className="column-name">
-          <div>Asset</div>
-          <div>Liquidity</div>
-        </SpaceBetweenRow>
-      </Section>
+      <SpaceBetweenRow className="column-name">
+        <div>{i18n.t('Asset')}</div>
+        <div>{i18n.t('Liquidity')}</div>
+      </SpaceBetweenRow>
 
       {pools.length <= 0 ? (
         <Empty style={{ color: '#fff' }}>{i18n.t('No liquidity found. Go to Explore Pool to add liquidity')}</Empty>

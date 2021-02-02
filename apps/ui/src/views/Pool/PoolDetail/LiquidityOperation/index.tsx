@@ -22,7 +22,7 @@ export const LiquidityOperation: React.FC<LiquidityOperationProps> = (props) => 
 
   return (
     <LiquidityOperationWrapper>
-      <Tabs size="small">
+      <Tabs size="small" centered tabBarGutter={16}>
         <Tabs.TabPane key="add" tab={i18n.t('Add Liquidity')}>
           <AddLiquidity poolLiquidity={poolLiquidity} />
         </Tabs.TabPane>

@@ -1,11 +1,12 @@
-import { CkbAssetWithBalance, Maybe, SerializedTransactionToSignWithFee } from '@gliaswap/commons';
+import { CkbAssetWithBalance, Maybe, SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks/useGliaswap';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
 import update from 'immutability-helper';
 import { useEffect, useMemo, useState } from 'react';
-import { BalanceWithoutDecimal, BN, createAssetWithBalance } from 'suite';
+import { useQueryClient } from 'react-query';
+import { Amount, BN, createAssetWithBalance } from 'suite';
 
 function calcMinAmountWithSlippage(balance: string, slippage: number) {
   return BN(balance)
@@ -22,12 +23,14 @@ interface UseRemoveLiquidityState {
   readyToSendTransactionWithFee: Maybe<SerializedTransactionToSignWithFee>;
   readyToReceiveAssets: CkbAssetWithBalance[];
   readyToRemoveLpToken: CkbAssetWithBalance;
+  sendRemoveLiquidityTransaction: () => Promise<string>;
 }
 
 export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
   const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery(poolId);
-  const { api, currentUserLock } = useGliaswap();
+  const { api, currentUserLock, adapter } = useGliaswap();
   const [{ slippage }] = useGlobalSetting();
+  const queryClient = useQueryClient();
 
   const [readyToRemoveShare, setReadyToRemoveShare] = useState(0);
   const [readyToSendTransactionWithFee, setReadyToSendTransactionWithFee] = useState<
@@ -49,7 +52,7 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
 
     const readyToReceiveAssets = assets.map<CkbAssetWithBalance>((asset) =>
       update(asset, {
-        balance: () => BalanceWithoutDecimal.fromAsset(asset).value.times(readyToRemoveShare).toString(),
+        balance: () => Amount.fromAsset(asset).value.times(readyToRemoveShare).toString(),
       }),
     );
 
@@ -86,6 +89,15 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
     return tx;
   }
 
+  async function sendRemoveLiquidityTransaction(): Promise<string> {
+    if (!readyToSendTransactionWithFee) throw new Error('The remove liquidity transaction is not ready');
+    const txHash = await adapter.signer.sendTransaction(
+      TransactionHelper.deserializeTransactionToSign(readyToSendTransactionWithFee.transactionToSign),
+    );
+    await queryClient.refetchQueries('getLiquidityOperationSummaries');
+    return txHash;
+  }
+
   return {
     generateRemoveLiquidityTransaction,
     setReadyToRemoveShare,
@@ -93,5 +105,6 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
     readyToSendTransactionWithFee,
     readyToReceiveAssets,
     readyToRemoveLpToken,
+    sendRemoveLiquidityTransaction,
   };
 }

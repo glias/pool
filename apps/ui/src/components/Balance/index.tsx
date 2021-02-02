@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import React from 'react';
 import styled from 'styled-components';
+import { Amount } from 'suite';
 
 const BalanceWrapper = styled.span`
   .balance-integer {
@@ -20,7 +21,7 @@ const BalanceWrapper = styled.span`
 export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
   asset: { decimals: number; symbol: string; balance?: BigNumber.Value };
 
-  value?: BigNumber.Value;
+  value?: BigNumber.Value | Amount;
   /**
    * display the symbol of the asset after the balance
    */
@@ -34,7 +35,7 @@ export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
   const { asset, value = asset.balance || 0, showSuffix, maxToFormat, ...otherProps } = props;
 
-  const balanceNum = new BigNumber(value).div(10 ** asset.decimals);
+  const balanceNum = value instanceof Amount ? value.withDecimal() : Amount.from(value, asset.decimals).withDecimal();
 
   if (balanceNum.isNaN()) {
     return (
