@@ -8,6 +8,7 @@ import { AssetSelector } from 'components/AssetSelector';
 import { Asset } from '@gliaswap/commons';
 import { AssetListProps } from 'components/AssetSelector/AssetList';
 import { TokenSelectorProps } from 'components/AssetSelector/AssetSelector';
+import BigNumber from 'bignumber.js';
 
 const ItemContainer = styled(Form.Item)`
   margin-bottom: 16px;
@@ -142,7 +143,7 @@ export function InputNumber<T extends Asset, K extends Key>({
       {max ? (
         <MaxContainer>
           <button type="button" onClick={() => setMax?.(max)}>
-            {`${i18n.t('common.max')}: ${max}`}
+            {`${i18n.t('common.max')}: ${new BigNumber(max).toFixed(4, BigNumber.ROUND_DOWN)}`}
           </button>
         </MaxContainer>
       ) : null}
