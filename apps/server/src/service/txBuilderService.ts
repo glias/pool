@@ -335,7 +335,7 @@ export class TxBuilderService {
       ckbDesired.getBalance() +
       constants.LIQUIDITY_ORDER_CAPACITY +
       minCKBChangeCapacity +
-      minTokenChangeCapacity +
+      minTokenChangeCapacity * 3n +
       txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, tokenDesired);
 
@@ -354,8 +354,10 @@ export class TxBuilderService {
     const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
+    // According to design, injected ckb amount is req.cap - lpt.cap - token.cap
+    const reqCapacity = constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance() + minTokenChangeCapacity * 2n;
     const reqOutput = {
-      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance()),
+      capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
       type: tokenDesired.typeScript,
     };
@@ -379,7 +381,7 @@ export class TxBuilderService {
       outputsData.push(tokenChangeData);
     }
 
-    let ckbChangeCapacity = collectedCells.inputCapacity - constants.LIQUIDITY_ORDER_CAPACITY - ckbDesired.getBalance();
+    let ckbChangeCapacity = collectedCells.inputCapacity - reqCapacity;
     if (collectedCells.inputToken > tokenDesired.getBalance()) {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
@@ -640,13 +642,17 @@ export class TxBuilderService {
 
   // CKB => SUDT
   private async buildSwapToken(ctx: Context, req: SwapOrderRequest, txFee = 0n): Promise<TransactionWithFee> {
-    if (req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY <= constants.SWAP_BUY_REQ_CAPACITY) {
+    const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(
+      req.userLock,
+      req.tokenOutMinAmount.typeScript,
+    );
+    if (req.tokenInAmount.getBalance() + minTokenChangeCapacity <= constants.SWAP_BUY_REQ_CAPACITY) {
       ctx.throw(400, 'ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8');
     }
 
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
-    const minCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY + minCKBChangeCapacity + txFee;
+    const minCapacity = req.tokenInAmount.getBalance() + minTokenChangeCapacity + minCKBChangeCapacity + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
 
     // Generate swap request lock script
@@ -661,7 +667,8 @@ export class TxBuilderService {
     const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
-    const reqCapacity = req.tokenInAmount.getBalance() + constants.MIN_SUDT_CAPACITY;
+    // According to design, ckb amount in should be req capacity minus token capacity
+    const reqCapacity = req.tokenInAmount.getBalance() + minTokenChangeCapacity;
     const reqOutput = {
       capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
@@ -907,9 +914,10 @@ export class TxBuilderService {
     return (BigInt(userLock.size()) + 8n) * constants.CKB_DECIMAL; // +8 for capacity bytes
   }
 
-  private static minTokenChangeCapacity(userLock: Script, tokenType: Script): bigint {
-    const scriptSize = BigInt(userLock.size() + tokenType.size());
-    return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
+  private static minTokenChangeCapacity(_userLock: Script, _tokenType: Script): bigint {
+    return constants.MIN_SUDT_CAPACITY;
+    // const scriptSize = BigInt(userLock.size() + tokenType.size());
+    // return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
   }
 
   // TODO: refactor

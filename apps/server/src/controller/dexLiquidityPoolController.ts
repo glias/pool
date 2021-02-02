@@ -401,12 +401,6 @@ export default class DexLiquidityPoolController {
       ctx.throw(400, 'pool without ckb isnt support yet');
     }
 
-    const ckbDesiredAmount = tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? tokenADesiredAmount : tokenBDesiredAmount;
-    if (ckbDesiredAmount.getBalance() < MIN_SUDT_CAPACITY) {
-      // sudt change wont be created
-      ctx.throw(400, 'ckb desired amount is smaller than minimal sudt cell capacity');
-    }
-
     const req = {
       tokenADesiredAmount,
       tokenAMinAmount,

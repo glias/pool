@@ -134,11 +134,6 @@ export default class DexSwapController {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
     }
 
-    if (tokenInAmount.typeHash == CKB_TYPE_HASH && tokenInAmount.getBalance() < MIN_SUDT_CAPACITY) {
-      // sudt change wont be created
-      ctx.throw(400, 'ckb amount is smaller than minimal sudt cell capacity');
-    }
-
     const req = {
       tokenInAmount,
       tokenOutMinAmount,
