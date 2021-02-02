@@ -6,9 +6,6 @@ import i18n from 'i18n';
 import { SwapMode } from './context';
 
 export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: boolean }) => {
-  if (swapMode === SwapMode.CrossOut) {
-    return null;
-  }
   const amount = swapMode === SwapMode.CrossIn ? '142' : !isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY;
   return (
     <MetaContainer>

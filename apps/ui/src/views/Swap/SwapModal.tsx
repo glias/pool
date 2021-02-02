@@ -12,7 +12,7 @@ import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
-import { SWAP_CELL_ASK_CAPACITY } from 'suite/constants';
+import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 
 export const SwapModal = () => {
@@ -28,6 +28,7 @@ export const SwapModal = () => {
     setAndCacheCrossChainOrders,
     isSendCkbTransaction,
     resetForm,
+    isBid,
   } = useSwapContainer();
   const { adapter } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -173,21 +174,23 @@ export const SwapModal = () => {
         <Form.Item label={i18n.t('swap.cancel-modal.receive')}>
           <AssetRow asset={tokenB!} />
         </Form.Item>
-        <Form.Item>
-          {isNormalOrder ? (
-            <MetaContainer>
-              {tokenA ? (
+        {isNormalOrder ? (
+          tokenA ? (
+            <Form.Item>
+              <MetaContainer>
                 <Trans
                   defaults="Your <bold>{{amount}} CKB</bold> will be temporarily locked and will be automatically unlocked once trading successfully."
-                  values={{ amount: SWAP_CELL_ASK_CAPACITY }}
+                  values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
                   components={{ bold: <strong /> }}
                 />
-              ) : null}
-            </MetaContainer>
-          ) : (
+              </MetaContainer>
+            </Form.Item>
+          ) : null
+        ) : swapMode === SwapMode.CrossOut ? null : (
+          <Form.Item>
             <CrossMeta isBid={false} swapMode={swapMode} />
-          )}
-        </Form.Item>
+          </Form.Item>
+        )}
         {isNormalOrder ? null : (
           <Form.Item>
             <MetaContainer>
