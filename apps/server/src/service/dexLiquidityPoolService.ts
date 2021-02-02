@@ -98,23 +98,19 @@ export class DexLiquidityPoolService {
         lock: lock.toLumosScript(),
         type: typeScript.toLumosScript(),
       };
+
       const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
       if (userLiquidityCells.length === 0) {
         continue;
       }
 
-      const ckbCells = await this.dexRepository.collectCells({
-        lock: lock.toLumosScript(),
-      });
-      const normalCells = ckbCells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
-      const ckbBalance = normalCells.reduce((total, cell) => total + BigInt(cell.cellOutput.capacity), BigInt(0));
+      const ckbBalance = userLiquidityCells.reduce(
+        (total, cell) => total + BigInt(cell.cellOutput.capacity),
+        BigInt(0),
+      );
       poolInfo.tokenA.balance = ckbBalance.toString();
 
-      const cells = await this.dexRepository.collectCells({
-        lock: lock.toLumosScript(),
-        type: poolInfo.tokenB.typeScript.toLumosScript(),
-      });
-      const sudtBalance = cells
+      const sudtBalance = userLiquidityCells
         .reduce(
           (total, cell) =>
             total + CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(cell.data),
@@ -156,6 +152,7 @@ export class DexLiquidityPoolService {
           argsLen: 'any',
         },
         type: type.toLumosScript(),
+        order: 'desc',
       };
 
       const infoCells = await this.dexRepository.collectCells(queryOptions);

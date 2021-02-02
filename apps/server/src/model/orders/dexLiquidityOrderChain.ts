@@ -1,5 +1,5 @@
 import { Output, TransactionWithStatus, CellInfoSerializationHolderFactory, LiquidityOrderCellArgs } from '..';
-import { CKB_TOKEN_TYPE_HASH } from '../../config';
+import { CKB_TOKEN_TYPE_HASH, POOL_ID } from '../../config';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
@@ -35,7 +35,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
-      poolId: amountB.typeHash,
+      poolId: POOL_ID[amountB.info.symbol],
       transactionHash: transactionHash,
       timestamp: this.tx.txStatus.timestamp,
       amountIn: amountA,
