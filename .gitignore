@@ -20,9 +20,5 @@ apps/server/lib
 # env
 apps/server/.env
 
-<<<<<<< HEAD
-# history
-=======
 # file history
->>>>>>> 3465e85 (test(server): describe)
 .history
