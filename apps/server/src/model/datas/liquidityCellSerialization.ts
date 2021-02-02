@@ -40,9 +40,9 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     const structObj = args.decode(Buffer.from(argsHex.slice(66, decodeLenght), 'hex'));
 
     return {
-      userLockHash,
-      ...structObj,
       infoTypeHash,
+      ...structObj,
+      userLockHash,
       ...tips,
     };
   };

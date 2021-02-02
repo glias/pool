@@ -38,9 +38,9 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
 
     const structObj = args.decode(Buffer.from(argsHex.slice(66, dataLength), 'hex'));
     return {
-      userLockHash,
-      ...structObj,
       sudtTypeHash,
+      ...structObj,
+      userLockHash,
       ...tips,
     };
   };
