@@ -7,6 +7,7 @@ import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFa
 import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
 import { SwapOrderType } from '../model/orders/dexSwapOrderChain';
+import { use } from 'chai';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -33,8 +34,8 @@ export class DexSwapService {
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
     const orders: DexOrderChain[] = [];
-    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
-    crossOrders.forEach((x) => orders.push(x));
+    // const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    // crossOrders.forEach((x) => orders.push(x));
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -43,12 +44,16 @@ export class DexSwapService {
       order: 'desc',
     };
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
-    const userLockHash = lock.toHash().slice(2, 66);
-    const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
 
+    // const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
     const factory = new DexOrderChainFactory(OrderType.SWAP);
-    const ckbOrders = factory.getOrderChains(queryOptions.lock, null, temp, bridgeInfoMatch);
-    ckbOrders.forEach((x) => orders.push(x));
+    const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
+    const userLockHash = lock.toHash().slice(2, 66);
+    ckbOrders.forEach((x) => {
+      if (x.cell.lock.args.slice(100, 164) === userLockHash) {
+        orders.push(x);
+      }
+    });
 
     return orders
       .filter((x) => {
