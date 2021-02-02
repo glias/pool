@@ -50,7 +50,7 @@ const generateToken = (amount: bigint, symbol: string) => {
 
 const generateLPToken = (amount: bigint, tokenSymbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(tokenSymbol);
-  const infoTypeScriptArgs = config.POOL_ID[tokenSymbol];
+  const infoTypeScriptArgs = config.POOL_INFO_TYPE_ARGS[tokenSymbol];
 
   const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
 
@@ -252,18 +252,18 @@ async function createCancelSwapTx(txHash: string) {
 const ckb = new CKB(config.ckbConfig.nodeUrl);
 console.log(`use address: ${USER_ADDRESS}`);
 // const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
-const token = 'Undefined';
+const token = 'ckUSDC';
 const lpReqTxHash = undefined;
 const swapReqTxHash = undefined;
 
 async function main() {
-  createTestPool(token);
-  createGenesisTx(token);
-  createAddLiquidityTx(token);
-  createRemoveLiquidityTx(token);
-  createCancelLiquidityTx(lpReqTxHash);
-  createSwapTx(token);
-  createCancelSwapTx(swapReqTxHash);
+  await createTestPool(token);
+  await createGenesisTx(token);
+  await createAddLiquidityTx(token);
+  await createRemoveLiquidityTx(token);
+  await createCancelLiquidityTx(lpReqTxHash);
+  await createSwapTx(token);
+  await createCancelSwapTx(swapReqTxHash);
 }
 
 main();
