@@ -40,32 +40,30 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
     const addOrders = await this.dexRepository.collectTransactions(queryOptions, true);
-    const userLockHash = lock.toHash().slice(2, 66);
-    const temp1 = addOrders.filter((x) =>
-      x.transaction.outputs.filter((y) => y.lock.args.slice(116, 180) === userLockHash),
-    );
-
-    const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, temp1, null);
+    const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
     orders.forEach((x) => liquidityOrders.push(x));
 
-    const infoTypeScript = POOL_INFO_TYPE_SCRIPT.find(
-      (x) =>
-        x.toHash() ===
-        CellInfoSerializationHolderFactory.getInstance()
-          .getInfoCellSerialization()
-          .decodeArgs(infoCell.infoCell.cellOutput.lock.args).infoTypeHash,
+    const lpTokenTypeScript = new Script(
+      infoCell.tokenB.typeScript.codeHash,
+      'type',
+      infoCell.infoCell.cellOutput.lock.toHash(),
     );
+    const removeQueryOptions: QueryOptions = {
+      lock: {
+        script: orderLock.toLumosScript(),
+        argsLen: 'any',
+      },
+      type: lpTokenTypeScript.toLumosScript(),
+      order: 'desc',
+    };
 
-    queryOptions.type = infoTypeScript.toLumosScript();
-    const removeTxs = await this.dexRepository.collectTransactions(queryOptions, true);
-    const temp2 = removeTxs.filter((x) =>
-      x.transaction.outputs.filter((y) => y.lock.args.slice(116, 180) === userLockHash),
-    );
-    const removeOrders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, temp2, null);
+    const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true);
+    const removeOrders = factory.getOrderChains(queryOptions.lock, lpTokenTypeScript, removeTxs, null);
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
+    const userLockHash = lock.toHash().slice(2, 66);
     return liquidityOrders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED)
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.cell.lock.args.slice(116, 180) === userLockHash)
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
