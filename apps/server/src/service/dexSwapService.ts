@@ -34,8 +34,8 @@ export class DexSwapService {
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
     const orders: DexOrderChain[] = [];
-    // const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
-    // crossOrders.forEach((x) => orders.push(x));
+    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    crossOrders.forEach((x) => orders.push(x));
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
