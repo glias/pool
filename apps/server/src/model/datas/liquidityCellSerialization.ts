@@ -20,21 +20,21 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     const data = this.getStructDefine();
 
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
-    return `${userlockHash}${data
+    return `${infoTypeHash}${data
       .encode({
         version,
         sudtMin,
         ckbMin,
       })
-      .toString('hex')}${infoTypeHash.slice(2, 66)}${tipsArgs}`;
+      .toString('hex')}${userlockHash.slice(2, 66)}${tipsArgs}`;
   };
 
   decodeArgs = (argsHex: string): LiquidityOrderCellArgs => {
     const args = this.getStructDefine();
     const decodeLenght = 66 + 2 + 32 + 16;
 
-    const userLockHash = argsHex.slice(0, 66);
-    const infoTypeHash = `0x${argsHex.slice(decodeLenght, decodeLenght + 64)}`;
+    const infoTypeHash = argsHex.slice(0, 66);
+    const userLockHash = `0x${argsHex.slice(decodeLenght, decodeLenght + 64)}`;
     const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(decodeLenght + 64, argsHex.length));
 
     const structObj = args.decode(Buffer.from(argsHex.slice(66, decodeLenght), 'hex'));
