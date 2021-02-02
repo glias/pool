@@ -89,7 +89,11 @@ export class DexLiquidityPoolService {
   private async getUserPoolInfos(lock: Script, poolInfos: PoolInfo[]): Promise<PoolInfo[]> {
     const userLiquiditys: PoolInfo[] = [];
     for (const poolInfo of poolInfos) {
-      const typeScript = new Script(poolInfo.tokenB.typeHash, 'type', poolInfo.infoCell.cellOutput.lock.toHash());
+      const typeScript = new Script(
+        poolInfo.tokenB.typeScript.codeHash,
+        'type',
+        poolInfo.infoCell.cellOutput.lock.toHash(),
+      );
       const queryOptions = {
         lock: lock.toLumosScript(),
         type: typeScript.toLumosScript(),
@@ -131,7 +135,7 @@ export class DexLiquidityPoolService {
       poolInfo.lpToken = new Token(
         new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, poolInfo.infoCell.cellOutput.lock.toHash()).toHash(),
       );
-      poolInfo.lpToken.balance = lpTokenAmount ? '0' : lpTokenAmount;
+      poolInfo.lpToken.balance = lpTokenAmount;
 
       userLiquiditys.push(poolInfo);
     }
