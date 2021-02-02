@@ -1,6 +1,6 @@
-import { ArrowDownOutlined } from '@ant-design/icons';
 import { LiquidityInfo } from '@gliaswap/commons';
 import { Button, Col, Row, Slider, Typography } from 'antd';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, AssetBaseQuotePrices, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
@@ -60,9 +60,19 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
     setReadyToRemoveShare,
     readyToReceiveAssets,
     readyToRemoveLpToken,
+    sendRemoveLiquidityTransaction,
   } = useRemoveLiquidity();
 
   const removePercent = useMemo(() => BN(readyToRemoveShare).times(100).toNumber(), [readyToRemoveShare]);
+
+  const { isLoading: isSendingRemoveTransaction, mutateAsync: sendRemoveTransaction } = useMutation(
+    'sendRemoveLiquidityTransaction',
+    async () => {
+      const txHash = await sendRemoveLiquidityTransaction();
+      setConfirming(false);
+      return txHash;
+    },
+  );
 
   function setRemovePercent(percent: number) {
     setReadyToRemoveShare(BN(percent).div(100).toNumber());
@@ -95,9 +105,9 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
   return (
     <RemoveLiquidityWrapper>
-      <Section bordered>
-        <SpaceBetweenRow>
-          <h4>{i18n.t('Amount')}</h4>
+      <Section bordered compact>
+        <SpaceBetweenRow style={{ padding: '0' }}>
+          <div className="label">{i18n.t('Amount')}</div>
           <h2>{removePercent}%</h2>
         </SpaceBetweenRow>
         <div>
@@ -110,9 +120,15 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
           <RemovePercentButton value={100} display="Max" />
         </Row>
       </Section>
-      <ArrowDownOutlined className="arrow-icon" />
-      <Section bordered>
-        <h4>{i18n.t('Receive(EST)')}</h4>
+
+      <DownArrowSvg className="arrow-icon" />
+
+      <Section bordered compact>
+        <SpaceBetweenRow style={{ padding: '0 0 8px' }}>
+          <div className="label" style={{ lineHeight: '1.57' }}>
+            {i18n.t('Receive(EST)')}
+          </div>
+        </SpaceBetweenRow>
         <ReceiveAssets assets={readyToReceiveAssets} />
       </Section>
 
@@ -134,6 +150,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
         </div>
       </SpaceBetweenRow>
       <Button
+        style={{ marginTop: '32px' }}
         block
         type="primary"
         disabled={!readyToRemoveShare}
@@ -145,8 +162,8 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
       <OperationConfirmModal
         visible={confirming}
-        onOk={() => Promise.resolve()}
-        onCancel={() => setConfirming(false)}
+        onOk={() => sendRemoveTransaction()}
+        onCancel={() => !isSendingRemoveTransaction && setConfirming(false)}
         operation={<Text strong>{i18n.t('Remove Liquidity')}</Text>}
       >
         {readyToSendTransactionWithFee && (
@@ -161,7 +178,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
               </div>
             </SpaceBetweenRow>
 
-            <ArrowDownOutlined style={{ margin: '16px' }} />
+            <DownArrowSvg />
 
             <div className="label">{i18n.t('Receive(EST)')}</div>
             <AssetBalanceList assets={readyToReceiveAssets} style={{ fontWeight: 'bold' }} />

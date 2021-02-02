@@ -1,130 +1,145 @@
 // the uniswap-model liquidity
 
-import { CkbAssetWithBalance, price, SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
+import { price, SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useQueryLiquidityInfo } from 'hooks/useLiquidityQuery';
-import { zip } from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
-import { BalanceWithDecimal, BalanceWithoutDecimal, BN, createAssetWithBalance } from 'suite';
+import { Amount, createAssetWithBalance } from 'suite';
 
 interface UseAddLiquidityState {
+  onUserInputReadyToAddAmount: (amountWithDecimal: string, assetIndex: number) => (Amount | undefined)[] | undefined;
   generateAddLiquidityTransaction: (balances?: string[]) => Promise<SerializedTransactionToSignWithFee>;
+  readyToAddLiquidityTransaction: SerializedTransactionToSignWithFee | undefined;
+  /**
+   * send the ready to add liquidity transaction and return the transaction hash
+   */
   sendReadyToAddLiquidityTransaction: () => Promise<string>;
-  onUserInputReadyToAddLiquidity: (val: string, assetIndex: number) => BalanceWithoutDecimal[];
-  userFreeAssets: CkbAssetWithBalance[];
-  readyToAddLiquidity: BalanceWithoutDecimal[] | undefined;
+  /**
+   * the balances of the current user
+   */
+  userFreeBalances: Amount[] | undefined;
+  readyToAddAmounts: (Amount | undefined)[] | undefined;
   readyToAddShare: number;
 }
 
 export function useAddLiquidity(): UseAddLiquidityState {
   const { api, currentUserLock, adapter } = useGliaswap();
-  const { ckbAssets: allCkbAssets } = useGliaswapAssets();
-  const { data: poolLiquidity } = useQueryLiquidityInfo();
+  const { ckbAssets: userCkbAssets } = useGliaswapAssets();
+  const { data: poolInfo } = useQueryLiquidityInfo();
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();
 
-  const [readyToAddLiquidity, setReadyToAddLiquidity] = useState<BalanceWithoutDecimal[] | undefined>();
+  const [readyToAddAmounts, setReadyToAddAmounts] = useState<(Amount | undefined)[] | undefined>();
   const [readyToAddLiquidityTransaction, setReadyToAddLiquidityTransaction] = useState<
     SerializedTransactionToSignWithFee | undefined
   >(undefined);
 
-  const { assets: poolAssets } = poolLiquidity ?? {};
-
-  useEffect(() => {
-    if (readyToAddLiquidity || !poolAssets) return;
-
-    setReadyToAddLiquidity(poolAssets.map((asset) => BalanceWithoutDecimal.from(0, asset.decimals)));
-  }, [readyToAddLiquidity, poolAssets]);
+  const isPoolGenesis = useMemo(() => {
+    if (!poolInfo?.lpToken) return false;
+    return Amount.fromAsset(poolInfo.lpToken).value.gt(0);
+  }, [poolInfo]);
 
   const readyToAddShare = useMemo(() => {
-    if (!readyToAddLiquidity || !poolLiquidity) return 0;
-    const poolLPTokenTotal = BalanceWithoutDecimal.fromAsset(poolLiquidity.lpToken);
+    // the pool is not loaded
+    if (!poolInfo || poolInfo.assets.length <= 0) return 0;
+    if (!readyToAddAmounts || readyToAddAmounts.length <= 0) return 0;
 
-    if (!readyToAddLiquidity || !poolAssets || !poolLiquidity) return 0;
+    const poolLpTokenAmount = Amount.fromAsset(poolInfo.lpToken);
+    // the lp token balance is 0 means that the pool is not genesis
+    // no matter how much liquidity is added, share is always 100%
+    if (!isPoolGenesis) return 1;
+
+    // the genesis pool must has a value of readyToAddAmount, this check is avoid typescript warning
+    if (!readyToAddAmounts[0]) return 1;
+
     const share = price
       .getAddLiquidityReceiveLPAmount(
-        readyToAddLiquidity[0].value,
-        BalanceWithoutDecimal.fromAsset(poolAssets[0]).value,
-        poolLPTokenTotal.value,
+        readyToAddAmounts[0].value,
+        Amount.fromAsset(poolInfo.assets[0]).value,
+        poolLpTokenAmount.value,
       )
-      .div(poolLPTokenTotal.value)
+      .div(poolLpTokenAmount.value)
       .toNumber();
 
     return share;
-  }, [poolAssets, poolLiquidity, readyToAddLiquidity]);
+  }, [isPoolGenesis, poolInfo, readyToAddAmounts]);
 
-  function onUserInputReadyToAddLiquidity(inputValue: string, inputIndex: number) {
-    if (!inputValue || !/^\d+(\.\d*)?$/.test(inputValue) || !poolLiquidity) {
-      throw new Error(`${inputValue} is not a valid input`);
+  function onUserInputReadyToAddAmount(userInput: string, indexOfPoolAssets: number) {
+    if (!poolInfo) {
+      setReadyToAddAmounts(undefined);
+      return;
     }
-    if (!readyToAddLiquidity) throw new Error('Pool is not loaded');
 
-    const inputAmount = BalanceWithDecimal.from(
-      inputValue,
-      readyToAddLiquidity[inputIndex].assetDecimals,
-    ).withoutDecimal();
+    if (!userInput || !/^\d+(\.\d*)?$/.test(userInput)) {
+      setReadyToAddAmounts(undefined);
+      return;
+    }
 
-    const inputPoolReserve = BalanceWithoutDecimal.fromAsset(poolLiquidity.assets[inputIndex]);
+    const poolAsset = poolInfo.assets[indexOfPoolAssets];
 
-    const nextReadyToAddLiquidity = zip(readyToAddLiquidity, poolLiquidity.assets).map(([ready, poolAsset], i) => {
-      if (i === inputIndex) return inputAmount;
-      // the reserve is is zero means that the pool has not been genesis
-      // genesis liquidity is defined by the user
-      // so no price calculation is performed for this operation
-      if (inputPoolReserve.value.eq(0) || BN(poolAsset?.balance || 0).eq(0)) {
-        return (
-          ready ?? BalanceWithoutDecimal.from(BN(1).times(10 ** (poolAsset?.decimals ?? 1)), poolAsset?.decimals || 0)
-        );
-      }
+    const inputAmount = Amount.fromHumanize(userInput, poolAsset.decimals);
+    const inputPoolReserve = Amount.fromAsset(poolAsset);
 
-      return ready!.newValue(
-        price.getAddLiquidityPairedAssetPayAmount(inputAmount.value, inputPoolReserve.value, BN(poolAsset!.balance)),
+    const nextReadyToAddAmounts = poolInfo.assets.map<Amount | undefined>((asset, i) => {
+      if (indexOfPoolAssets === i) return inputAmount;
+
+      // if the pool is not genesis, the amount to be added for other assets is not calculated
+      if (!isPoolGenesis) return readyToAddAmounts?.[i];
+
+      const pairedAmount = price.getAddLiquidityPairedAssetPayAmount(
+        inputAmount.value,
+        inputPoolReserve.value,
+        Amount.fromAsset(asset).value,
       );
+
+      return Amount.from(pairedAmount, asset.decimals);
     });
 
-    setReadyToAddLiquidity(nextReadyToAddLiquidity);
-    return nextReadyToAddLiquidity;
+    setReadyToAddAmounts(nextReadyToAddAmounts);
+    return nextReadyToAddAmounts;
   }
 
-  const userFreeAssets = useMemo(() => {
-    if (!poolAssets) return [];
-
-    return poolAssets.map((poolAsset) => {
-      const found = allCkbAssets.find((userAsset) => userAsset.typeHash === poolAsset.typeHash);
-      if (found) return found;
-      return createAssetWithBalance(poolAsset, '0');
+  const userFreeBalances = useMemo(() => {
+    if (!poolInfo) return;
+    return poolInfo.assets.map((poolAsset) => {
+      const found = userCkbAssets.find((userAsset) => poolAsset.typeHash === userAsset.typeHash);
+      if (!found) return Amount.fromZero(poolAsset.decimals);
+      return Amount.fromAsset(found);
     });
-  }, [allCkbAssets, poolAssets]);
+  }, [poolInfo, userCkbAssets]);
 
   const generateAddLiquidityTransaction = useCallback(
     async (_inputBalances?: string[]) => {
-      if (!poolLiquidity) throw new Error('The pool is not loaded');
+      if (!poolInfo) throw new Error('The pool is not loaded');
       if (!currentUserLock) throw new Error('Cannot find the current user, maybe wallet is disconnected');
-      if (!readyToAddLiquidity) throw new Error('');
+      if (!readyToAddAmounts) throw new Error('');
 
-      const balances = readyToAddLiquidity.map((ready) => ready.value.toString());
-      const [asset1, asset2] = poolLiquidity.assets;
+      const amounts = readyToAddAmounts.map((ready) => {
+        if (!ready) throw new Error('ready to amount cannot be empty');
+
+        return {
+          desired: ready.value.toString(),
+          min: ready.newValue((val) => val.times(1 - slippage)).value.toString(),
+        };
+      });
+
+      const [asset1] = poolInfo.assets;
 
       const tx = await api.generateAddLiquidityTransaction({
-        poolId: poolLiquidity.poolId,
+        poolId: poolInfo.poolId,
         lock: currentUserLock,
-        assetsWithDesiredAmount: [
-          createAssetWithBalance(asset1, balances[0]),
-          createAssetWithBalance(asset2, balances[1]),
-        ],
-        assetsWithMinAmount: [
-          createAssetWithBalance(asset1, BN(balances[0]).times(1 - slippage)),
-          createAssetWithBalance(asset2, BN(balances[1]).times(1 - slippage)),
-        ],
+        assetsWithDesiredAmount: amounts.map((x, i) => createAssetWithBalance(poolInfo.assets[i], x.desired)),
+        assetsWithMinAmount: amounts.map((x, i) => createAssetWithBalance(poolInfo.assets[i], x.min)),
+        // TODO the current version tips is free, maybe changed next version
         tips: createAssetWithBalance(asset1, '0'),
       });
 
       setReadyToAddLiquidityTransaction(tx);
       return tx;
     },
-    [api, currentUserLock, poolLiquidity, readyToAddLiquidity, slippage],
+    [api, currentUserLock, poolInfo, readyToAddAmounts, slippage],
   );
 
   async function sendReadyToAddLiquidityTransaction(): Promise<string> {
@@ -134,16 +149,17 @@ export function useAddLiquidity(): UseAddLiquidityState {
     );
 
     setReadyToAddLiquidityTransaction(undefined);
-    await queryClient.invalidateQueries('getLiquidityOperationSummaries');
+    await queryClient.refetchQueries('getLiquidityOperationSummaries');
     return txHash;
   }
 
   return {
     generateAddLiquidityTransaction,
-    userFreeAssets,
-    onUserInputReadyToAddLiquidity,
-    readyToAddShare: readyToAddShare,
-    readyToAddLiquidity,
+    userFreeBalances: userFreeBalances,
+    onUserInputReadyToAddAmount,
+    readyToAddShare,
+    readyToAddAmounts,
+    readyToAddLiquidityTransaction,
     sendReadyToAddLiquidityTransaction,
   };
 }

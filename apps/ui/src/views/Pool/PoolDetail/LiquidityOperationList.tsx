@@ -1,6 +1,6 @@
-import { ArrowDownOutlined } from '@ant-design/icons';
 import { LiquidityRequestSummary } from '@gliaswap/commons';
 import { Button, Divider, List, Typography } from 'antd';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
@@ -146,7 +146,10 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
 
             <AssetBalanceList assets={readyToCancelOperation.assets} style={{ fontWeight: 'bold' }} />
 
-            <ArrowDownOutlined style={{ margin: '16px' }} />
+            <div style={{ padding: '8px 0' }}>
+              <DownArrowSvg />
+            </div>
+
             <div className="label">{i18n.t('Receive(EST)')}</div>
             <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
               <div>
