@@ -21,8 +21,8 @@ export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderService: txBuilder.TxBuilderService;
 
-  constructor() {
-    this.dexRepository = ckbRepository;
+  constructor(dexRepository?: DexRepository) {
+    this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
@@ -152,31 +152,34 @@ export class DexLiquidityPoolService {
         continue;
       }
 
-      const infoCell = infoCells[0];
-      const argsData = CellInfoSerializationHolderFactory.getInstance()
-        .getInfoCellSerialization()
-        .decodeData(infoCell.data);
-      const sudtType = this.getSudtSymbol(infoCell);
-      const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
-      tokenB.balance = argsData.sudtReserve.toString();
-
-      // Prevent modification to the same tokenA
-      const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      tokenA.balance = argsData.ckbReserve.toString();
-
-      poolInfos.push({
-        total: argsData.totalLiquidity.toString(),
-        lpToken: new Token(
-          new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
-        ),
-        poolId: type.toHash(),
-        tokenA: tokenA,
-        tokenB: tokenB,
-        infoCell: infoCell,
-      });
+      poolInfos.push(this.toPoolInfo(infoCells[0], type));
     }
 
     return poolInfos;
+  }
+
+  toPoolInfo(infoCell: Cell, type: Script): PoolInfo {
+    const argsData = CellInfoSerializationHolderFactory.getInstance()
+      .getInfoCellSerialization()
+      .decodeData(infoCell.data);
+    const sudtType = this.getSudtSymbol(infoCell);
+    const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
+    tokenB.balance = argsData.sudtReserve.toString();
+
+    // Prevent modification to the same tokenA
+    const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+    tokenA.balance = argsData.ckbReserve.toString();
+    const poolInfo: PoolInfo = {
+      total: argsData.totalLiquidity.toString(),
+      lpToken: new Token(
+        new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
+      ),
+      poolId: type.toHash(),
+      tokenA: tokenA,
+      tokenB: tokenB,
+      infoCell: infoCell,
+    };
+    return poolInfo;
   }
 
   private getSudtSymbol(poolCell: Cell) {
