@@ -58,7 +58,7 @@ export function getValueFromInput(input: string, decimal: number) {
     return '';
   }
   BigNumber.config({ EXPONENTIAL_AT: 30 });
-  return val.toString();
+  return val.toFixed();
 }
 
 export function getInputFromValue(value: string, decimal: number) {
@@ -67,7 +67,7 @@ export function getInputFromValue(value: string, decimal: number) {
     return '';
   }
   BigNumber.config({ EXPONENTIAL_AT: 30 });
-  return val.toString();
+  return val.toFixed();
 }
 
 export function displayPercent(val: string) {

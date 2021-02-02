@@ -27,9 +27,10 @@ const Containers = [
 ];
 
 const MainWrapper = styled.div`
-  max-width: 532px;
+  max-width: 516px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 8px;
+  margin-top: 16px;
 `;
 
 const Routers = () => {
