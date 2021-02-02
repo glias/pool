@@ -155,7 +155,7 @@ export class DexLiquidityPoolService {
         order: 'desc',
       };
 
-      const infoCells = await this.dexRepository.collectCells(queryOptions);
+      const infoCells = await this.dexRepository.collectCells(queryOptions, true);
       if (infoCells.length === 0) {
         continue;
       }
