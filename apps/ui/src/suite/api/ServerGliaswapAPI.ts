@@ -208,7 +208,9 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
-    const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock });
+    const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock }).catch((err) => {
+      return Promise.reject(err.response.data);
+    });
     return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
 
@@ -217,27 +219,31 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     tokenB: GliaswapAssetWithBalance,
     lock: CkbScript,
   ): Promise<{ tx: Transaction }> {
-    const { data } = await this.axios.post('/swap/orders/swap', {
-      assetInWithAmount: {
-        ...tokenA,
-        address: '',
-      },
-      assetOutWithMinAmount: {
-        ...tokenB,
-        address: '',
-      },
-      lock,
-      tips: {
-        typeHash: CKB_NATIVE_TYPE_HASH,
-        chainType: 'Nervos',
-        decimals: 8,
-        logoURI: '',
-        name: 'CKB',
-        balance: '0',
-        symbol: 'CKB',
-        address: '',
-      },
-    });
+    const { data } = await this.axios
+      .post('/swap/orders/swap', {
+        assetInWithAmount: {
+          ...tokenA,
+          address: '',
+        },
+        assetOutWithMinAmount: {
+          ...tokenB,
+          address: '',
+        },
+        lock,
+        tips: {
+          typeHash: CKB_NATIVE_TYPE_HASH,
+          chainType: 'Nervos',
+          decimals: 8,
+          logoURI: '',
+          name: 'CKB',
+          balance: '0',
+          symbol: 'CKB',
+          address: '',
+        },
+      })
+      .catch((err) => {
+        return Promise.reject(err.response.data);
+      });
     const tx = TransactionHelper.deserializeTransactionToSign(data.tx);
     return {
       tx,
