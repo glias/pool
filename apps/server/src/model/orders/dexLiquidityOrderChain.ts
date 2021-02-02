@@ -24,7 +24,10 @@ export class DexLiquidityChain extends DexOrderChain {
     const transactionHash = this.getLastOrder().getTxHash();
     const argsData = this.getArgsData();
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-    const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash());
+    const sudtToken =
+      this.getType() === ORDER_TYPE.add
+        ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
+        : TokenHolderFactory.getInstance().getTokenBySymbol(this.getSudtSymbol());
     const amountA = ckbToken;
     const amountB = sudtToken;
 
@@ -121,5 +124,32 @@ export class DexLiquidityChain extends DexOrderChain {
     });
 
     return result;
+  }
+
+  private getSudtSymbol() {
+    const infoCellArgs = CellInfoSerializationHolderFactory.getInstance()
+      .getLiquidityCellSerialization()
+      .decodeArgs(this.cell.lock.args);
+    let sudtType = '';
+    if (POOL_ID['GLIA'] === infoCellArgs.infoTypeHash) {
+      sudtType = 'GLIA';
+    }
+
+    if (POOL_ID['ckETH'] === infoCellArgs.infoTypeHash) {
+      sudtType = 'ckETH';
+    }
+
+    if (POOL_ID['ckDAI'] === infoCellArgs.infoTypeHash) {
+      sudtType = 'ckDAI';
+    }
+
+    if (POOL_ID['ckUSDC'] === infoCellArgs.infoTypeHash) {
+      sudtType = 'ckUSDC';
+    }
+
+    if (POOL_ID['ckUSDT'] === infoCellArgs.infoTypeHash) {
+      sudtType = 'ckUSDT';
+    }
+    return sudtType;
   }
 }
