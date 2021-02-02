@@ -9,12 +9,8 @@ export const LIQUIDITY_ORDER_LOCK_SCRIPT = new Script(
 );
 
 export class ScriptBuilder {
-  static buildLiquidityOrderLockScriptByUserLock(userLockScript: Script): Script {
-    return new Script(
-      LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash,
-      LIQUIDITY_ORDER_LOCK_SCRIPT.hashType,
-      userLockScript.toHash(),
-    );
+  static buildLiquidityOrderLockScript(): Script {
+    return new Script(LIQUIDITY_ORDER_LOCK_SCRIPT.codeHash, LIQUIDITY_ORDER_LOCK_SCRIPT.hashType, '0x');
   }
 
   static buildLiquidityOrderLockScriptByArgsData(argsData: LiquidityOrderCellArgs): Script {

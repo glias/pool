@@ -30,8 +30,7 @@ export class DexLiquidityPoolService {
     const liquidityOrders: DexOrderChain[] = [];
     const factory = new DexOrderChainFactory(OrderType.LIQUIDITY);
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
-
-    const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
+    const orderLock = ScriptBuilder.buildLiquidityOrderLockScript();
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -41,7 +40,12 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
     const addOrders = await this.dexRepository.collectTransactions(queryOptions, true);
-    const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
+    const userLockHash = lock.toHash().slice(2, 66);
+    const temp1 = addOrders.filter((x) =>
+      x.transaction.outputs.filter((y) => y.lock.args.slice(116, 180) === userLockHash),
+    );
+
+    const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, temp1, null);
     orders.forEach((x) => liquidityOrders.push(x));
 
     const infoTypeScript = POOL_INFO_TYPE_SCRIPT.find(
@@ -54,7 +58,10 @@ export class DexLiquidityPoolService {
 
     queryOptions.type = infoTypeScript.toLumosScript();
     const removeTxs = await this.dexRepository.collectTransactions(queryOptions, true);
-    const removeOrders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, removeTxs, null);
+    const temp2 = removeTxs.filter((x) =>
+      x.transaction.outputs.filter((y) => y.lock.args.slice(116, 180) === userLockHash),
+    );
+    const removeOrders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, temp2, null);
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
     return liquidityOrders
