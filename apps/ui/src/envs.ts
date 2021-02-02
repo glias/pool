@@ -1,4 +1,7 @@
 import { buildEnv } from '@gliaswap/commons';
+import { BigNumber } from 'bignumber.js';
+
+BigNumber.config({ EXPONENTIAL_AT: 1e9 });
 
 export const UIEnvs = buildEnv({
   EXPLORER_URL: process.env.REACT_APP_CKB_EXPLORER_URL,
