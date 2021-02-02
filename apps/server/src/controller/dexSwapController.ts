@@ -1,5 +1,5 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 import * as config from '../config';
 import { Script } from '../model';
@@ -132,6 +132,11 @@ export default class DexSwapController {
     });
     if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
+    }
+
+    if (tokenInAmount.typeHash == CKB_TYPE_HASH && tokenInAmount.getBalance() < MIN_SUDT_CAPACITY) {
+      // sudt change wont be created
+      ctx.throw(400, 'ckb amount is smaller than minimal sudt cell capacity');
     }
 
     const req = {

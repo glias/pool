@@ -2,7 +2,7 @@ import * as commons from '@gliaswap/commons';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 
 import * as config from '../config';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
@@ -399,6 +399,12 @@ export default class DexLiquidityPoolController {
     const [tokenBDesiredAmount, tokenBMinAmount] = tokenB;
     if (tokenADesiredAmount.typeHash != CKB_TYPE_HASH && tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
       ctx.throw(400, 'pool without ckb isnt support yet');
+    }
+
+    const ckbDesiredAmount = tokenADesiredAmount.typeHash == CKB_TYPE_HASH ? tokenADesiredAmount : tokenBDesiredAmount;
+    if (ckbDesiredAmount.getBalance() < MIN_SUDT_CAPACITY) {
+      // sudt change wont be created
+      ctx.throw(400, 'ckb desired amount is smaller than minimal sudt cell capacity');
     }
 
     const req = {
