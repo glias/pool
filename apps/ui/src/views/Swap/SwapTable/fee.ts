@@ -32,7 +32,7 @@ export function calcPayWithReceive(receive: string, payReserve: string, receiveR
 
 export function calcPrice(pay: string, receive: string, isBid: boolean) {
   if (isBid) {
-    return new BigNumber(pay).times(receive).toString();
+    return new BigNumber(pay).div(receive).toString();
   }
 
   return new BigNumber(receive).div(pay).toString();
