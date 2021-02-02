@@ -24,6 +24,10 @@ const LiquidityListWrapper = styled.div`
     .asset-symbol {
       font-weight: bold;
     }
+
+    &:first-child {
+      margin-top: 0;
+    }
   }
 `;
 
