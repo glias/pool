@@ -37,7 +37,8 @@
         "cross-meta": "You will receive additional {{amount}} CKB given free by CrossChain Relayer once you cross chain successfully. ",
         "order-meta": "Placing this Order will lock your additional {{amount}} CKB in the Order. ",
         "learn-why": "Learn Why",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "cross-time": "This swap may take 5-15 minutes. It is necessary to wait for the confirmation of 15 blocks on the {{chain}} to ensure the security."
       },
       "progress": {
         "title": "Progress",

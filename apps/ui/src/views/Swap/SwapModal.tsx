@@ -188,6 +188,13 @@ export const SwapModal = () => {
             <CrossMeta isBid={false} swapMode={swapMode} />
           )}
         </Form.Item>
+        {isNormalOrder ? null : (
+          <Form.Item>
+            <MetaContainer>
+              {i18n.t('swap.swap-modal.cross-time', { chain: swapMode === SwapMode.CrossOut ? 'Nervos' : 'Ethereum' })}
+            </MetaContainer>
+          </Form.Item>
+        )}
         {currentCkbTx && isSendCkbTransaction ? (
           <TableRow
             label={i18n.t('swap.cancel-modal.tx-fee')}
