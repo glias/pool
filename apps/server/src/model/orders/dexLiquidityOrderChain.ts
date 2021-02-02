@@ -72,6 +72,10 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   getStatus(): string {
+    if (this.isCancel()) {
+      return ORDER_STATUS.CANCELING;
+    }
+
     const orders = this.getOrders();
 
     if (orders.length === 1) {
@@ -86,6 +90,21 @@ export class DexLiquidityChain extends DexOrderChain {
     }
 
     return ORDER_STATUS.COMPLETED;
+  }
+
+  isCancel(): boolean {
+    if (this.getOrders().length === 1) {
+      return false;
+    }
+
+    const last = this.getLastOrder();
+    const lpTokenCell = last.tx.transaction.outputs.filter((x) => x.type).find((x) => x.type.args.length === 130);
+
+    if (last.tx.txStatus.status === 'pending' && !lpTokenCell) {
+      return true;
+    }
+
+    return false;
   }
 
   buildStep(): Step[] {

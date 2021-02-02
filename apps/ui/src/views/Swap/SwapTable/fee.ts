@@ -59,7 +59,7 @@ export function getValueFromInput(input: string, decimal: number) {
   }
   // never return exponential notation:
   BigNumber.config({ EXPONENTIAL_AT: 1e9 });
-  return val.toString();
+  return val.toFixed();
 }
 
 export function getInputFromValue(value: string, decimal: number) {
@@ -69,7 +69,7 @@ export function getInputFromValue(value: string, decimal: number) {
   }
   // never return exponential notation:
   BigNumber.config({ EXPONENTIAL_AT: 1e9 });
-  return val.toString();
+  return val.toFixed();
 }
 
 export function displayPercent(val: string) {

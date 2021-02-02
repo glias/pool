@@ -931,6 +931,7 @@ export class TxBuilderService {
 class TxBuilderCellCollector implements CellCollector {
   private readonly ckbRepository: DexRepository;
   private readonly codec: CellInfoSerializationHolder;
+  private warningMessage = `You don't have enough live cells to complete this transaction, please wait for other transactions to be completed.`;
 
   constructor() {
     this.ckbRepository = ckbRepository;
@@ -960,7 +961,7 @@ class TxBuilderCellCollector implements CellCollector {
       }
 
       if (inputTokenAmount < token.getBalance()) {
-        ctx.throw(400, `free token not enough, required: ${token.balance}, available: ${inputTokenAmount}`);
+        ctx.throw(400, this.warningMessage);
       }
     }
 
@@ -980,7 +981,7 @@ class TxBuilderCellCollector implements CellCollector {
         inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
       }
       if (inputCapacity < capacity) {
-        ctx.throw(400, `free ckb not enough, required: ${capacity}, available: ${inputCapacity}`);
+        ctx.throw(400, this.warningMessage);
       }
     }
 

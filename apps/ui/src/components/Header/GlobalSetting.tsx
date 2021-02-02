@@ -83,7 +83,7 @@ const SettingContent: React.FC = () => {
 export const GlobalSetting: React.FC = () => {
   return (
     <Popover overlayClassName="setting-overlay" content={<SettingContent />} trigger="click">
-      <Button icon={<SettingOutlined />} />
+      <Button style={{ borderRadius: '10px' }} icon={<SettingOutlined />} />
     </Popover>
   );
 };

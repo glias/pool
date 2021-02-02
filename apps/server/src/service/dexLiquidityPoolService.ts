@@ -2,7 +2,7 @@ import { Context } from 'koa';
 import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, ScriptBuilder, Token } from '../model';
-import { DexOrderChainFactory } from '../model/orders/dexOrderChainFactory';
+import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
@@ -21,14 +21,14 @@ export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderService: txBuilder.TxBuilderService;
 
-  constructor() {
-    this.dexRepository = ckbRepository;
+  constructor(dexRepository?: DexRepository) {
+    this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderService = new txBuilder.TxBuilderService();
   }
 
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(false);
+    const factory = new DexOrderChainFactory(OrderType.LIQUIDITY);
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
 
     const orderLock = ScriptBuilder.buildLiquidityOrderLockScriptByUserLock(lock);
@@ -58,7 +58,7 @@ export class DexLiquidityPoolService {
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
     return liquidityOrders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING)
+      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED)
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
@@ -152,31 +152,34 @@ export class DexLiquidityPoolService {
         continue;
       }
 
-      const infoCell = infoCells[0];
-      const argsData = CellInfoSerializationHolderFactory.getInstance()
-        .getInfoCellSerialization()
-        .decodeData(infoCell.data);
-      const sudtType = this.getSudtSymbol(infoCell);
-      const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
-      tokenB.balance = argsData.sudtReserve.toString();
-
-      // Prevent modification to the same tokenA
-      const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      tokenA.balance = argsData.ckbReserve.toString();
-
-      poolInfos.push({
-        total: argsData.totalLiquidity.toString(),
-        lpToken: new Token(
-          new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
-        ),
-        poolId: type.toHash(),
-        tokenA: tokenA,
-        tokenB: tokenB,
-        infoCell: infoCell,
-      });
+      poolInfos.push(this.toPoolInfo(infoCells[0], type));
     }
 
     return poolInfos;
+  }
+
+  toPoolInfo(infoCell: Cell, type: Script): PoolInfo {
+    const argsData = CellInfoSerializationHolderFactory.getInstance()
+      .getInfoCellSerialization()
+      .decodeData(infoCell.data);
+    const sudtType = this.getSudtSymbol(infoCell);
+    const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
+    tokenB.balance = argsData.sudtReserve.toString();
+
+    // Prevent modification to the same tokenA
+    const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+    tokenA.balance = argsData.ckbReserve.toString();
+    const poolInfo: PoolInfo = {
+      total: argsData.totalLiquidity.toString(),
+      lpToken: new Token(
+        new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
+      ),
+      poolId: type.toHash(),
+      tokenA: tokenA,
+      tokenB: tokenB,
+      infoCell: infoCell,
+    };
+    return poolInfo;
   }
 
   private getSudtSymbol(poolCell: Cell) {

@@ -4,7 +4,6 @@ import { CkbAssetWithBalance, price, SerializedTransactionToSignWithFee, Transac
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useQueryLiquidityInfo } from 'hooks/useLiquidityQuery';
-import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 import { zip } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
@@ -25,7 +24,6 @@ export function useAddLiquidity(): UseAddLiquidityState {
   const { data: poolLiquidity } = useQueryLiquidityInfo();
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();
-  const [, pushCancelOperation] = usePendingCancelOrders();
 
   const [readyToAddLiquidity, setReadyToAddLiquidity] = useState<BalanceWithoutDecimal[] | undefined>();
   const [readyToAddLiquidityTransaction, setReadyToAddLiquidityTransaction] = useState<
@@ -135,7 +133,6 @@ export function useAddLiquidity(): UseAddLiquidityState {
       TransactionHelper.deserializeTransactionToSign(readyToAddLiquidityTransaction.transactionToSign),
     );
 
-    pushCancelOperation(txHash);
     setReadyToAddLiquidityTransaction(undefined);
     await queryClient.invalidateQueries('getLiquidityOperationSummaries');
     return txHash;

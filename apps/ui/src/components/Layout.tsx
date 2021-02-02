@@ -8,7 +8,7 @@ interface SectionProps {
 export const Section = styled.div<SectionProps>`
   border-radius: 16px;
   padding: 16px;
-  margin: 4px;
+  margin: 16px 0px;
   background: ${(props) => (props.transparent ? '' : '#fff')};
   border: ${(props) => (props.bordered ? '1px solid #e1e1e1' : '')};
 `;

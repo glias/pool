@@ -40,7 +40,8 @@ import Axios, { AxiosInstance } from 'axios';
 import { createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
-import * as ServerTypes from './types';
+import * as ServerTypes from 'suite/api/server-patch';
+import { merge } from 'lodash';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -177,8 +178,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
     if (!res.data) return;
     // TODO DONT create asset here, use the server response
-    if (!res.data.lpToken)
-      res.data.lpToken = createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total);
+    res.data.lpToken = merge(
+      createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total),
+      res.data.lpToken,
+    );
     return res.data;
   }
 
@@ -205,7 +208,9 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
-    const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock });
+    const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock }).catch((err) => {
+      return Promise.reject(err.response.data);
+    });
     return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
 
@@ -214,27 +219,31 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     tokenB: GliaswapAssetWithBalance,
     lock: CkbScript,
   ): Promise<{ tx: Transaction }> {
-    const { data } = await this.axios.post('/swap/orders/swap', {
-      assetInWithAmount: {
-        ...tokenA,
-        address: '',
-      },
-      assetOutWithMinAmount: {
-        ...tokenB,
-        address: '',
-      },
-      lock,
-      tips: {
-        typeHash: CKB_NATIVE_TYPE_HASH,
-        chainType: 'Nervos',
-        decimals: 8,
-        logoURI: '',
-        name: 'CKB',
-        balance: '0',
-        symbol: 'CKB',
-        address: '',
-      },
-    });
+    const { data } = await this.axios
+      .post('/swap/orders/swap', {
+        assetInWithAmount: {
+          ...tokenA,
+          address: '',
+        },
+        assetOutWithMinAmount: {
+          ...tokenB,
+          address: '',
+        },
+        lock,
+        tips: {
+          typeHash: CKB_NATIVE_TYPE_HASH,
+          chainType: 'Nervos',
+          decimals: 8,
+          logoURI: '',
+          name: 'CKB',
+          balance: '0',
+          symbol: 'CKB',
+          address: '',
+        },
+      })
+      .catch((err) => {
+        return Promise.reject(err.response.data);
+      });
     const tx = TransactionHelper.deserializeTransactionToSign(data.tx);
     return {
       tx,

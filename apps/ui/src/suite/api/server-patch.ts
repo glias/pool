@@ -1,7 +1,10 @@
 import { CkbAssetWithBalance, LiquidityOperationType, LiquidityRequestSummary } from '@gliaswap/commons';
+import { merge } from 'lodash';
 import { createAssetWithBalance } from 'suite/asset';
 
 export interface LiquidityOperationInfo {
+  // total liquidity, maybe change next time, not sure
+  total: string;
   transactionHash: string;
   timestamp: string;
   tokenA: TokenAOrTokenB;
@@ -9,6 +12,7 @@ export interface LiquidityOperationInfo {
   stage: Stage;
   type: string;
   poolId: string;
+  lpToken: TokenAOrTokenB;
 }
 
 enum ORDER_STATUS {
@@ -58,20 +62,24 @@ export interface StepsEntity {
 }
 
 export function transformLiquidityOperationInfo(data: LiquidityOperationInfo[]): LiquidityRequestSummary[] {
-  return data.map<LiquidityRequestSummary>((info) => ({
-    poolId: info.poolId,
-    model: 'UNISWAP',
-    status:
-      info.stage.status === ORDER_STATUS.PENDING
-        ? 'pending'
-        : info.stage.status === ORDER_STATUS.OPEN
-        ? 'open'
-        : 'canceling',
-    assets: [info.tokenA as CkbAssetWithBalance, info.tokenB as CkbAssetWithBalance],
-    time: info.timestamp,
-    txHash: info.transactionHash,
-    type: info.type as LiquidityOperationType,
-    // TODO replace with server lpToken when server fixed it
-    lpToken: createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }),
-  }));
+  return data.map<LiquidityRequestSummary>((info) => {
+    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken);
+
+    return {
+      poolId: info.poolId,
+      model: 'UNISWAP',
+      status:
+        info.stage.status === ORDER_STATUS.PENDING
+          ? 'pending'
+          : info.stage.status === ORDER_STATUS.OPEN
+          ? 'open'
+          : 'canceling',
+      assets: [info.tokenA as CkbAssetWithBalance, info.tokenB as CkbAssetWithBalance],
+      time: info.timestamp,
+      txHash: info.transactionHash,
+      type: info.type as LiquidityOperationType,
+      // TODO replace with server lpToken when server fixed it
+      lpToken,
+    };
+  });
 }

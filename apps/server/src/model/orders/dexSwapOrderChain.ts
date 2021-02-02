@@ -10,7 +10,7 @@ export enum ORDER_TYPE {
   BuyCKB = 1,
 }
 
-enum OrderType {
+export enum SwapOrderType {
   CrossChain = 'CrossChain',
   CrossChainOrder = 'CrossChainOrder',
   Order = 'Order',
@@ -106,14 +106,14 @@ export class DexSwapOrderChain extends DexOrderChain {
 
   getType(): string {
     if (this._isOrder) {
-      return OrderType.CrossChainOrder;
+      return SwapOrderType.CrossChainOrder;
     }
 
     if (this._bridgeInfo) {
-      return OrderType.CrossChain;
+      return SwapOrderType.CrossChain;
     }
 
-    return OrderType.Order;
+    return SwapOrderType.Order;
   }
 
   getStatus(): string {

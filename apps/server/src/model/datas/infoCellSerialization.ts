@@ -1,9 +1,10 @@
 import { createFixedStruct, U128LE } from 'easy-byte';
 import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
+import * as utils from '../../utils';
 
 export class DefaultInfoCellSerialization implements InfoCellSerialization {
-  encodeArgs = (hash: string, infoTypeHash: string): string => {
-    return `0x${hash.slice(2, 66)}${infoTypeHash.slice(2, 66)}`;
+  encodeArgs = (sudtTypeHash: string, infoTypeHash: string): string => {
+    return `0x${utils.blake2b(['ckb', sudtTypeHash]).slice(2, 66)}${infoTypeHash.slice(2, 66)}`;
   };
 
   decodeArgs = (argsHex: string): InfoCellArgs => {

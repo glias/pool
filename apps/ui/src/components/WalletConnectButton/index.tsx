@@ -63,6 +63,7 @@ export const WalletConnectButton: React.FC = (props) => {
     <ConnectButtonWrapper>
       <Popover overlayClassName="wallet-overlay" placement="bottomLeft" trigger="click" content={<AssetManager />}>
         <Button
+          style={{ borderRadius: '10px' }}
           {...buttonProps}
           onClick={onClick}
           loading={connecting}
