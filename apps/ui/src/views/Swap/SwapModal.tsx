@@ -14,6 +14,7 @@ import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
 import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
+import { useQueryClient } from 'react-query';
 
 export const SwapModal = () => {
   const {
@@ -101,6 +102,8 @@ export const SwapModal = () => {
     }
   }, [currentCkbTx, adapter.raw.pw]);
 
+  const queryClient = useQueryClient();
+
   const placeOrder = useCallback(async () => {
     setIsPlacingOrder(true);
     try {
@@ -125,10 +128,14 @@ export const SwapModal = () => {
         title: 'Sign Transaction',
         content: error.message,
       });
+    }
+
+    try {
+      await queryClient.refetchQueries('swap-list');
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder, resetForm]);
+  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder, resetForm, queryClient]);
 
   const onCancel = useCallback(() => {
     if (isPlacingOrder) {
