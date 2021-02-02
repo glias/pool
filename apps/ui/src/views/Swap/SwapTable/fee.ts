@@ -57,7 +57,7 @@ export function getValueFromInput(input: string, decimal: number) {
   if (val.isNaN()) {
     return '';
   }
-  BigNumber.config({ EXPONENTIAL_AT: 30 });
+
   return val.toFixed();
 }
 
@@ -66,7 +66,7 @@ export function getInputFromValue(value: string, decimal: number) {
   if (val.isNaN()) {
     return '';
   }
-  BigNumber.config({ EXPONENTIAL_AT: 30 });
+
   return val.toFixed();
 }
 
