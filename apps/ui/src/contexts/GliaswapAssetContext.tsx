@@ -77,7 +77,10 @@ export const Provider: React.FC<ProviderProps> = (props) => {
 
   useEffect(() => {
     if (connectStatus !== 'connected') {
-      setAssetsWithBalance({ lastUpdated: Date.now(), value: assetsWithBalance.value.map(createAssetWithBalance) });
+      setAssetsWithBalance({
+        lastUpdated: Date.now(),
+        value: assetsWithBalance.value.map((asset) => createAssetWithBalance(asset, 0)),
+      });
       return;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
