@@ -2,7 +2,7 @@ import * as commons from '@gliaswap/commons';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 
 import * as config from '../config';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';

@@ -1,5 +1,5 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_TYPE_HASH, MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 import * as config from '../config';
 import { Script } from '../model';
