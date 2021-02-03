@@ -45,7 +45,7 @@ export const BalanceStatus: React.FC<BalanceStatusProps> = (props) => {
 
   const free = asset.balance;
   const occupied = isCkbNativeAsset(asset) ? asset.occupied : '';
-  const locked = asset.locked;
+  // const locked = asset.locked;
 
   return (
     <BalanceStatusWrapper>
@@ -56,23 +56,25 @@ export const BalanceStatus: React.FC<BalanceStatusProps> = (props) => {
         <HumanizeBalance style={{ fontSize: '24px' }} asset={asset} value={calcTotalBalance(asset)} />
       </div>
       <div className="balance-desc space-bottom">
-        <div className="balance-desc-item">
-          <Description label={i18n.t('Available')}>
-            <HumanizeBalance asset={asset} value={free} />
-          </Description>
-        </div>
         {isCkbNativeAsset(asset) && (
-          <div className="balance-desc-item">
-            <Description label={i18n.t('Occupied')}>
-              <HumanizeBalance asset={asset} value={occupied} />
-            </Description>
-          </div>
+          <>
+            <div className="balance-desc-item">
+              <Description label={i18n.t('Available')}>
+                <HumanizeBalance asset={asset} value={free} />
+              </Description>
+            </div>
+            <div className="balance-desc-item">
+              <Description label={i18n.t('Occupied')}>
+                <HumanizeBalance asset={asset} value={occupied} />
+              </Description>
+            </div>
+          </>
         )}
-        <div className="balance-desc-item">
-          <Description label={i18n.t('Locked')}>
-            <HumanizeBalance asset={asset} value={locked} />
-          </Description>
-        </div>
+        {/*<div className="balance-desc-item">*/}
+        {/*  <Description label={i18n.t('Locked')}>*/}
+        {/*    <HumanizeBalance asset={asset} value={locked} />*/}
+        {/*  </Description>*/}
+        {/*</div>*/}
       </div>
     </BalanceStatusWrapper>
   );

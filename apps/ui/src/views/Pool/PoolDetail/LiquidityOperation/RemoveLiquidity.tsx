@@ -49,6 +49,9 @@ const RemoveLiquidityWrapper = styled.div`
 const ReceiveAssets = styled(AssetBalanceList)`
   font-size: 18px;
   font-weight: bold;
+  .column-numerical {
+    text-align: left;
+  }
 `;
 
 export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {

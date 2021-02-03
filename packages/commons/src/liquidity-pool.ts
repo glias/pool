@@ -31,7 +31,7 @@ export interface LiquidityInfo extends PoolInfo {
   lpToken: LPTokenWithBalance;
 }
 
-export interface LiquidityRequestSummary extends PoolInfo {
+export interface LiquidityOperationSummary extends PoolInfo {
   txHash: string;
   // yyyy-MM-dd HH:mm:ss
   time: string;

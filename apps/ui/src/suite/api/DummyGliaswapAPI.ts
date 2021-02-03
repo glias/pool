@@ -9,7 +9,7 @@ import {
   GliaswapAPI,
   LiquidityInfo,
   LiquidityPoolFilter,
-  LiquidityRequestSummary,
+  LiquidityOperationSummary,
   SerializedTransactionToSignWithFee,
   SwapOrder,
 } from '@gliaswap/commons';
@@ -102,7 +102,7 @@ export class DummyGliaswapAPI implements GliaswapAPI {
     });
   }
 
-  async getLiquidityOperationSummaries(): Promise<LiquidityRequestSummary[]> {
+  async getLiquidityOperationSummaries(): Promise<LiquidityOperationSummary[]> {
     return [
       {
         txHash: '0x78320c53ae665b97c4f9ec699d23fb59cfac959ec3d780c853760a449258bc2f',

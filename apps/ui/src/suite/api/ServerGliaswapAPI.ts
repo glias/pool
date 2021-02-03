@@ -23,7 +23,7 @@ import {
   LiquidityInfoFilter,
   LiquidityOperationSummaryFilter,
   LiquidityPoolFilter,
-  LiquidityRequestSummary,
+  LiquidityOperationSummary,
   Maybe,
   PoolInfo,
   Script as CkbScript,
@@ -185,7 +185,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityRequestSummary[]> {
+  async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityOperationSummary[]> {
     const res = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
     return ServerTypes.transformLiquidityOperationInfo(res.data);
   }

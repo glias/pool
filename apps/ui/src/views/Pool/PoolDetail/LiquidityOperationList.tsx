@@ -1,4 +1,4 @@
-import { LiquidityRequestSummary } from '@gliaswap/commons';
+import { LiquidityOperationSummary } from '@gliaswap/commons';
 import { Button, Divider, List, Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
@@ -12,7 +12,7 @@ import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
-import { useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -21,7 +21,7 @@ import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModa
 const { Text } = Typography;
 
 interface LiquidityOrderItemProps {
-  summary: LiquidityRequestSummary;
+  summary: LiquidityOperationSummary;
   onCancel: () => void;
 }
 
@@ -84,30 +84,57 @@ const LiquidityOrderListWrapper = styled(Section)`
 `;
 
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
-  const { api, currentUserLock } = useGliaswap();
   const poolId = props.poolId;
+  const { api, currentUserLock } = useGliaswap();
+  const queryClient = useQueryClient();
+  const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityOperationSummary | null>(null);
+
   const query = useQuery(
-    ['getLiquidityOperationSummaries', poolId, currentUserLock?.args],
-    () => api.getLiquidityOperationSummaries({ lock: currentUserLock!, poolId }),
+    ['getLiquidityOperationSummaries', poolId, currentUserLock],
+    () => {
+      if (!currentUserLock) throw new Error('The current user is lock is not found, maybe the wallet is disconnected');
+      return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId });
+    },
     { enabled: currentUserLock != null },
   );
 
+  const {
+    generateCancelLiquidityOperationTransaction,
+    readyToSendTransaction,
+    sendCancelLiquidityOperationTransaction,
+  } = useCancelLiquidityOperation();
+
+  async function prepareCancelOperation(operation: LiquidityOperationSummary): Promise<void> {
+    setReadyToCancelOperation(operation);
+    await generateCancelLiquidityOperationTransaction(operation.txHash);
+  }
+
   const { data: summaries } = query;
-
-  const { cancelLiquidityOperation } = useCancelLiquidityOperation();
-  const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityRequestSummary | null>(null);
-
   const { isLoading: isSendingCancelRequest, mutateAsync: cancelOperation } = useMutation(
     ['sendCancelLiquidityOperation'],
     async () => {
-      if (!readyToCancelOperation) return;
-      const txHash = await cancelLiquidityOperation(readyToCancelOperation.txHash);
-      setReadyToCancelOperation(null);
-      return txHash;
+      if (!readyToSendTransaction) return;
+      await sendCancelLiquidityOperationTransaction();
+      await queryClient.refetchQueries('getLiquidityOperationSummaries');
     },
   );
 
   if (!currentUserLock) return null;
+
+  const lpTokenInfoEl = readyToCancelOperation && (
+    <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
+      <div>
+        <HumanizeBalance asset={readyToCancelOperation.lpToken} />
+      </div>
+      <div>
+        <PoolAssetSymbol assets={readyToCancelOperation.assets} />
+      </div>
+    </SpaceBetweenRow>
+  );
+
+  const operationAssetsEl = readyToCancelOperation && (
+    <AssetBalanceList assets={readyToCancelOperation.assets} style={{ fontWeight: 'bold' }} />
+  );
 
   return (
     <LiquidityOrderListWrapper>
@@ -125,13 +152,13 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
         dataSource={summaries}
         renderItem={(summary) => (
           <List.Item key={summary.txHash}>
-            <LiquidityOrderSummarySection summary={summary} onCancel={() => setReadyToCancelOperation(summary)} />
+            <LiquidityOrderSummarySection summary={summary} onCancel={() => prepareCancelOperation(summary)} />
           </List.Item>
         )}
       />
 
       <OperationConfirmModal
-        visible={!!readyToCancelOperation}
+        visible={!!readyToSendTransaction}
         onOk={() => cancelOperation()}
         onCancel={() => !isSendingCancelRequest && setReadyToCancelOperation(null)}
         operation={
@@ -140,29 +167,27 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
           </Text>
         }
       >
-        {readyToCancelOperation && (
+        {readyToCancelOperation && readyToSendTransaction && (
           <>
-            <div className="label">{i18n.t(readyToCancelOperation.type)}</div>
+            <div className="label">{i18n.t(upperFirst(readyToCancelOperation.type))}</div>
 
-            <AssetBalanceList assets={readyToCancelOperation.assets} style={{ fontWeight: 'bold' }} />
+            {readyToCancelOperation.type === 'add' ? operationAssetsEl : lpTokenInfoEl}
 
             <div style={{ padding: '8px 0' }}>
               <DownArrowSvg />
             </div>
 
             <div className="label">{i18n.t('Receive(EST)')}</div>
-            <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
-              <div>
-                <HumanizeBalance asset={readyToCancelOperation.lpToken} />
-              </div>
-              <div>
-                <PoolAssetSymbol assets={readyToCancelOperation.assets} />
-              </div>
-            </SpaceBetweenRow>
+            {readyToCancelOperation.type === 'add' ? lpTokenInfoEl : operationAssetsEl}
 
             <SpaceBetweenRow>
               <TransactionFeeLabel />
-              <HumanizeBalance asset={{ symbol: 'CKB', decimals: 8 }} value={0} maxToFormat={8} showSuffix />
+              <HumanizeBalance
+                asset={{ symbol: 'CKB', decimals: 8 }}
+                value={readyToSendTransaction.fee}
+                maxToFormat={8}
+                showSuffix
+              />
             </SpaceBetweenRow>
           </>
         )}

@@ -1,20 +1,41 @@
-import { TransactionHelper } from '@gliaswap/commons';
+import { SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
 import { useGliaswap } from 'hooks/useGliaswap';
-import { useQueryClient } from 'react-query';
+import { useState } from 'react';
 
-export function useCancelLiquidityOperation() {
+interface UseCancelLiquidityOperationState {
+  generateCancelLiquidityOperationTransaction: (txHash: string) => Promise<SerializedTransactionToSignWithFee>;
+  sendCancelLiquidityOperationTransaction: () => Promise<string>;
+  readyToSendTransaction: SerializedTransactionToSignWithFee | undefined;
+}
+
+export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState {
   const { api, currentUserLock, adapter } = useGliaswap();
-  const queryClient = useQueryClient();
+  const [readyToSendTransaction, setReadyToSendTransaction] = useState<
+    SerializedTransactionToSignWithFee | undefined
+  >();
 
-  async function cancelLiquidityOperation(txHash: string) {
+  async function generateLiquidityCancelOperationTransaction(txHash: string) {
     if (!currentUserLock) throw new Error('Cannot find current user lock, maybe wallet is disconnected');
-    const { transactionToSign } = await api.generateCancelLiquidityRequestTransaction({
+    const transaction = await api.generateCancelLiquidityRequestTransaction({
       txHash,
       lock: currentUserLock,
     });
-    await adapter.signer.sendTransaction(TransactionHelper.deserializeTransactionToSign(transactionToSign));
-    await queryClient.refetchQueries('getLiquidityOperationSummaries');
+    setReadyToSendTransaction(transaction);
+    return transaction;
   }
 
-  return { cancelLiquidityOperation };
+  async function sendCancelLiquidityOperationTransaction() {
+    if (!readyToSendTransaction) throw new Error('Cannot find current user lock, maybe wallet is disconnected');
+    const txHash = await adapter.signer.sendTransaction(
+      TransactionHelper.deserializeTransactionToSign(readyToSendTransaction.transactionToSign),
+    );
+    setReadyToSendTransaction(undefined);
+    return txHash;
+  }
+
+  return {
+    sendCancelLiquidityOperationTransaction,
+    generateCancelLiquidityOperationTransaction: generateLiquidityCancelOperationTransaction,
+    readyToSendTransaction,
+  };
 }
