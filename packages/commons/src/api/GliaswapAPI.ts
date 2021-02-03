@@ -8,7 +8,7 @@ import {
   CkbAssetWithBalance,
   GliaswapAssetWithBalance,
   LiquidityInfo,
-  LiquidityRequestSummary,
+  LiquidityOperationSummary,
   LPTokenWithBalance,
   Maybe,
   PoolInfo,
@@ -107,7 +107,7 @@ export interface GliaswapAPI {
    */
   getLiquidityInfo: (filter: LiquidityInfoFilter) => Promise<Maybe<LiquidityInfo>>;
 
-  getLiquidityOperationSummaries: (filter: LiquidityOperationSummaryFilter) => Promise<LiquidityRequestSummary[]>;
+  getLiquidityOperationSummaries: (filter: LiquidityOperationSummaryFilter) => Promise<LiquidityOperationSummary[]>;
 
   getSwapOrders: (lock: Script, ethAddress: string) => Promise<SwapOrder[]>;
 
