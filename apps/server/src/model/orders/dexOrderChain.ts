@@ -47,6 +47,7 @@ export abstract class DexOrderChain {
   ) {}
 
   abstract getOrderHistory(): OrderHistory;
+  abstract filterOrderHistory(): boolean;
   abstract getType(): string;
   abstract getStatus(): string;
 

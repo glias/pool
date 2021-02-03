@@ -152,4 +152,11 @@ export class DexLiquidityChain extends DexOrderChain {
     }
     return sudtType;
   }
+
+  filterOrderHistory(): boolean {
+    if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+      return true;
+    }
+    return false;
+  }
 }

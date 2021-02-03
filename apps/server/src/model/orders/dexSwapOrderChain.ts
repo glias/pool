@@ -158,10 +158,10 @@ export class DexSwapOrderChain extends DexOrderChain {
       result.push(step);
     }
 
-    if (this.tx.txStatus.status !== 'pending') {
-      const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
-      result.push(step);
-    }
+    // if (this.tx.txStatus.status !== 'pending') {
+    //   const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
+    //   result.push(step);
+    // }
 
     orders.forEach((x) => {
       const step: Step = new Step(x.tx.transaction.hash, x.index.toString());
@@ -169,5 +169,24 @@ export class DexSwapOrderChain extends DexOrderChain {
     });
 
     return result;
+  }
+
+  filterOrderHistory(): boolean {
+    if (SwapOrderType.CrossChainOrder === this.getType() || SwapOrderType.Order === this.getType()) {
+      if (this.getStatus() === ORDER_STATUS.PENDING) {
+        return false;
+      }
+
+      if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELING) {
+        return true;
+      }
+      return false;
+    }
+
+    if (SwapOrderType.CrossChain === this.getType() && this.getStatus() !== ORDER_STATUS.CANCELING) {
+      return true;
+    }
+
+    return false;
   }
 }

@@ -55,20 +55,7 @@ export class DexSwapService {
     });
 
     return orders
-      .filter((x) => {
-        if (SwapOrderType.CrossChainOrder === x.getType() || SwapOrderType.Order === x.getType()) {
-          if (x.getStatus() !== ORDER_STATUS.COMPLETED && x.getStatus() !== ORDER_STATUS.CANCELING) {
-            return true;
-          }
-          return false;
-        }
-
-        if (SwapOrderType.CrossChain === x.getType() && x.getStatus() !== ORDER_STATUS.CANCELING) {
-          return true;
-        }
-
-        return false;
-      })
+      .filter((x) => {})
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
