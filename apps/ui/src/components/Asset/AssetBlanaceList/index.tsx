@@ -28,6 +28,7 @@ const LiquidityAssetAmountsWrapper = styled.div`
 
   .column-numerical {
     padding-right: 4px;
+    text-align: right;
   }
 
   .column-symbol {

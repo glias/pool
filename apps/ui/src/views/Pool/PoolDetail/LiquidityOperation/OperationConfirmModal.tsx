@@ -21,6 +21,10 @@ const LiquidityOperationConfirmWrapper = styled.div`
   .confirm-content {
     padding: 16px 0;
   }
+
+  .column-numerical {
+    text-align: left;
+  }
 `;
 
 export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = ({

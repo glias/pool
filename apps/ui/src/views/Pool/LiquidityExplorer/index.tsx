@@ -1,6 +1,7 @@
 import { LiquidityPoolFilter } from '@gliaswap/commons';
 import { Radio, Skeleton } from 'antd';
 import { useGliaswap } from 'hooks';
+import i18n from 'i18n';
 import React, { useMemo } from 'react';
 import { useQuery } from 'react-query';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -33,8 +34,8 @@ const LiquidityExplorer = () => {
           }
           optionType="button"
           options={[
-            { label: 'My Liquidity', value: 'mine' },
-            { label: 'Explore Pool', value: 'all' },
+            { label: i18n.t('My Liquidity'), value: 'mine' },
+            { label: i18n.t('Explore Pool'), value: 'all' },
           ]}
         />
       </header>
