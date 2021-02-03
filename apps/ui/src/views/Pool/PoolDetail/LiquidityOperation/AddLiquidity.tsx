@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { AssetWithBalance, LiquidityInfo } from '@gliaswap/commons';
+import { Asset, AssetWithBalance, isCkbNativeAsset, LiquidityInfo } from '@gliaswap/commons';
 import { Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, AssetBaseQuotePrices, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
@@ -155,10 +155,10 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     if (!/^\d*(\.\d*)?$/.test(val)) return form.setFieldValue('amount1', val.slice(0, -1));
 
     const readyToAddAmount = onUserInputReadyToAddAmount(val, 0);
-    if (!readyToAddAmount) return;
-    if (readyToAddAmount[1]) {
-      form.setFieldValue('amount2', readyToAddAmount[1].toHumanizeWithMaxDecimal());
-    }
+    const amount1 = val;
+    const amount2 = readyToAddAmount?.[1] ? readyToAddAmount[1].toHumanizeWithMaxDecimal() : form.values.amount2;
+    form.setValues({ amount1, amount2 }, true);
+    setImmediate(() => form.setTouched({ amount1: true, amount2: true }));
   }
 
   function onAsset2Changed(val: string, form: FormikProps<InputFields>) {
@@ -166,10 +166,16 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     if (!/\d+(\.\d*)?/.test(val)) return form.setFieldValue('amount2', val.slice(0, -1));
 
     const readyToAddAmount = onUserInputReadyToAddAmount(val, 1);
-    if (!readyToAddAmount) return;
-    if (readyToAddAmount[0]) {
-      form.setFieldValue('amount1', readyToAddAmount[0].toHumanizeWithMaxDecimal());
-    }
+    const amount1 = readyToAddAmount?.[0] ? readyToAddAmount[0].toHumanizeWithMaxDecimal() : form.values.amount1;
+    const amount2 = val;
+    form.setValues({ amount1, amount2 }, true);
+    setImmediate(() => form.setTouched({ amount1: true, amount2: true }));
+  }
+
+  function shouldShowMaxLabel(asset: Asset, userFreeBalance?: Amount): userFreeBalance is Amount {
+    if (!userFreeBalance) return false;
+    if (isCkbNativeAsset(asset)) return userFreeBalance.value.gt(10 ** 8);
+    return userFreeBalance.value.gt(0);
   }
 
   const readyToAddShareEl = useMemo(() => {
@@ -189,21 +195,21 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
         {(form) => (
           <Form layout="vertical">
             <Form.Item name="amount1" label={i18n.t('Asset 1')}>
-              <div className="label-max">
-                {userFreeBalances && userFreeBalances[0] && (
+              {shouldShowMaxLabel(poolAsset1, userFreeBalances?.[0]) && (
+                <div className="label-max">
                   <HumanizeBalance
                     onClick={() =>
                       // asset 1 is ckb, so reduce 0.1 ckb first to ensure sufficient transaction fee
                       onAsset1Changed(
-                        userFreeBalances[0].newValue((val) => val.minus(10 ** 8)).toHumanize(poolAsset1.decimals),
+                        userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).toHumanizeWithMaxDecimal(),
                         form,
                       )
                     }
                     asset={poolAsset1}
-                    value={userFreeBalances[0].newValue((val) => val.minus(10 ** 8)).value}
+                    value={userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).value}
                   />
-                )}
-              </div>
+                </div>
+              )}
               <Input
                 autoComplete="off"
                 size="large"
@@ -217,15 +223,15 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             </Form.Item>
             <PlusOutlined className="plus-icon" />
             <Form.Item name="amount2" label={i18n.t('Asset 2')}>
-              <div className="label-max">
-                {userFreeBalances && userFreeBalances[1] && (
+              {shouldShowMaxLabel(poolAsset2, userFreeBalances?.[1]) && (
+                <div className="label-max">
                   <HumanizeBalance
-                    onClick={() => onAsset2Changed(userFreeBalances[1].toHumanize(poolAsset2.decimals), form)}
+                    onClick={() => onAsset2Changed(userFreeBalances![1].toHumanize(poolAsset2.decimals), form)}
                     asset={poolAsset2}
-                    value={userFreeBalances[1]}
+                    value={userFreeBalances![1]}
                   />
-                )}
-              </div>
+                </div>
+              )}
               <Input
                 autoComplete="off"
                 size="large"
