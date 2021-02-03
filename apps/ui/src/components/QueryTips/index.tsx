@@ -29,8 +29,14 @@ export const QueryTips: React.FC<UpdateStatusProps> = (props) => {
 
   const statusNode = useMemo(() => {
     if (status === 'loading' || status === 'idle') return <Spin size="small" />;
-    if (status === 'error') return <WarningOutlined />;
-  }, [status]);
+    if (status === 'error') {
+      return (
+        <Tooltip overlay={String(props.query.error)}>
+          <WarningOutlined />
+        </Tooltip>
+      );
+    }
+  }, [props.query.error, status]);
 
   return (
     <UpdateStatusWrapper>
