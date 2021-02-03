@@ -109,8 +109,13 @@ export class DexOrderChainFactory {
   private matchNextOrderCell(nextTx: TransactionWithStatus, targetInputOutPoint: string): DexOrderChain {
     const index = this.matchIndexOfInputInArray(nextTx.transaction.inputs, targetInputOutPoint);
     const output =
-      nextTx.transaction.outputs.length === 1 ? nextTx.transaction.outputs[0] : nextTx.transaction.outputs[index];
-    const data = nextTx.transaction.outputsData[index];
+      nextTx.transaction.outputs.length === 1 || nextTx.transaction.inputs.length != nextTx.transaction.outputs.length
+        ? nextTx.transaction.outputs[0]
+        : nextTx.transaction.outputs[index];
+    const data =
+      nextTx.transaction.outputs.length === 1 || nextTx.transaction.inputs.length != nextTx.transaction.outputs.length
+        ? nextTx.transaction.outputsData[0]
+        : nextTx.transaction.outputsData[index];
 
     return this.isSwapOrder
       ? new DexSwapOrderChain(output, data, nextTx, index, false, null)
