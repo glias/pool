@@ -4,9 +4,8 @@ import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
-import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
+import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
-import { SwapOrderType } from '../model/orders/dexSwapOrderChain';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;
@@ -55,7 +54,7 @@ export class DexSwapService {
     });
 
     return orders
-      .filter((x) => {})
+      .filter((x) => x.filterOrderHistory())
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
