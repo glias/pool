@@ -97,7 +97,7 @@ export class DexLiquidityPoolService {
         type: typeScript.toLumosScript(),
       };
 
-      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions);
+      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions, true, true);
       if (userLiquidityCells.length === 0) {
         continue;
       }
@@ -153,7 +153,7 @@ export class DexLiquidityPoolService {
         order: 'desc',
       };
 
-      const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+      const infoCells = await this.dexRepository.collectCells(queryOptions, false);
       if (infoCells.length === 0) {
         continue;
       }

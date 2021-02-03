@@ -46,7 +46,7 @@ export type ckbMethods =
   | 'getBlockchainInfo'
   | 'rpcProperties';
 export interface DexRepository extends ForceBridgeRepository {
-  collectCells: (queryOptions: QueryOptions, includePoolOutput?: boolean) => Promise<Cell[]>;
+  collectCells: (queryOptions: QueryOptions, filterPool?: boolean, includePoolOutput?: boolean) => Promise<Cell[]>;
 
   collectTransactions: (queryOptions: QueryOptions, includePool?: boolean) => Promise<TransactionWithStatus[]>;
 
