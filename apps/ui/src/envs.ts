@@ -11,6 +11,14 @@ export function explore(url: string): string {
   return UIEnvs.get('EXPLORER_URL') + url;
 }
 
+export function exploreAddress(address: string): string {
+  return `${UIEnvs.get('EXPLORER_URL')}/address/${address}`;
+}
+
+export function exploreSudt(typeHash: string, address?: string): string {
+  return `${UIEnvs.get('EXPLORER_URL')}/sudt/${typeHash}?address=${address}`;
+}
+
 // TODO locale to typeHash
 export function exploreTypeHash(typeHash: string): string {
   return explore(`/type/${typeHash}`);
