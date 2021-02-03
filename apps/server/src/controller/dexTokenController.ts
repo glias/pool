@@ -72,6 +72,7 @@ export default class DexTokenController {
             lock: lock.toLumosScript(),
           },
           true,
+          true,
         );
         const normalCells = cells.filter((cell) => cell.data === '0x' && !cell.cellOutput.type);
 
@@ -96,6 +97,7 @@ export default class DexTokenController {
             lock: lock.toLumosScript(),
             type: token.typeScript.toLumosScript(),
           },
+          true,
           true,
         );
         let balance = BigInt(0);

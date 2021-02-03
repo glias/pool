@@ -28,7 +28,7 @@ export class MockRepository implements DexRepository {
     };
   }
 
-  async collectCells(queryOptions: QueryOptions, includePoolOutput?: boolean): Promise<Cell[]> {
+  async collectCells(queryOptions: QueryOptions, filterPool?: boolean, includePoolOutput?: boolean): Promise<Cell[]> {
     return [];
   }
 
