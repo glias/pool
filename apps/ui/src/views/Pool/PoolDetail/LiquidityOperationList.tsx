@@ -50,8 +50,13 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       <SpaceBetweenRow>
         <div />
         <div>
-          <Button size="small" onClick={props.onCancel} disabled={summary.status !== 'open'}>
-            {summary.status === 'pending' ? 'Pending' : summary.status === 'open' ? 'Cancel' : 'Canceling...'}
+          <Button
+            size="small"
+            onClick={props.onCancel}
+            loading={summary.status !== 'open'}
+            disabled={summary.status !== 'open'}
+          >
+            {summary.status === 'pending' ? 'Pending' : summary.status === 'open' ? 'Cancel' : 'Canceling'}
           </Button>
         </div>
       </SpaceBetweenRow>
@@ -110,12 +115,13 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   }
 
   const { data: summaries } = query;
-  const { isLoading: isSendingCancelRequest, mutateAsync: cancelOperation } = useMutation(
+  const { isLoading: isSendingCancelRequest, mutateAsync: sendCancelOperationTransaction } = useMutation(
     ['sendCancelLiquidityOperation'],
     async () => {
       if (!readyToSendTransaction) return;
       await sendCancelLiquidityOperationTransaction();
       await queryClient.refetchQueries('getLiquidityOperationSummaries');
+      setReadyToCancelOperation(null);
     },
   );
 
@@ -158,16 +164,20 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       />
 
       <OperationConfirmModal
-        visible={!!readyToSendTransaction}
-        onOk={() => cancelOperation()}
+        visible={!!readyToCancelOperation}
+        onOk={() => sendCancelOperationTransaction()}
         onCancel={() => !isSendingCancelRequest && setReadyToCancelOperation(null)}
         operation={
-          <Text strong type="danger">
-            {i18n.t('Cancel Add Liquidity')}
-          </Text>
+          readyToCancelOperation && (
+            <Text strong type="danger">
+              {readyToCancelOperation.type === 'add'
+                ? i18n.t(`Cancel Add Liquidity`)
+                : i18n.t(`Cancel Remove Liquidity`)}
+            </Text>
+          )
         }
       >
-        {readyToCancelOperation && readyToSendTransaction && (
+        {readyToCancelOperation && (
           <>
             <div className="label">{i18n.t(upperFirst(readyToCancelOperation.type))}</div>
 
@@ -184,7 +194,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
               <TransactionFeeLabel />
               <HumanizeBalance
                 asset={{ symbol: 'CKB', decimals: 8 }}
-                value={readyToSendTransaction.fee}
+                value={readyToSendTransaction?.fee}
                 maxToFormat={8}
                 showSuffix
               />
