@@ -3,7 +3,7 @@ import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, ScriptBuilder, Token } from '../model';
 import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
-import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
+import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import {
@@ -65,7 +65,7 @@ export class DexLiquidityPoolService {
 
     const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.infoCell.cellOutput.lock.toHash());
     return liquidityOrders
-      .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.cell.lock.args.slice(116, 180) === userLockHash)
+      .filter((x) => x.filterOrderHistory() && x.cell.lock.args.slice(116, 180) === userLockHash)
       .map((x) => {
         const history = x.getOrderHistory();
         const lpToken = new Token(typeScript.toHash());
