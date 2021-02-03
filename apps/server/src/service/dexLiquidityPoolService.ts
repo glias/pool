@@ -61,27 +61,19 @@ export class DexLiquidityPoolService {
     const removeOrders = factory.getOrderChains(queryOptions.lock, lpTokenTypeScript, removeTxs, null);
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
-    const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.infoCell.cellOutput.lock.toHash());
-    const userLiquidityCells = await this.getLiquidityCells(lock, typeScript);
-    const cellsGroupByOutPoint = new Map<string, Cell>();
-    userLiquidityCells.forEach((x) =>
-      cellsGroupByOutPoint.set(`${x.outPoint.txHash}:${parseInt(x.outPoint.index)}`, x),
-    );
-
     const userLockHash = lock.toHash().slice(2, 66);
+
+    const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.infoCell.cellOutput.lock.toHash());
     return liquidityOrders
       .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.cell.lock.args.slice(116, 180) === userLockHash)
       .map((x) => {
         const history = x.getOrderHistory();
-        if (cellsGroupByOutPoint.get(`${x.tx.transaction.hash}:${x.index}`)) {
-          const cell = cellsGroupByOutPoint.get(`${x.tx.transaction.hash}:${x.index}`);
-          const lpToken = new Token(typeScript.toHash());
-          lpToken.balance = CellInfoSerializationHolderFactory.getInstance()
-            .getSudtCellSerialization()
-            .decodeData(cell.data)
-            .toString();
-          history.lpToken = lpToken;
-        }
+        const lpToken = new Token(typeScript.toHash());
+        lpToken.balance = CellInfoSerializationHolderFactory.getInstance()
+          .getSudtCellSerialization()
+          .decodeData(x.data)
+          .toString();
+        history.lpToken = lpToken;
         return history;
       })
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
