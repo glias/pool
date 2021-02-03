@@ -17,7 +17,7 @@ import { Trans } from 'react-i18next';
 import { useCallback } from 'react';
 import { useState } from 'react';
 import { useGliaswap } from 'contexts';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { LoadingOutlined } from '@ant-design/icons';
 import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 
@@ -120,7 +120,7 @@ export const CancelModal = () => {
   );
 
   const [, addPendingCancelOrder] = usePendingCancelOrders();
-
+  const queryClient = useQueryClient();
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
@@ -136,7 +136,20 @@ export const CancelModal = () => {
       setIsSending(false);
       setCancelTx(null);
     }
-  }, [adapter.raw.pw, cancelTx, addPendingCancelOrder, setCancelModalVisable, currentOrder?.transactionHash]);
+    try {
+      await queryClient.refetchQueries('swap-list');
+    } finally {
+      setIsSending(false);
+      setCancelTx(null);
+    }
+  }, [
+    adapter.raw.pw,
+    cancelTx,
+    addPendingCancelOrder,
+    setCancelModalVisable,
+    currentOrder?.transactionHash,
+    queryClient,
+  ]);
 
   const txFee = useMemo(() => {
     if (isFetching) {
