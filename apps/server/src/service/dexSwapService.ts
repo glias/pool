@@ -7,7 +7,6 @@ import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFa
 import { DexOrderChain, OrderHistory, ORDER_STATUS } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
 import { SwapOrderType } from '../model/orders/dexSwapOrderChain';
-import { use } from 'chai';
 
 export class DexSwapService {
   private readonly txBuilderService: txBuilder.TxBuilderService;

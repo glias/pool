@@ -62,9 +62,20 @@ export class DexLiquidityPoolService {
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
     const userLockHash = lock.toHash().slice(2, 66);
+
+    const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.infoCell.cellOutput.lock.toHash());
     return liquidityOrders
       .filter((x) => x.getStatus() !== ORDER_STATUS.COMPLETED && x.cell.lock.args.slice(116, 180) === userLockHash)
-      .map((x) => x.getOrderHistory())
+      .map((x) => {
+        const history = x.getOrderHistory();
+        const lpToken = new Token(typeScript.toHash());
+        lpToken.balance = CellInfoSerializationHolderFactory.getInstance()
+          .getSudtCellSerialization()
+          .decodeData(x.data)
+          .toString();
+        history.lpToken = lpToken;
+        return history;
+      })
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
   }
@@ -92,12 +103,7 @@ export class DexLiquidityPoolService {
         'type',
         poolInfo.infoCell.cellOutput.lock.toHash(),
       );
-      const queryOptions = {
-        lock: lock.toLumosScript(),
-        type: typeScript.toLumosScript(),
-      };
-
-      const userLiquidityCells = await this.dexRepository.collectCells(queryOptions, true, true);
+      const userLiquidityCells = await this.getLiquidityCells(lock, typeScript);
       if (userLiquidityCells.length === 0) {
         continue;
       }
@@ -135,6 +141,16 @@ export class DexLiquidityPoolService {
     }
 
     return userLiquiditys;
+  }
+
+  private async getLiquidityCells(lock: Script, typeScript: Script) {
+    const queryOptions = {
+      lock: lock.toLumosScript(),
+      type: typeScript.toLumosScript(),
+    };
+
+    const userLiquidityCells = await this.dexRepository.collectCells(queryOptions, true, true);
+    return userLiquidityCells;
   }
 
   private async getPoolInfos(): Promise<PoolInfo[]> {

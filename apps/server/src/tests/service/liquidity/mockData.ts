@@ -1,4 +1,4 @@
-import { CKB_STR_TO_HASH, INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, POOL_INFO_TYPE_SCRIPT } from '../../../config';
+import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, POOL_INFO_TYPE_SCRIPT } from '../../../config';
 import { CellInfoSerializationHolderFactory, Script, TokenHolderFactory } from '../../../model';
 
 export const mockGliaPoolInfo = {

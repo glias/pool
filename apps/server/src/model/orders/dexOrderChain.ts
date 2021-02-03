@@ -27,6 +27,7 @@ export class Step {
 
 export interface OrderHistory {
   poolId?: string;
+  lpToken?: Token;
   transactionHash: string;
   timestamp?: string;
   amountIn: Token;
