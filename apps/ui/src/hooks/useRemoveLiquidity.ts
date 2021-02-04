@@ -38,7 +38,7 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
   >();
 
   const [readyToReceiveAssets, readyToRemoveLpToken] = useMemo<[CkbAssetWithBalance[], CkbAssetWithBalance]>(() => {
-    if (!poolLiquidityQuery.data) {
+    if (!poolLiquidityQuery.data || !userLiquidityQuery.data) {
       const placeholder = createAssetWithBalance({
         name: 'unknown',
         chainType: 'Nervos',
@@ -48,7 +48,7 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
       return [[] as CkbAssetWithBalance[], placeholder];
     }
 
-    const assets = poolLiquidityQuery.data.assets;
+    const assets = userLiquidityQuery.data.assets;
 
     const readyToReceiveAssets = assets.map<CkbAssetWithBalance>((asset) =>
       update(asset, {
@@ -61,7 +61,7 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
     });
 
     return [readyToReceiveAssets, readyToRemoveLpToken];
-  }, [poolLiquidityQuery.data, readyToRemoveShare]);
+  }, [poolLiquidityQuery.data, readyToRemoveShare, userLiquidityQuery.data]);
 
   useEffect(() => {
     setReadyToSendTransactionWithFee(undefined);
