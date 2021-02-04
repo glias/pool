@@ -5,7 +5,7 @@ import { ConfirmButton } from 'components/ConfirmButton';
 import i18n from 'i18n';
 import { ReactComponent as SuccessSvg } from 'assets/svg/success.svg';
 import { ReactComponent as DeclineSvg } from 'assets/svg/decline.svg';
-import { exploreTransaction } from 'envs';
+import { etherscanTransaction, exploreTransaction } from 'envs';
 
 export interface ResultProps {
   txHash: string;
@@ -32,7 +32,7 @@ export const ResultContainer = styled.div`
 `;
 
 export const SuccessResult = ({ txHash, isEth, onDismiss }: ResultProps) => {
-  const url = exploreTransaction(txHash);
+  const url = isEth ? etherscanTransaction(txHash) : exploreTransaction(txHash);
   return (
     <ResultContainer>
       <Result
@@ -40,7 +40,7 @@ export const SuccessResult = ({ txHash, isEth, onDismiss }: ResultProps) => {
         status="success"
         title={i18n.t('result.success')}
         subTitle={
-          <a target="_blank" rel="noopener noreferrer" href={exploreTransaction(url)}>
+          <a target="_blank" rel="noopener noreferrer" href={url}>
             {i18n.t(isEth ? 'result.etherscan' : 'result.explorer')}
           </a>
         }
