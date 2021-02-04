@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks';
 import { QueryObserverResult, useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
+import { BN } from 'suite';
 
 interface LiquidityDetail {
   poolLiquidityQuery: QueryObserverResult<Maybe<LiquidityInfo>>;
@@ -41,6 +42,13 @@ export function useLiquidityQuery(inputPoolId?: string): LiquidityDetail {
       const poolLiquidity = poolLiquidityQuery.data;
 
       if (!poolLiquidity || !userLiquidity) return;
+      // TODO HACK this is an server error now
+      userLiquidity.assets.forEach((asset, i) => {
+        asset.balance = BN(userLiquidity.lpToken.balance)
+          .times(poolLiquidity.assets[i].balance)
+          .div(poolLiquidity.lpToken.balance)
+          .toString();
+      });
 
       const share = new BigNumber(userLiquidity.lpToken.balance).div(poolLiquidity.lpToken.balance).toNumber();
 

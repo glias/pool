@@ -12,7 +12,7 @@ import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -91,7 +91,6 @@ const LiquidityOrderListWrapper = styled(Section)`
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const poolId = props.poolId;
   const { api, currentUserLock } = useGliaswap();
-  const queryClient = useQueryClient();
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityOperationSummary | null>(null);
 
   const query = useQuery(
@@ -118,10 +117,8 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const { isLoading: isSendingCancelRequest, mutateAsync: sendCancelOperationTransaction } = useMutation(
     ['sendCancelLiquidityOperation'],
     async () => {
-      if (!readyToSendTransaction) return;
-      await sendCancelLiquidityOperationTransaction();
-      await queryClient.refetchQueries('getLiquidityOperationSummaries');
-      setReadyToCancelOperation(null);
+      if (!readyToSendTransaction) throw new Error('The operation request transaction is not generated');
+      return sendCancelLiquidityOperationTransaction().finally(() => setReadyToCancelOperation(null));
     },
   );
 

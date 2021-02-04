@@ -6,7 +6,7 @@ import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useQueryLiquidityInfo } from 'hooks/useLiquidityQuery';
 import { useCallback, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
-import { Amount, createAssetWithBalance } from 'suite';
+import { Amount, BN, createAssetWithBalance } from 'suite';
 
 interface UseAddLiquidityState {
   onUserInputReadyToAddAmount: (amountWithDecimal: string, assetIndex: number) => (Amount | undefined)[] | undefined;
@@ -22,6 +22,7 @@ interface UseAddLiquidityState {
   userFreeBalances: Amount[] | undefined;
   readyToAddAmounts: (Amount | undefined)[] | undefined;
   readyToAddShare: number;
+  readyToReceiveLPAmount: Amount | undefined;
 }
 
 export function useAddLiquidity(): UseAddLiquidityState {
@@ -41,29 +42,33 @@ export function useAddLiquidity(): UseAddLiquidityState {
     return Amount.fromAsset(poolInfo.lpToken).value.gt(0);
   }, [poolInfo]);
 
-  const readyToAddShare = useMemo(() => {
+  const [readyToAddShare, readyToReceiveLPAmount] = useMemo<[number, Amount]>(() => {
     // the pool is not loaded
-    if (!poolInfo || poolInfo.assets.length <= 0) return 0;
-    if (!readyToAddAmounts || readyToAddAmounts.length <= 0) return 0;
+    if (!poolInfo || poolInfo.assets.length <= 0) return [0, Amount.fromZero(0)];
+    if (!readyToAddAmounts || readyToAddAmounts.length <= 0 || !readyToAddAmounts[0] || !readyToAddAmounts[1]) {
+      return [0, Amount.fromZero(0)];
+    }
 
     const poolLpTokenAmount = Amount.fromAsset(poolInfo.lpToken);
     // the lp token balance is 0 means that the pool is not genesis
     // no matter how much liquidity is added, share is always 100%
-    if (!isPoolGenesis) return 1;
+    // the genesis receive lp token amount is `sqrt(amount1 * amount2)`
+    if (!isPoolGenesis) {
+      return [
+        1,
+        Amount.from(BN(readyToAddAmounts[0].value).times(readyToAddAmounts[1].value).sqrt().decimalPlaces(0), 0),
+      ];
+    }
 
-    // the genesis pool must has a value of readyToAddAmount, this check is avoid typescript warning
-    if (!readyToAddAmounts[0]) return 1;
+    const readyToReceiveLPAmount = price.getAddLiquidityReceiveLPAmount(
+      readyToAddAmounts[0].value,
+      Amount.fromAsset(poolInfo.assets[0]).value,
+      poolLpTokenAmount.value,
+    );
 
-    const share = price
-      .getAddLiquidityReceiveLPAmount(
-        readyToAddAmounts[0].value,
-        Amount.fromAsset(poolInfo.assets[0]).value,
-        poolLpTokenAmount.value,
-      )
-      .div(poolLpTokenAmount.value)
-      .toNumber();
+    const share = readyToReceiveLPAmount.div(poolLpTokenAmount.value).toNumber();
 
-    return share;
+    return [share, Amount.from(readyToReceiveLPAmount, 0)];
   }, [isPoolGenesis, poolInfo, readyToAddAmounts]);
 
   function onUserInputReadyToAddAmount(userInput: string, indexOfPoolAssets: number) {
@@ -148,8 +153,8 @@ export function useAddLiquidity(): UseAddLiquidityState {
       TransactionHelper.deserializeTransactionToSign(readyToAddLiquidityTransaction.transactionToSign),
     );
 
-    setReadyToAddLiquidityTransaction(undefined);
     await queryClient.refetchQueries('getLiquidityOperationSummaries');
+    setReadyToAddLiquidityTransaction(undefined);
     return txHash;
   }
 
@@ -161,5 +166,6 @@ export function useAddLiquidity(): UseAddLiquidityState {
     readyToAddAmounts,
     readyToAddLiquidityTransaction,
     sendReadyToAddLiquidityTransaction,
+    readyToReceiveLPAmount,
   };
 }

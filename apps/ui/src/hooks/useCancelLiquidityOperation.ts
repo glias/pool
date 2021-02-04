@@ -1,6 +1,7 @@
 import { SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
 import { useGliaswap } from 'hooks/useGliaswap';
 import { useState } from 'react';
+import { useQueryClient } from 'react-query';
 
 interface UseCancelLiquidityOperationState {
   generateCancelLiquidityOperationTransaction: (txHash: string) => Promise<SerializedTransactionToSignWithFee>;
@@ -13,6 +14,7 @@ export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState 
   const [readyToSendTransaction, setReadyToSendTransaction] = useState<
     SerializedTransactionToSignWithFee | undefined
   >();
+  const queryClient = useQueryClient();
 
   async function generateLiquidityCancelOperationTransaction(txHash: string) {
     if (!currentUserLock) throw new Error('Cannot find current user lock, maybe wallet is disconnected');
@@ -29,6 +31,7 @@ export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState 
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToSendTransaction.transactionToSign),
     );
+    await queryClient.refetchQueries('getLiquidityOperationSummaries');
     setReadyToSendTransaction(undefined);
     return txHash;
   }
