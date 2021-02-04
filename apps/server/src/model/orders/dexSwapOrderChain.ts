@@ -140,28 +140,32 @@ export class DexSwapOrderChain extends DexOrderChain {
     const orders = this.getOrders();
     const result: Step[] = [];
 
-    // only sudt => eth
-    if (this._isIn === false) {
-      const step: Step = new Step(this.tx.transaction.hash);
-      result.push(step);
-      result.push(step);
-
-      const stepEth: Step = new Step(this._bridgeInfo.eth_tx_hash);
-      result.push(stepEth);
+    if (this.getType() === SwapOrderType.CrossChain) {
+      const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
+      const ckbStep: Step = new Step(this._bridgeInfo.ckb_tx_hash);
+      if (this._isIn) {
+        result.push(ethStep);
+        result.push(ethStep);
+        result.push(ckbStep);
+      } else {
+        result.push(ckbStep);
+        result.push(ckbStep);
+        result.push(ethStep);
+      }
 
       return result;
     }
 
-    if (this._isIn) {
-      const step: Step = new Step(this._bridgeInfo.eth_tx_hash);
-      result.push(step);
-      result.push(step);
+    if (this.getType() === SwapOrderType.CrossChainOrder) {
+      const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
+      result.push(ethStep);
+      result.push(ethStep);
     }
 
-    // if (this.tx.txStatus.status !== 'pending') {
-    //   const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
-    //   result.push(step);
-    // }
+    if (this.getType() === SwapOrderType.Order) {
+      const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
+      result.push(step);
+    }
 
     orders.forEach((x) => {
       const step: Step = new Step(x.tx.transaction.hash, x.index.toString());
@@ -172,18 +176,23 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    if (SwapOrderType.CrossChainOrder === this.getType() || SwapOrderType.Order === this.getType()) {
-      if (this.getStatus() === ORDER_STATUS.PENDING && SwapOrderType.CrossChainOrder === this.getType()) {
+    if (SwapOrderType.Order === this.getType()) {
+      if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELING) {
+        return true;
+      }
+    }
+
+    if (SwapOrderType.CrossChainOrder === this.getType()) {
+      if (this.getStatus() === ORDER_STATUS.PENDING) {
         return false;
       }
 
       if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELING) {
         return true;
       }
-      return false;
     }
 
-    if (SwapOrderType.CrossChain === this.getType() && this.getStatus() !== ORDER_STATUS.CANCELING) {
+    if (SwapOrderType.CrossChain === this.getType()) {
       return true;
     }
 
