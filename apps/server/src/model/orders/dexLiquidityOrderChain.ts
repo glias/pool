@@ -116,11 +116,11 @@ export class DexLiquidityChain extends DexOrderChain {
     }
 
     if (
-      scriptEquals.equalsLockScript(
+      !scriptEquals.equalsLockScript(
         last.tx.transaction.inputs[0].cellOutput.lock,
         this.poolInfo.infoCell.cellOutput.lock,
       ) &&
-      scriptEquals.equalsLockScript(
+      !scriptEquals.equalsLockScript(
         last.tx.transaction.inputs[0].cellOutput.type,
         this.poolInfo.infoCell.cellOutput.type,
       )
