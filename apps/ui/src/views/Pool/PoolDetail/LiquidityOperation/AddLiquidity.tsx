@@ -162,8 +162,11 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
   }
 
   function onAsset2Changed(val: string, form: FormikProps<InputFields>) {
-    if (!val) form.setValues({ amount1: '', amount2: '' });
-    if (!/\d+(\.\d*)?/.test(val)) return form.setFieldValue('amount2', val.slice(0, -1));
+    if (!val) {
+      onUserInputReadyToAddAmount(val, 1);
+      return form.setValues({ amount1: '', amount2: '' });
+    }
+    if (!/^\d*(\.\d*)?$/.test(val)) return form.setFieldValue('amount2', val.slice(0, -1));
 
     const readyToAddAmount = onUserInputReadyToAddAmount(val, 1);
     const amount1 = readyToAddAmount?.[0] ? readyToAddAmount[0].toHumanizeWithMaxDecimal() : form.values.amount1;
@@ -196,15 +199,17 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
           <Form layout="vertical">
             <Form.Item name="amount1" label={i18n.t('Asset 1')}>
               {shouldShowMaxLabel(poolAsset1, userFreeBalances?.[0]) && (
-                <div className="label-max">
+                <div
+                  className="label-max"
+                  onClick={() =>
+                    // asset 1 is ckb, so reduce 0.1 ckb first to ensure sufficient transaction fee
+                    onAsset1Changed(
+                      userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).toHumanizeWithMaxDecimal(),
+                      form,
+                    )
+                  }
+                >
                   <HumanizeBalance
-                    onClick={() =>
-                      // asset 1 is ckb, so reduce 0.1 ckb first to ensure sufficient transaction fee
-                      onAsset1Changed(
-                        userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).toHumanizeWithMaxDecimal(),
-                        form,
-                      )
-                    }
                     asset={poolAsset1}
                     value={userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).value}
                   />
@@ -224,12 +229,11 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <PlusOutlined className="plus-icon" />
             <Form.Item name="amount2" label={i18n.t('Asset 2')}>
               {shouldShowMaxLabel(poolAsset2, userFreeBalances?.[1]) && (
-                <div className="label-max">
-                  <HumanizeBalance
-                    onClick={() => onAsset2Changed(userFreeBalances![1].toHumanize(poolAsset2.decimals), form)}
-                    asset={poolAsset2}
-                    value={userFreeBalances![1]}
-                  />
+                <div
+                  className="label-max"
+                  onClick={() => onAsset2Changed(userFreeBalances![1].toHumanizeWithMaxDecimal(), form)}
+                >
+                  <HumanizeBalance asset={poolAsset2} value={userFreeBalances![1]} />
                 </div>
               )}
               <Input

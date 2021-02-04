@@ -138,10 +138,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
       <SpaceBetweenRow>
         <div className="label">Price</div>
         <div>
-          <AssetBaseQuotePrices
-            assets={props.poolLiquidity.assets}
-            prices={props.poolLiquidity.assets.map((asset) => asset.balance)}
-          />
+          <AssetBaseQuotePrices assets={props.poolLiquidity.assets} />
         </div>
       </SpaceBetweenRow>
       <SpaceBetweenRow>

@@ -24,13 +24,13 @@ export const AssetBaseQuotePrices: React.FC<AssetPriceProps> = (props) => {
 
   const [base] = prices;
 
-  const quotedPrice = prices.map((price, i) => new BigNumber(price).div(base).times(10 ** assets[i].decimals));
+  const quotedPrice = prices.map((price) => new BigNumber(price).div(base).times(10 ** assets[0].decimals));
 
   return (
     <>
       {(assets as AssetWithBalance[]).map((asset, i) => (
         <span key={i}>
-          <HumanizeBalance showSuffix asset={asset} value={quotedPrice[i]} />
+          <HumanizeBalance showSuffix asset={asset} value={quotedPrice[i]} maxToFormat={8} />
           {i < assets.length - 1 && <SwapIcon />}
         </span>
       ))}
