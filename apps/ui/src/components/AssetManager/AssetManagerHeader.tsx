@@ -75,7 +75,10 @@ export const WalletConnectionStatusHeader = () => {
 
   if (status !== 'connected') return null;
 
-  async function changeSigner() {}
+  async function reconnect() {
+    await adapter.disconnect();
+    await adapter.connect();
+  }
 
   const provider = getProviderInfo(raw.provider);
   const connected = provider.name;
@@ -92,7 +95,7 @@ export const WalletConnectionStatusHeader = () => {
         </div>
       </div>
       <div className="button">
-        <Button size="small" type="link" onClick={changeSigner}>
+        <Button size="small" type="link" onClick={reconnect}>
           {t('Change')}
         </Button>
       </div>

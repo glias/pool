@@ -60,6 +60,10 @@ export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
 
     return this.signer;
   }
+
+  async disconnect(): Promise<void> {
+    this.modal.clearCachedProvider();
+  }
 }
 
 export const throwDisconnected = (msg = 'Disconnected') => () => Promise.reject(msg);
