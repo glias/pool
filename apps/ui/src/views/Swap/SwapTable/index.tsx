@@ -18,7 +18,7 @@ import { getValidBalanceString } from 'utils';
 import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
 import { InfoTable } from './InfoTable';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
-import { Script } from '@lay2/pw-core';
+import { HashType, Script } from '@lay2/pw-core';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -115,21 +115,31 @@ export const SwapTable: React.FC = () => {
       const balance = new BigNumber(tokenB.balance).times(1 - setting.slippage).toFixed(0, BigNumber.ROUND_DOWN);
       const { tx } = await api.swapNormalOrder(amountInToken, { ...tokenB, balance }, currentUserLock!);
       setCurrentTx(tx);
-      return tx;
+      return tx as any;
     },
     [tokenB, currentUserLock, api, setCurrentTx, setting.slippage],
+  );
+
+  const getSwapOrderLock = useCallback(
+    async (amountInToken: GliaswapAssetWithBalance) => {
+      const balance = new BigNumber(tokenB.balance).times(1 - setting.slippage).toFixed(0, BigNumber.ROUND_DOWN);
+      const lock = await api.getSwapOrderLock(amountInToken, { ...tokenB, balance }, currentUserLock!);
+      return lock;
+    },
+    [tokenB, currentUserLock, api, setting.slippage],
   );
 
   const swapCrossChainOrder = useCallback(
     async (amountInToken: EthErc20AssetWithBalance) => {
       const shadowAsset = shadowEthAssets.find((a) => a.shadowFrom.address === amountInToken.address)!;
-      const ckbTx = await swapNormalOrder({ ...shadowAsset, balance: amountInToken.balance });
-      const lock = ckbTx.raw.outputs[0].lock;
-      const ckbAddress = new Script(lock.codeHash, lock.args, lock.hashType).toAddress().toCKBAddress();
+      const { lock } = await getSwapOrderLock({ ...shadowAsset, balance: amountInToken.balance });
+      const ckbAddress = new Script(lock.codeHash, lock.args, lock.hashType === 'data' ? HashType.data : HashType.type)
+        .toAddress()
+        .toCKBAddress();
       const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
       setCurrentEthTx(data);
     },
-    [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, swapNormalOrder, web3],
+    [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, web3, getSwapOrderLock],
   );
 
   const onSubmit = useCallback(async () => {

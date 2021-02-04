@@ -208,6 +208,40 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
 
+  async getSwapOrderLock(
+    tokenA: GliaswapAssetWithBalance,
+    tokenB: GliaswapAssetWithBalance,
+    lock: CkbScript,
+  ): Promise<{ lock: CkbScript }> {
+    const { data } = await this.axios
+      .post('/swap/orders/swap-lock', {
+        assetInWithAmount: {
+          ...tokenA,
+          address: '',
+        },
+        assetOutWithMinAmount: {
+          ...tokenB,
+          address: '',
+        },
+        lock,
+        tips: {
+          typeHash: CKB_NATIVE_TYPE_HASH,
+          chainType: 'Nervos',
+          decimals: 8,
+          logoURI: '',
+          name: 'CKB',
+          balance: '0',
+          symbol: 'CKB',
+          address: '',
+        },
+      })
+      .catch((err) => {
+        return Promise.reject(err.response.data);
+      });
+
+    return data;
+  }
+
   async swapNormalOrder(
     tokenA: GliaswapAssetWithBalance,
     tokenB: GliaswapAssetWithBalance,
