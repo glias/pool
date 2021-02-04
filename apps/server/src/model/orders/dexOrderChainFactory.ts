@@ -1,4 +1,4 @@
-import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus, CellOutput } from '..';
+import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus, CellOutput, PoolInfo } from '..';
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
@@ -49,14 +49,16 @@ export class DexOrderChainFactory {
   private readonly markTheCellThatHasBeenTracked: Set<string>;
   private readonly isSwapOrder: boolean;
   private orderMatcher: SwapOrderMatcher;
+  private poolInfo: PoolInfo;
 
-  constructor(orderType: string) {
+  constructor(orderType: string, poolInfo: PoolInfo) {
     this.isSwapOrder = orderType === OrderType.LIQUIDITY ? false : true;
     this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
     if (orderType === OrderType.CROSS_CHAIN) {
       this.orderMatcher = new BridgeMatcher();
     }
     this.markTheCellThatHasBeenTracked = new Set();
+    this.poolInfo = poolInfo;
   }
 
   getOrderChains(
@@ -119,7 +121,7 @@ export class DexOrderChainFactory {
 
     return this.isSwapOrder
       ? new DexSwapOrderChain(output, data, nextTx, index, false, null)
-      : new DexLiquidityChain(output, data, nextTx, index, false, null);
+      : new DexLiquidityChain(output, data, nextTx, index, false, null, this.poolInfo);
   }
 
   private matchIndexOfInputInArray(inputs: Input[], targetInputOutPoint: string): number {
@@ -166,7 +168,7 @@ export class DexOrderChainFactory {
         const bridgeInfo = bridgeInfoResult ? bridgeInfoResult.bridgeInfo : null;
         const order = this.isSwapOrder
           ? new DexSwapOrderChain(output, data, x, index, false, null, isIn, isOrder, bridgeInfo)
-          : new DexLiquidityChain(output, data, x, index, false, null);
+          : new DexLiquidityChain(output, data, x, index, false, null, this.poolInfo);
 
         orderCells.push(order);
       });

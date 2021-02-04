@@ -1,4 +1,10 @@
-import { Output, TransactionWithStatus, CellInfoSerializationHolderFactory, LiquidityOrderCellArgs } from '..';
+import {
+  Output,
+  TransactionWithStatus,
+  CellInfoSerializationHolderFactory,
+  LiquidityOrderCellArgs,
+  PoolInfo,
+} from '..';
 import { CKB_TOKEN_TYPE_HASH, POOL_ID } from '../../config';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
@@ -9,6 +15,7 @@ export enum ORDER_TYPE {
 }
 
 export class DexLiquidityChain extends DexOrderChain {
+  private poolInfo: PoolInfo;
   constructor(
     cell: Output,
     data: string,
@@ -16,8 +23,10 @@ export class DexLiquidityChain extends DexOrderChain {
     index: number,
     live: boolean,
     nextOrderCell: DexOrderChain,
+    poolInfo: PoolInfo,
   ) {
     super(cell, data, tx, index, nextOrderCell, live);
+    this.poolInfo = poolInfo;
   }
 
   getOrderHistory(): OrderHistory {
@@ -101,10 +110,21 @@ export class DexLiquidityChain extends DexOrderChain {
     }
 
     const last = this.getLastOrder();
-    const lpTokenCell = last.tx.transaction.outputs.filter((x) => x.type).find((x) => x.type.args.length === 130);
+    if (this.getType() === ORDER_TYPE.add) {
+      const lpTokenCell = last.tx.transaction.outputs
+        .filter((x) => x.type)
+        .find((x) => x.type.args === this.poolInfo.infoCell.cellOutput.lock.toHash());
+      if (last.tx.txStatus.status === 'pending' && !lpTokenCell) {
+        return true;
+      }
+    } else {
+      const lpTokenCell = last.tx.transaction.inputs
+        .filter((x) => x.cellOutput.type)
+        .find((x) => x.cellOutput.type.args === this.poolInfo.infoCell.cellOutput.lock.toHash());
 
-    if (last.tx.txStatus.status === 'pending' && !lpTokenCell) {
-      return true;
+      if (last.tx.txStatus.status === 'pending' && lpTokenCell) {
+        return true;
+      }
     }
 
     return false;

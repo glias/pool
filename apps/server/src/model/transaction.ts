@@ -129,6 +129,7 @@ export interface TxStatus {
 export interface Input {
   previousOutput: OutPoint;
   since: string;
+  cellOutput?: CellOutput;
 }
 
 export type Output = CellOutput;
