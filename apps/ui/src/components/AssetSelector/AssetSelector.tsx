@@ -93,10 +93,14 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
     );
   }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey, disabledKeys]);
 
-  const onClick = useCallback(() => {
-    if (!selectable) return;
-    setModalVisible(true);
-  }, [selectable]);
+  const onClick = useCallback(
+    (e: React.MouseEvent<any, MouseEvent>) => {
+      e.stopPropagation();
+      if (!selectable) return;
+      setModalVisible(true);
+    },
+    [selectable],
+  );
 
   return (
     <>

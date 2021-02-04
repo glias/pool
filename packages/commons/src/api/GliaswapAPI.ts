@@ -113,6 +113,12 @@ export interface GliaswapAPI {
 
   cancelSwapOrders: (txHash: string, lock: Script) => Promise<{ tx: Transaction }>;
 
+  getSwapOrderLock: (
+    tokenA: GliaswapAssetWithBalance,
+    tokenB: GliaswapAssetWithBalance,
+    lock: Script,
+  ) => Promise<{ lock: Script }>;
+
   swapNormalOrder: (
     tokenA: GliaswapAssetWithBalance,
     tokenB: GliaswapAssetWithBalance,
