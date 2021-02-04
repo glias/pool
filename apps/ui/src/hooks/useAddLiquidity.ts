@@ -148,8 +148,8 @@ export function useAddLiquidity(): UseAddLiquidityState {
       TransactionHelper.deserializeTransactionToSign(readyToAddLiquidityTransaction.transactionToSign),
     );
 
-    setReadyToAddLiquidityTransaction(undefined);
     await queryClient.refetchQueries('getLiquidityOperationSummaries');
+    setReadyToAddLiquidityTransaction(undefined);
     return txHash;
   }
 
