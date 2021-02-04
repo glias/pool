@@ -6,6 +6,7 @@ import {
   PoolInfo,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH, POOL_ID } from '../../config';
+import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
@@ -110,21 +111,21 @@ export class DexLiquidityChain extends DexOrderChain {
     }
 
     const last = this.getLastOrder();
-    if (this.getType() === ORDER_TYPE.add) {
-      const lpTokenCell = last.tx.transaction.outputs
-        .filter((x) => x.type)
-        .find((x) => x.type.args === this.poolInfo.infoCell.cellOutput.lock.toHash());
-      if (last.tx.txStatus.status === 'pending' && !lpTokenCell) {
-        return true;
-      }
-    } else {
-      const lpTokenCell = last.tx.transaction.inputs
-        .filter((x) => x.cellOutput.type)
-        .find((x) => x.cellOutput.type.args === this.poolInfo.infoCell.cellOutput.lock.toHash());
+    if (last.tx.txStatus.status !== 'pending') {
+      return false;
+    }
 
-      if (last.tx.txStatus.status === 'pending' && lpTokenCell) {
-        return true;
-      }
+    if (
+      !scriptEquals.equalsLockScript(
+        last.tx.transaction.inputs[0].cellOutput.lock,
+        this.poolInfo.infoCell.cellOutput.lock,
+      ) &&
+      !scriptEquals.equalsLockScript(
+        last.tx.transaction.inputs[0].cellOutput.type,
+        this.poolInfo.infoCell.cellOutput.type,
+      )
+    ) {
+      return true;
     }
 
     return false;
