@@ -44,7 +44,7 @@ export class DexSwapService {
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
 
     // const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
-    const factory = new DexOrderChainFactory(OrderType.SWAP);
+    const factory = new DexOrderChainFactory(OrderType.SWAP, null);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
@@ -88,7 +88,7 @@ export class DexSwapService {
     }
 
     const orders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(OrderType.CROSS_CHAIN);
+    const factory = new DexOrderChainFactory(OrderType.CROSS_CHAIN, null);
 
     txs.forEach((x) => {
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);

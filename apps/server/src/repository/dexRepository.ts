@@ -48,9 +48,13 @@ export type ckbMethods =
 export interface DexRepository extends ForceBridgeRepository {
   collectCells: (queryOptions: QueryOptions, filterPool?: boolean, includePoolOutput?: boolean) => Promise<Cell[]>;
 
-  collectTransactions: (queryOptions: QueryOptions, includePool?: boolean) => Promise<TransactionWithStatus[]>;
+  collectTransactions: (
+    queryOptions: QueryOptions,
+    includePool?: boolean,
+    includeInputCells?: boolean,
+  ) => Promise<TransactionWithStatus[]>;
 
-  getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]>;
+  getTransactions(hashes: string[]): Promise<TransactionWithStatus[]>;
 
   getTransaction(hash: string): Promise<TransactionWithStatus>;
 

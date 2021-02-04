@@ -7,6 +7,7 @@ import {
   BridgeInfo,
   Cell,
   cellConver,
+  CellOutput,
   OutPoint,
   PendingFilter,
   PoolFilter,
@@ -14,7 +15,6 @@ import {
   transactionConver,
   TransactionWithStatus,
 } from '../model';
-import { ckbMethods } from './dexRepository';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 
 export class CkbRepository implements DexRepository {
@@ -77,7 +77,11 @@ export class CkbRepository implements DexRepository {
     return result;
   }
 
-  async collectTransactions(queryOptions: QueryOptions, includePool?: boolean): Promise<TransactionWithStatus[]> {
+  async collectTransactions(
+    queryOptions: QueryOptions,
+    includePool?: boolean,
+    includeInputCells?: boolean,
+  ): Promise<TransactionWithStatus[]> {
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
@@ -90,10 +94,10 @@ export class CkbRepository implements DexRepository {
 
     if (includePool) {
       const pendingTxs = await this.getPoolTxs();
-      const hashes = [];
+      const hashes: string[] = [];
       for (const tx of pendingTxs) {
         tx.transaction.inputs.forEach((x) => {
-          hashes.push(['getTransaction', x.previousOutput.txHash]);
+          hashes.push(x.previousOutput.txHash);
         });
       }
       const inputTxs = await this.getTransactions(hashes);
@@ -104,13 +108,43 @@ export class CkbRepository implements DexRepository {
         .forEach((x) => result.push(x));
     }
 
+    if (includeInputCells) {
+      const hashes: Set<string> = new Set();
+      result.forEach((x) => {
+        x.transaction.inputs.forEach((y) => {
+          hashes.add(y.previousOutput.txHash);
+        });
+      });
+
+      const inputCellsGroup: Map<string, CellOutput> = new Map();
+      const inputTxs = await this.getTransactions(Array.from(hashes));
+      inputTxs.forEach((x) => {
+        x.transaction.outputs.forEach((value, index) => {
+          const cell = {
+            capacity: value.capacity,
+            lock: cellConver.converScript(value.lock),
+            type: cellConver.converScript(value.type),
+          };
+          inputCellsGroup.set(`${x.transaction.hash}:${index}`, cell);
+        });
+      });
+
+      result.forEach((x) => {
+        x.transaction.inputs.forEach((y) => {
+          y.cellOutput = inputCellsGroup.get(`${y.previousOutput.txHash}:${parseInt(y.previousOutput.index)}`);
+        });
+      });
+    }
     return result;
   }
 
-  async getTransactions(ckbReqParams: Array<[method: ckbMethods, ...rest: []]>): Promise<TransactionWithStatus[]> {
-    if (ckbReqParams.length === 0) {
+  async getTransactions(hashes: string[]): Promise<TransactionWithStatus[]> {
+    if (hashes.length === 0) {
       return [];
     }
+
+    const ckbReqParams = [];
+    hashes.forEach((x) => ckbReqParams.push(['getTransaction', x]));
 
     try {
       const ckbTxs = await this.ckbNode.rpc.createBatchRequest(ckbReqParams).exec();
@@ -194,13 +228,13 @@ export class CkbRepository implements DexRepository {
         },
       };
       const result = await rp(QueryOptions);
-      const hashes = [];
+      const hashes: string[] = [];
       for (const hash of Object.keys(result.result.pending)) {
-        hashes.push(['getTransaction', hash]);
+        hashes.push(hash);
       }
 
       for (const hash of Object.keys(result.result.proposed)) {
-        hashes.push(['getTransaction', hash]);
+        hashes.push(hash);
       }
 
       if (hashes.length === 0) {

@@ -36,7 +36,7 @@ export class MockRepository implements DexRepository {
     return [];
   }
 
-  getTransactions(ckbReqParams: [method: ckbMethods][]): Promise<TransactionWithStatus[]> {
+  getTransactions(hashes: string[]): Promise<TransactionWithStatus[]> {
     throw new Error('Method not implemented.');
   }
 

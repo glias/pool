@@ -28,8 +28,8 @@ export class DexLiquidityPoolService {
 
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(OrderType.LIQUIDITY);
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
+    const factory = new DexOrderChainFactory(OrderType.LIQUIDITY, infoCell);
     const orderLock = ScriptBuilder.buildLiquidityOrderLockScript();
     const queryOptions: QueryOptions = {
       lock: {
@@ -39,7 +39,7 @@ export class DexLiquidityPoolService {
       type: infoCell.tokenB.typeScript.toLumosScript(),
       order: 'desc',
     };
-    const addOrders = await this.dexRepository.collectTransactions(queryOptions, true);
+    const addOrders = await this.dexRepository.collectTransactions(queryOptions, true, true);
     const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
     orders.forEach((x) => liquidityOrders.push(x));
 
@@ -57,7 +57,7 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
 
-    const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true);
+    const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true, true);
     const removeOrders = factory.getOrderChains(queryOptions.lock, lpTokenTypeScript, removeTxs, null);
     removeOrders.forEach((x) => liquidityOrders.push(x));
 
