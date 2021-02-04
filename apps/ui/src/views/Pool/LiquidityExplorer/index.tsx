@@ -20,7 +20,10 @@ const LiquidityExplorer = () => {
     return { lock: currentUserLock };
   }, [pathname, currentUserLock]);
 
-  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], () => api.getLiquidityPools(poolFilter));
+  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], () => {
+    if (poolFilter && !poolFilter.lock) return [];
+    return api.getLiquidityPools(poolFilter);
+  });
 
   return (
     <LiquidityExplorerWrapper>
@@ -34,7 +37,7 @@ const LiquidityExplorer = () => {
           }
           optionType="button"
           options={[
-            { label: i18n.t('My Liquidity'), value: 'mine' },
+            { label: i18n.t('My Liquidity'), value: 'mine', disabled: !currentUserLock },
             { label: i18n.t('Explore Pool'), value: 'all' },
           ]}
         />
