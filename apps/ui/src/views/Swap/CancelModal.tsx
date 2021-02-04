@@ -1,6 +1,6 @@
 import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
 import { Builder, Transaction } from '@lay2/pw-core';
-import { Form, message, Modal } from 'antd';
+import { Form, message } from 'antd';
 import { AssetSymbol } from 'components/Asset';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { ModalContainer } from 'components/ModalContainer';
@@ -20,10 +20,14 @@ import { useGliaswap } from 'contexts';
 import { useQuery, useQueryClient } from 'react-query';
 import { LoadingOutlined } from '@ant-design/icons';
 import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
+import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
 
 export const Container = styled(ModalContainer)`
   .cancel {
     color: #f35252;
+  }
+  .hidden {
+    visibility: hidden;
   }
   .ant-form-item {
     margin-bottom: 16px;
@@ -87,7 +91,7 @@ export const CancelModal = () => {
   const orderType = currentOrder?.type;
 
   const [isSending, setIsSending] = useState(false);
-  const { api, currentUserLock, adapter } = useGliaswap();
+  const { api, currentUserLock, adapter, currentEthAddress } = useGliaswap();
 
   const isCrossChainOrder = useMemo(() => {
     return orderType === SwapOrderType.CrossChainOrder;
@@ -116,28 +120,35 @@ export const CancelModal = () => {
       onSuccess(tx) {
         setCancelTx(tx);
       },
+      onError(error: Error) {
+        setErrorMessage(error?.message);
+        setTransactionStatus(TransactionStatus.Decline);
+      },
+      retry: 1,
     },
   );
 
+  const [transactionStatus, setTransactionStatus] = useState(TransactionStatus.Normal);
   const [, addPendingCancelOrder] = usePendingCancelOrders();
   const queryClient = useQueryClient();
+  const [cancelTxhash, setCancelTxhash] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
-      await adapter.raw.pw.sendTransaction(cancelTx!);
+      const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
+      setTransactionStatus(TransactionStatus.Success);
+      setCancelTxhash(txhash);
       addPendingCancelOrder(currentOrder?.transactionHash!);
-      setCancelModalVisable(false);
     } catch (error) {
-      Modal.error({
-        title: 'Sign Transaction',
-        content: error.message,
-      });
+      setErrorMessage(error.message);
+      setTransactionStatus(TransactionStatus.Decline);
     } finally {
       setIsSending(false);
       setCancelTx(null);
     }
     try {
-      await queryClient.refetchQueries('swap-list');
+      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
     } finally {
       setIsSending(false);
       setCancelTx(null);
@@ -146,9 +157,10 @@ export const CancelModal = () => {
     adapter.raw.pw,
     cancelTx,
     addPendingCancelOrder,
-    setCancelModalVisable,
     currentOrder?.transactionHash,
     queryClient,
+    currentEthAddress,
+    currentUserLock,
   ]);
 
   const txFee = useMemo(() => {
@@ -165,6 +177,7 @@ export const CancelModal = () => {
       return;
     }
     setCancelModalVisable(false);
+    setTransactionStatus(TransactionStatus.Normal);
   }, [setCancelModalVisable, isSending]);
 
   return (
@@ -175,59 +188,70 @@ export const CancelModal = () => {
       onCancel={onCancel}
       width="360px"
       maskClosable={!isSending}
-      closable={!isSending}
       keyboard={!isSending}
     >
-      <Form layout="vertical">
-        <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
-          <span className="cancel">{i18n.t('swap.cancel-modal.cancel-swap')}</span>
-        </Form.Item>
-        <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
-          <AssetRow asset={payAsset} />
-        </Form.Item>
-        <Form.Item>
-          <DownArrowSvg />
-        </Form.Item>
-        {isCrossChainOrder ? (
-          <>
-            <Form.Item label={i18n.t('swap.cancel-modal.cross-chain')}>
-              <AssetRow asset={tokenA} />
-            </Form.Item>
-            <Form.Item>
-              <DownArrowSvg />
-            </Form.Item>
-          </>
-        ) : null}
-        <Form.Item label={i18n.t('swap.cancel-modal.receive')}>
-          <AssetRow asset={tokenB} />
-        </Form.Item>
-        {isCrossChainOrder ? (
-          <Form.Item>
-            <MetaContainer>
-              {currentOrder ? (
-                <Trans
-                  defaults="You will get <bold>{{amount}} {{tokenName}}</bold> back to your available balance." // optional defaultValue
-                  values={{ amount: displayBalance(tokenA), tokenName: tokenA?.symbol }}
-                  components={{ bold: <strong /> }}
-                />
-              ) : null}
-            </MetaContainer>
-          </Form.Item>
-        ) : null}
-        <TableRow
-          label={i18n.t('swap.cancel-modal.tx-fee')}
-          labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
-          value={txFee}
+      {transactionStatus === TransactionStatus.Success ? (
+        <SuccessResult
+          txHash={cancelTxhash}
+          onDismiss={onCancel}
+          isEth={currentOrder?.type === SwapOrderType.CrossChainOrder}
         />
-        <Form.Item className="submit">
-          <ConfirmButton
-            loading={isSending || isFetching}
-            onClick={cancelOrder}
-            text={i18n.t('swap.cancel-modal.cancel')}
-            bgColor="#F35252"
+      ) : null}
+      {transactionStatus === TransactionStatus.Decline ? (
+        <DeclineResult onDismiss={onCancel} errMessage={errorMessage} />
+      ) : null}
+      {transactionStatus === TransactionStatus.Normal ? (
+        <Form layout="vertical">
+          <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
+            <span className="cancel">{i18n.t('swap.cancel-modal.cancel-swap')}</span>
+          </Form.Item>
+          <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
+            <AssetRow asset={payAsset} />
+          </Form.Item>
+          <Form.Item>
+            <DownArrowSvg />
+          </Form.Item>
+          {isCrossChainOrder ? (
+            <>
+              <Form.Item label={i18n.t('swap.cancel-modal.cross-chain')}>
+                <AssetRow asset={tokenA} />
+              </Form.Item>
+              <Form.Item>
+                <DownArrowSvg />
+              </Form.Item>
+            </>
+          ) : null}
+          <Form.Item label={i18n.t('swap.cancel-modal.receive')}>
+            <AssetRow asset={tokenB} />
+          </Form.Item>
+          {isCrossChainOrder ? (
+            <Form.Item>
+              <MetaContainer>
+                {currentOrder ? (
+                  <Trans
+                    defaults="You will get <bold>{{amount}} {{tokenName}}</bold> back to your available balance." // optional defaultValue
+                    values={{ amount: displayBalance(tokenA), tokenName: tokenA?.symbol }}
+                    components={{ bold: <strong /> }}
+                  />
+                ) : null}
+              </MetaContainer>
+            </Form.Item>
+          ) : null}
+          <TableRow
+            label={i18n.t('swap.cancel-modal.tx-fee')}
+            labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
+            value={txFee}
           />
-        </Form.Item>
-      </Form>
+          <Form.Item className="submit">
+            <ConfirmButton
+              loading={isSending || isFetching}
+              onClick={cancelOrder}
+              text={i18n.t('swap.cancel-modal.cancel')}
+              bgColor="#F35252"
+            />
+          </Form.Item>
+        </Form>
+      ) : null}
     </Container>
   );
 };

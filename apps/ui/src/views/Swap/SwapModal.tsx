@@ -1,6 +1,6 @@
 import { isEthAsset, buildPendingSwapOrder, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
-import { Form, message, Modal } from 'antd';
+import { Form, message } from 'antd';
 import { ConfirmButton } from 'components/ConfirmButton';
 import { TableRow } from 'components/TableRow';
 import i18n from 'i18n';
@@ -15,6 +15,7 @@ import { CrossMeta } from './CrossMeta';
 import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useQueryClient } from 'react-query';
+import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
 
 export const SwapModal = () => {
   const {
@@ -31,7 +32,7 @@ export const SwapModal = () => {
     resetForm,
     isBid,
   } = useSwapContainer();
-  const { adapter } = useGliaswap();
+  const { adapter, currentUserLock, currentEthAddress } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { shadowEthAssets } = useGliaswapAssets();
 
@@ -85,6 +86,7 @@ export const SwapModal = () => {
         shadowAsset ? SwapOrderType.CrossChainOrder : SwapOrderType.CrossChain,
       );
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
+      return txHash;
     }
   }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders, swapMode, shadowEthAssets]);
 
@@ -93,49 +95,66 @@ export const SwapModal = () => {
       const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
       const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
+      return txHash;
     }
   }, [currentCkbTx, adapter.raw.pw, tokenA, tokenB, setAndCacheCrossChainOrders]);
 
   const placeNormalorder = useCallback(async () => {
     if (currentCkbTx) {
-      await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      return txHash;
     }
   }, [currentCkbTx, adapter.raw.pw]);
 
   const queryClient = useQueryClient();
 
+  const [transactionStatus, setTransactionStatus] = useState(TransactionStatus.Normal);
+  const [swapTxhash, setSwapTxhash] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
   const placeOrder = useCallback(async () => {
     setIsPlacingOrder(true);
     try {
+      let txhash: string | undefined = '';
       switch (swapMode) {
         case SwapMode.CrossChainOrder:
         case SwapMode.CrossIn:
-          await placeLockOrder();
+          txhash = await placeLockOrder();
           break;
         case SwapMode.CrossOut:
-          await placeCrossOut();
+          txhash = await placeCrossOut();
           break;
         case SwapMode.NormalOrder:
-          await placeNormalorder();
+          txhash = await placeNormalorder();
           break;
         default:
           break;
       }
+      if (txhash) {
+        setSwapTxhash(txhash);
+      }
       resetForm();
-      setReviewModalVisable(false);
+      setTransactionStatus(TransactionStatus.Success);
     } catch (error) {
-      Modal.error({
-        title: 'Sign Transaction',
-        content: error.message,
-      });
+      setErrorMessage(error.message);
+      setTransactionStatus(TransactionStatus.Decline);
     }
 
     try {
-      await queryClient.refetchQueries('swap-list');
+      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [swapMode, placeLockOrder, placeCrossOut, setReviewModalVisable, placeNormalorder, resetForm, queryClient]);
+  }, [
+    swapMode,
+    placeLockOrder,
+    placeCrossOut,
+    placeNormalorder,
+    resetForm,
+    queryClient,
+    currentEthAddress,
+    currentUserLock,
+  ]);
 
   const onCancel = useCallback(() => {
     if (isPlacingOrder) {
@@ -143,6 +162,7 @@ export const SwapModal = () => {
       return;
     }
     setReviewModalVisable(false);
+    setTransactionStatus(TransactionStatus.Normal);
   }, [setReviewModalVisable, isPlacingOrder]);
 
   return (
@@ -155,72 +175,82 @@ export const SwapModal = () => {
       maskClosable={!isPlacingOrder}
       keyboard={!isPlacingOrder}
     >
-      <Form layout="vertical">
-        <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
-          <span>
-            {i18n.t('swap.swap-modal.swap')}
-            {`(${operation})`}
-          </span>
-        </Form.Item>
-        <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
-          <AssetRow asset={tokenA!} />
-        </Form.Item>
-        <Form.Item>
-          <DownArrowSvg />
-        </Form.Item>
-        {isCrossChainOrder ? (
-          <>
-            <Form.Item label={i18n.t('swap.cancel-modal.cross-chain')}>
-              <AssetRow asset={shadowAsset!} />
-            </Form.Item>
+      {transactionStatus === TransactionStatus.Success ? (
+        <SuccessResult txHash={swapTxhash} onDismiss={onCancel} isEth={swapMode !== SwapMode.NormalOrder} />
+      ) : null}
+      {transactionStatus === TransactionStatus.Decline ? (
+        <DeclineResult onDismiss={onCancel} errMessage={errorMessage} />
+      ) : null}
+      {transactionStatus === TransactionStatus.Normal ? (
+        <Form layout="vertical">
+          <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
+            <span>
+              {i18n.t('swap.swap-modal.swap')}
+              {`(${operation})`}
+            </span>
+          </Form.Item>
+          <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
+            <AssetRow asset={tokenA!} />
+          </Form.Item>
+          <Form.Item>
+            <DownArrowSvg />
+          </Form.Item>
+          {isCrossChainOrder ? (
+            <>
+              <Form.Item label={i18n.t('swap.cancel-modal.cross-chain')}>
+                <AssetRow asset={shadowAsset!} />
+              </Form.Item>
+              <Form.Item>
+                <DownArrowSvg />
+              </Form.Item>
+            </>
+          ) : null}
+          <Form.Item label={i18n.t('swap.cancel-modal.receive')}>
+            <AssetRow asset={tokenB!} />
+          </Form.Item>
+          {isNormalOrder ? (
+            tokenA ? (
+              <Form.Item>
+                <MetaContainer>
+                  <Trans
+                    defaults="Your <bold>{{amount}} CKB</bold> will be temporarily locked and will be automatically unlocked once trading successfully."
+                    values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
+                    components={{ bold: <strong /> }}
+                  />
+                </MetaContainer>
+              </Form.Item>
+            ) : null
+          ) : swapMode === SwapMode.CrossOut ? null : (
             <Form.Item>
-              <DownArrowSvg />
+              <CrossMeta isBid={false} swapMode={swapMode} />
             </Form.Item>
-          </>
-        ) : null}
-        <Form.Item label={i18n.t('swap.cancel-modal.receive')}>
-          <AssetRow asset={tokenB!} />
-        </Form.Item>
-        {isNormalOrder ? (
-          tokenA ? (
+          )}
+          {isNormalOrder ? null : (
             <Form.Item>
               <MetaContainer>
-                <Trans
-                  defaults="Your <bold>{{amount}} CKB</bold> will be temporarily locked and will be automatically unlocked once trading successfully."
-                  values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
-                  components={{ bold: <strong /> }}
-                />
+                {i18n.t('swap.swap-modal.cross-time', {
+                  chain: swapMode === SwapMode.CrossOut ? 'Nervos' : 'Ethereum',
+                })}
               </MetaContainer>
             </Form.Item>
-          ) : null
-        ) : swapMode === SwapMode.CrossOut ? null : (
-          <Form.Item>
-            <CrossMeta isBid={false} swapMode={swapMode} />
+          )}
+          {currentCkbTx && isSendCkbTransaction ? (
+            <TableRow
+              label={i18n.t('swap.cancel-modal.tx-fee')}
+              labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
+              value={txFee}
+            />
+          ) : null}
+          <Form.Item className="submit">
+            <ConfirmButton
+              text={i18n.t('swap.swap-modal.confirm')}
+              loading={isPlacingOrder}
+              disabled={isPlacingOrder}
+              onClick={placeOrder}
+            />
           </Form.Item>
-        )}
-        {isNormalOrder ? null : (
-          <Form.Item>
-            <MetaContainer>
-              {i18n.t('swap.swap-modal.cross-time', { chain: swapMode === SwapMode.CrossOut ? 'Nervos' : 'Ethereum' })}
-            </MetaContainer>
-          </Form.Item>
-        )}
-        {currentCkbTx && isSendCkbTransaction ? (
-          <TableRow
-            label={i18n.t('swap.cancel-modal.tx-fee')}
-            labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
-            value={txFee}
-          />
-        ) : null}
-        <Form.Item className="submit">
-          <ConfirmButton
-            text={i18n.t('swap.swap-modal.confirm')}
-            loading={isPlacingOrder}
-            disabled={isPlacingOrder}
-            onClick={placeOrder}
-          />
-        </Form.Item>
-      </Form>
+        </Form>
+      ) : null}
     </Container>
   );
 };

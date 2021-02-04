@@ -1,5 +1,12 @@
 {
   "translation": {
+    "result": {
+      "dismiss": "Dismiss",
+      "explorer": "View on Nervos Exploroer",
+      "etherscan": "View on Etherscan",
+      "success": "Transaction Submitted",
+      "decline": "Submission Declined"
+    },
     "swap": {
       "order-table": {
         "you-pay": "You Pay",
