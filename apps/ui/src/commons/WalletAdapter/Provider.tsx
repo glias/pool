@@ -9,6 +9,7 @@ export interface AdapterContextState<T extends WalletAdapter = WalletAdapter> {
   signer: Signer;
 
   connect: Proxies<T, 'connect'>;
+  disconnect: Proxies<T, 'disconnect'>;
 
   raw: T;
 }
@@ -56,7 +57,13 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     [adapter, signerChangedSuccess, signerChangedFailed],
   );
 
-  const providerValue: AdapterContextState = { status, connect, signer, raw: adapter };
+  const disconnect: AdapterContextState['disconnect'] = async () => {
+    if (typeof adapter.disconnect !== 'function') return;
+    await adapter.disconnect();
+    setStatus('connected');
+  };
+
+  const providerValue: AdapterContextState = { status, connect, signer, raw: adapter, disconnect };
   return <AdapterContext.Provider value={providerValue}>{children}</AdapterContext.Provider>;
 };
 
@@ -68,6 +75,7 @@ export function useWalletAdapter<T extends WalletAdapter>(): AdapterContextState
       signer: dummySigner,
       raw: dummyAdapter as T,
       status: 'disconnected',
+      disconnect: undefined,
     };
   }
 

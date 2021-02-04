@@ -7,7 +7,6 @@ import { SwapOrder } from '@gliaswap/commons';
 import styled from 'styled-components';
 import { useQuery } from 'react-query';
 import { useGliaswap } from 'hooks';
-import { useGlobalConfig } from 'contexts/config';
 import { useCallback, useMemo } from 'react';
 import { SwapItem } from './SwapItem';
 import { useSwapContainer } from './context';
@@ -44,7 +43,7 @@ export function isSameTxHash(hash1?: string, hash2?: string) {
 
 export const SwapList: React.FC = () => {
   const { currentUserLock, currentEthAddress } = useGliaswap();
-  const { api } = useGlobalConfig();
+  const { api } = useGliaswap();
   const { setAndCacheCrossChainOrders, crossChainOrders } = useSwapContainer();
   const { data, status } = useQuery(
     ['swap-list', currentUserLock, currentEthAddress],
