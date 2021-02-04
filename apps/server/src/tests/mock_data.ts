@@ -2,8 +2,8 @@ import {
   CKB_STR_TO_HASH,
   INFO_LOCK_CODE_HASH,
   POOL_INFO_TYPE_SCRIPT,
-  SWAP_ORDER_LOCK_CODE_HASH,
-  SWAP_ORDER_LOCK_HASH_TYPE,
+  SWAP_LOCK_CODE_HASH,
+  SWAP_LOCK_HASH_TYPE,
 } from '../config';
 import { CellInfoSerializationHolderFactory, Script, TokenHolderFactory } from '../model';
 import { ScriptBuilder } from '../model';
@@ -76,8 +76,8 @@ export const mockSwapOrder = [
                 0n,
                 0n,
               ),
-            codeHash: SWAP_ORDER_LOCK_CODE_HASH,
-            hashType: SWAP_ORDER_LOCK_HASH_TYPE,
+            codeHash: SWAP_LOCK_CODE_HASH,
+            hashType: SWAP_LOCK_HASH_TYPE,
           },
           type: new Script(
             '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
@@ -121,7 +121,7 @@ export const mockSwapOrder = [
           lock: {
             args: '0x6c8c7f80161485c3e4adceda4c6c425410140054',
             codeHash: '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
-            hashType: SWAP_ORDER_LOCK_HASH_TYPE,
+            hashType: SWAP_LOCK_HASH_TYPE,
           },
           type: new Script(
             '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
@@ -246,7 +246,7 @@ export const mockLiquidityOrder = [
           lock: {
             args: '0x6c8c7f80161485c3e4adceda4c6c425410140054',
             codeHash: '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',
-            hashType: SWAP_ORDER_LOCK_HASH_TYPE,
+            hashType: SWAP_LOCK_HASH_TYPE,
           },
           type: new Script(
             '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
