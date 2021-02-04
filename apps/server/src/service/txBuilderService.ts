@@ -445,7 +445,7 @@ export class TxBuilderService {
       const version = constants.REQUEST_VERSION;
       const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
 
-      return encoder(req.userLock.toHash(), version, ckbAmount, tokenAmount, req.poolId, tips, tipsSudt);
+      return encoder(req.userLock.toHash(), version, tokenAmount, ckbAmount, req.poolId, tips, tipsSudt);
     })();
     const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
 
