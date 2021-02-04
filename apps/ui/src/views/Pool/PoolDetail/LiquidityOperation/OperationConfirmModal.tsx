@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import { ModalContainer } from 'components/ModalContainer';
 import i18n from 'i18n';
 import React, { useState } from 'react';
@@ -40,7 +40,9 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
 
   async function onClick() {
     setConfirming(true);
-    onOk().then(() => setConfirming(false));
+    onOk()
+      .finally(() => setConfirming(false))
+      .catch((e) => message.error(e.message));
   }
 
   return (

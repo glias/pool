@@ -104,11 +104,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   const { isLoading, mutateAsync: sendAddLiquidityTransaction } = useMutation(
     'sendReadyToAddLiquidityTransaction',
-    async () => {
-      const txHash = await sendReadyToAddLiquidityTransaction();
-      setConfirming(false);
-      return txHash;
-    },
+    () => sendReadyToAddLiquidityTransaction().finally(() => setConfirming(false)),
   );
 
   function validateAmount(input: string, userBalance: Amount, asset: AssetWithBalance): string | undefined {

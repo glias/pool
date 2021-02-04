@@ -49,6 +49,7 @@ const RemoveLiquidityWrapper = styled.div`
 const ReceiveAssets = styled(AssetBalanceList)`
   font-size: 18px;
   font-weight: bold;
+
   .column-numerical {
     text-align: left;
   }
@@ -68,13 +69,11 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
   const removePercent = useMemo(() => BN(readyToRemoveShare).times(100).toNumber(), [readyToRemoveShare]);
 
-  const { isLoading: isSendingRemoveTransaction, mutateAsync: sendRemoveTransaction } = useMutation(
-    'sendRemoveLiquidityTransaction',
-    async () => {
-      const txHash = await sendRemoveLiquidityTransaction();
-      setConfirming(false);
-      return txHash;
-    },
+  const {
+    isLoading: isSendingRemoveTransaction,
+    mutateAsync: sendRemoveTransaction,
+  } = useMutation('sendRemoveLiquidityTransaction', async () =>
+    sendRemoveLiquidityTransaction().finally(() => setConfirming(false)),
   );
 
   function setRemovePercent(percent: number) {
