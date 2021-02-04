@@ -5,14 +5,6 @@ import Web3Modal, { ICoreOptions } from 'web3modal';
 import { PWWeb3ModalProvider } from '../patch/PWWeb3ModalProvider';
 import { Signer, WalletAdapter } from '../types';
 
-class DummySigner implements Signer {
-  address: Address = new Address('', AddressType.ckb);
-
-  sendTransaction(): Promise<CKBComponents.Hash> {
-    return Promise.reject('No wallet connected yet');
-  }
-}
-
 class PWSigner implements Signer {
   readonly address: Address;
 
@@ -32,7 +24,7 @@ export class Web3ModalAdapter extends EventEmitter implements WalletAdapter {
 
   readonly pw: PWCore;
 
-  signer: Signer = new DummySigner();
+  signer: Signer | null = null;
 
   readonly #ckbChainId: number;
 
