@@ -1,16 +1,36 @@
 import { Asset, GliaswapAPI, GliaswapAssetWithBalance, Script } from '@gliaswap/commons';
+import WalletConnectProvider from '@walletconnect/web3-provider';
 import { message } from 'antd';
+import { useConstant } from 'commons/use-constant';
 import { ConnectStatus, Provider as AdapterProvider, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { AdapterContextState } from 'commons/WalletAdapter/Provider';
 import { Provider as AssetProvider, RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { useGlobalConfig } from './config';
+import { BridgeAPI } from 'suite/api/bridgeAPI';
+import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
 
 export const GliaswapProvider: React.FC = (props) => {
-  const { api, adapter, bridgeAPI } = useGlobalConfig();
-  const [assetList, setAssetList] = useState<Asset[]>([]);
+  const api: GliaswapAPI = useConstant(() => ServerGliaswapAPI.getInstance());
+  const bridgeAPI = useConstant(() => BridgeAPI.getInstance());
 
+  const adapter = useConstant(() => {
+    return new Web3ModalAdapter({
+      ckbNodeUrl: process.env.REACT_APP_CKB_NODE_URL,
+      ckbChainId: Number(process.env.REACT_APP_CKB_CHAIN_ID),
+      web3ModalOptions: {
+        network: process.env.REACT_APP_ETH_NETWORK,
+        providerOptions: {
+          walletconnect: {
+            package: WalletConnectProvider,
+            options: { infuraId: process.env.REACT_APP_INFURA_ID },
+          },
+        },
+      },
+    });
+  });
+
+  const [assetList, setAssetList] = useState<Asset[]>([]);
   useEffect(() => {
     (async () => {
       const hide = message.loading('launching app...', 0);
