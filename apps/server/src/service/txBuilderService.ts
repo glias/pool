@@ -724,9 +724,7 @@ export class TxBuilderService {
   private async extractRequest(ctx: Context, txHash: string, requestType: CancelRequestType): Promise<Cell> {
     const { transaction } = await this.dexRepository.getTransaction(txHash);
     const requestLockCodeHash =
-      requestType == CancelRequestType.Liquidity
-        ? config.LIQUIDITY_LOCK_CODE_HASH
-        : config.SWAP_LOCK_CODE_HASH;
+      requestType == CancelRequestType.Liquidity ? config.LIQUIDITY_LOCK_CODE_HASH : config.SWAP_LOCK_CODE_HASH;
 
     const idx = transaction.outputs.findIndex((output: Output) => output.lock.codeHash == requestLockCodeHash);
     if (idx == -1) {
