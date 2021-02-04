@@ -10,6 +10,10 @@ const HeaderWrapper = styled.header`
   padding: 0 40px;
   background: #0d0d0d;
 
+  @media (max-width: 500px) {
+    padding: 0 8px;
+  }
+
   .header {
     line-height: 60px;
   }
@@ -35,6 +39,7 @@ const HeaderWrapper = styled.header`
   }
 
   .header-operation {
+    min-width: 200px;
   }
 `;
 
