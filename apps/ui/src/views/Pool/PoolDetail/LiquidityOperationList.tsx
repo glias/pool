@@ -118,10 +118,8 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const { isLoading: isSendingCancelRequest, mutateAsync: sendCancelOperationTransaction } = useMutation(
     ['sendCancelLiquidityOperation'],
     async () => {
-      if (!readyToSendTransaction) return;
-      await sendCancelLiquidityOperationTransaction();
-      await queryClient.refetchQueries('getLiquidityOperationSummaries');
-      setReadyToCancelOperation(null);
+      if (!readyToSendTransaction) throw new Error('The operation request transaction is not generated');
+      return sendCancelLiquidityOperationTransaction().finally(() => setReadyToCancelOperation(null));
     },
   );
 

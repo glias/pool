@@ -1,5 +1,6 @@
 import {
   Asset,
+  CkbAssetWithBalance,
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
   EthAsset,
@@ -21,11 +22,12 @@ import {
   isEthNativeAsset,
   LiquidityInfo,
   LiquidityInfoFilter,
+  LiquidityOperationSummary,
   LiquidityOperationSummaryFilter,
   LiquidityPoolFilter,
-  LiquidityOperationSummary,
   Maybe,
   PoolInfo,
+  PoolModel,
   Script as CkbScript,
   SerializedTransactionToSignWithFee,
   SerializedTransactonToSign,
@@ -38,9 +40,10 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import Axios, { AxiosInstance } from 'axios';
 import { merge } from 'lodash';
 import * as ServerTypes from 'suite/api/server-patch';
-import { createAssetWithBalance } from 'suite/asset';
+import { BN, createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
+import { LiquidityResponse } from './patch/liquidity-pools';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -181,8 +184,40 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
-    const res = await this.axios.post<PoolInfo[]>('/liquidity-pool', filter);
-    return res.data;
+    const res = await this.axios.post<LiquidityResponse[]>('/liquidity-pool', filter);
+
+    // TODO the server asset balance is wrong, this is a patch to fix the server error
+    if (filter?.lock) {
+      const poolsRes = await this.axios.post<LiquidityResponse[]>('/liquidity-pool');
+
+      const userLiquidates = res.data;
+      const poolLiquidates = poolsRes.data;
+
+      userLiquidates.forEach((userLiquidity) => {
+        const poolLiquidity = poolLiquidates.find((pool) => pool.poolId === userLiquidity.poolId);
+        if (!userLiquidity || !poolLiquidity) throw new Error(`cannot find the pool of ${userLiquidity.poolId}`);
+
+        userLiquidity.assets.forEach((asset, i) => {
+          asset.balance = BN(userLiquidity.lpToken.balance)
+            .times(poolLiquidity.assets[i].balance)
+            .div(poolLiquidity.total)
+            .decimalPlaces(0)
+            .toString();
+        });
+      });
+
+      return userLiquidates.map<PoolInfo>((item) => ({
+        model: item.model as PoolModel,
+        poolId: item.poolId,
+        assets: item.assets as CkbAssetWithBalance[],
+      }));
+    }
+
+    return res.data.map<PoolInfo>((item) => ({
+      model: item.model as PoolModel,
+      poolId: item.poolId,
+      assets: item.assets as CkbAssetWithBalance[],
+    }));
   }
 
   async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityOperationSummary[]> {
