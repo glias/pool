@@ -173,7 +173,7 @@ export class DexSwapOrderChain extends DexOrderChain {
 
   filterOrderHistory(): boolean {
     if (SwapOrderType.CrossChainOrder === this.getType() || SwapOrderType.Order === this.getType()) {
-      if (this.getStatus() === ORDER_STATUS.PENDING) {
+      if (this.getStatus() === ORDER_STATUS.PENDING && SwapOrderType.CrossChainOrder === this.getType()) {
         return false;
       }
 
