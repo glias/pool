@@ -27,6 +27,10 @@ export class DexSwapService {
     return await this.txBuilderService.buildCancelOrder(ctx, req);
   }
 
+  public buildSwapOrderLock(req: txBuilder.SwapOrderRequest): Script {
+    return this.txBuilderService.buildSwapLock(req);
+  }
+
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
     const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);

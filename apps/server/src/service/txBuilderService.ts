@@ -904,6 +904,18 @@ export class TxBuilderService {
     return new TransactionWithFee(txToSign, estimatedTxFee);
   }
 
+  public buildSwapLock(req: SwapOrderRequest): Script {
+    const encoder = this.codec.getSwapCellSerialization().encodeArgs;
+
+    const version = constants.REQUEST_VERSION;
+    const minAmountOut = req.tokenOutMinAmount.getBalance();
+    const tokenTypeHash = req.tokenOutMinAmount.typeHash;
+    const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
+
+    const args = encoder(req.userLock.toHash(), version, minAmountOut, tokenTypeHash, tips, tipsSudt);
+    return new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, args);
+  }
+
   private static hexBigint(n: bigint): string {
     return `0x${n.toString(16)}`;
   }

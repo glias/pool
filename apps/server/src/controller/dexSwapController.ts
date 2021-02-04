@@ -146,6 +146,70 @@ export default class DexSwapController {
     ctx.body = txWithFee.serialize();
   }
 
+  @request('post', '/v1/swap/orders/swap-lock')
+  @summary('Create swap order lock script')
+  @description('Create swap order lock script')
+  @swapTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    assetInWithAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    assetOutWithMinAmount: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lock: { type: 'object', properties: (ScriptSchema as any).swaggerDocument, required: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tips: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: true },
+  })
+  public async createSwapOrderLock(ctx: Context): Promise<void> {
+    const reqBody = ctx.request.body as commons.GenerateSwapTransactionPayload;
+    const { assetInWithAmount, assetOutWithMinAmount, lock, tips } = reqBody;
+
+    if (!config.LOCK_DEPS[lock.codeHash]) {
+      ctx.throw(400, `unknown user lock code hash: ${lock.codeHash}`);
+    }
+
+    const [tokenInAmount, tokenOutMinAmount] = [assetInWithAmount, assetOutWithMinAmount].map((asset) => {
+      if (asset.balance == undefined || BigInt(asset.balance) == 0n) {
+        ctx.throw(400, `asset type hash ${asset.typeHash}'s balance is zero`);
+      }
+
+      let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+      if (!token) {
+        ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
+      }
+      token = token.clone();
+      token.balance = asset.balance;
+
+      return token;
+    });
+    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
+      ctx.throw(400, 'sudt/sudt pool isnt support yet');
+    }
+
+    const req = {
+      tokenInAmount,
+      tokenOutMinAmount,
+      userLock: Script.deserialize(lock),
+      tips: Token.fromAsset(tips as AssetSchema),
+    };
+    const swapOrderLock = this.service.buildSwapOrderLock(req);
+
+    ctx.status = 200;
+    ctx.body = { lock: swapOrderLock };
+  }
+
   @request('post', '/v1/swap/orders/cancel')
   @summary('Create cancel swap order tx')
   @description('Create cancel swap order tx')
