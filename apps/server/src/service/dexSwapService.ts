@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionWithStatus } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
-import { SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE } from '../config';
+import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
@@ -28,7 +28,7 @@ export class DexSwapService {
   }
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
-    const orderLock: Script = new Script(SWAP_ORDER_LOCK_CODE_HASH, SWAP_ORDER_LOCK_HASH_TYPE, '0x');
+    const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
     const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
     const orders: DexOrderChain[] = [];
@@ -80,7 +80,7 @@ export class DexSwapService {
         continue;
       }
 
-      if (tx.recipient_lockscript.code_hash === SWAP_ORDER_LOCK_CODE_HASH) {
+      if (tx.recipient_lockscript.code_hash === SWAP_LOCK_CODE_HASH) {
         continue;
       }
       const transaction = await this.dexRepository.getTransaction(tx.ckb_tx_hash);

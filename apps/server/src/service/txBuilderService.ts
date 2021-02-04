@@ -250,7 +250,7 @@ export class TxBuilderService {
       const { tips, tipsSudt } = TxBuilderService.tips(req.tips);
       return encoder(req.userLock.toHash(), constants.REQUEST_VERSION, 0n, 0n, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
 
     // Generate genesis request output cell
     const reqOutput = {
@@ -351,7 +351,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, tokenAmount, ckbAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     // According to design, injected ckb amount is req.cap - lpt.cap - token.cap
@@ -447,7 +447,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, ckbAmount, tokenAmount, req.poolId, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.LIQUIDITY_ORDER_LOCK_CODE_HASH, config.LIQUIDITY_ORDER_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
 
     // Generate add liquidity request output cell
     const reqOutput = {
@@ -568,7 +568,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
@@ -664,7 +664,7 @@ export class TxBuilderService {
 
       return encoder(req.userLock.toHash(), version, minAmountOut, req.tokenOutMinAmount.typeHash, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_ORDER_LOCK_CODE_HASH, config.SWAP_ORDER_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     // According to design, ckb amount in should be req capacity minus token capacity
@@ -725,8 +725,8 @@ export class TxBuilderService {
     const { transaction } = await this.dexRepository.getTransaction(txHash);
     const requestLockCodeHash =
       requestType == CancelRequestType.Liquidity
-        ? config.LIQUIDITY_ORDER_LOCK_CODE_HASH
-        : config.SWAP_ORDER_LOCK_CODE_HASH;
+        ? config.LIQUIDITY_LOCK_CODE_HASH
+        : config.SWAP_LOCK_CODE_HASH;
 
     const idx = transaction.outputs.findIndex((output: Output) => output.lock.codeHash == requestLockCodeHash);
     if (idx == -1) {
@@ -792,7 +792,7 @@ export class TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_ORDER_LOCK_DEP].concat(userLockDeps);
+    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_LOCK_DEP].concat(userLockDeps);
     const witnessArgs =
       userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -874,7 +874,7 @@ export class TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SWAP_ORDER_LOCK_DEP].concat(userLockDeps);
+    const cellDeps = [config.SWAP_LOCK_DEP].concat(userLockDeps);
     if (swapArgs.sudtTypeHash == CKB_TYPE_HASH) {
       cellDeps.push(config.SUDT_TYPE_DEP);
     }
