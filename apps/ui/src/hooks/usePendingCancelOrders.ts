@@ -62,7 +62,7 @@ export function useSwapOrders(orders: SwapOrder[]) {
   return useMemo(() => {
     const res = orders.map((o) => {
       const pendingOrder = pendingCancelOrders.find(
-        (p) => p.txHash === o.stage?.steps?.[0]?.transactionHash || p.txHash === o.transactionHash,
+        (p) => p.txHash === o.transactionHash || o.stage.steps.some((s) => s.transactionHash === p.txHash),
       );
       if (pendingOrder) {
         return {
