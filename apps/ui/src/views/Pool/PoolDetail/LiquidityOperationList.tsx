@@ -5,6 +5,7 @@ import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanace
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { QueryTips } from 'components/QueryTips';
+import dayjs from 'dayjs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
@@ -13,7 +14,6 @@ import React, { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { dayjs } from 'third-party';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
