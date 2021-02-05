@@ -26,6 +26,13 @@ export class Script {
   args: string;
 
   constructor(codeHash: string, hashType: string, args: string) {
+    // Validate
+    ckbToolkit.validators.ValidateScript({
+      code_hash: codeHash,
+      hash_type: hashType,
+      args: args,
+    });
+
     this.codeHash = codeHash;
     this.hashType = hashType;
     this.args = args;
