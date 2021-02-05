@@ -11,8 +11,8 @@ import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
 export enum LIQUIDITY_ORDER_TYPE {
-  add = 'add',
-  remove = 'remove',
+  ADD = 'add',
+  REMOVE = 'remove',
 }
 
 export class DexLiquidityChain extends DexOrderChain {
@@ -35,7 +35,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const argsData = this.getArgsData();
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken =
-      this.getType() === LIQUIDITY_ORDER_TYPE.add
+      this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
         : TokenHolderFactory.getInstance().getTokenBySymbol(this.getSudtSymbol());
     const amountA = ckbToken;
@@ -78,10 +78,10 @@ export class DexLiquidityChain extends DexOrderChain {
       .getTokens()
       .find((x) => x.typeHash === this.cell.type.toHash());
     if (token) {
-      return LIQUIDITY_ORDER_TYPE.add;
+      return LIQUIDITY_ORDER_TYPE.ADD;
     }
 
-    return LIQUIDITY_ORDER_TYPE.remove;
+    return LIQUIDITY_ORDER_TYPE.REMOVE;
   }
 
   getStatus(): string {
