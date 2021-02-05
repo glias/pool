@@ -647,7 +647,7 @@ export class TxBuilderService {
       req.tokenOutMinAmount.typeScript,
     );
     if (req.tokenInAmount.getBalance() + minTokenChangeCapacity <= constants.SWAP_BUY_REQ_CAPACITY) {
-      ctx.throw(400, 'ckb amount plus min sudt capacity is smaller or equal than 146 * 10^8');
+      ctx.throw(400, 'ckb amount plus min sudt capacity is smaller or equal than swap buy request capacity');
     }
 
     // Collect free ckb and free token cells
@@ -924,10 +924,9 @@ export class TxBuilderService {
     return (BigInt(userLock.size()) + 8n) * constants.CKB_DECIMAL; // +8 for capacity bytes
   }
 
-  private static minTokenChangeCapacity(_userLock: Script, _tokenType: Script): bigint {
-    return constants.MIN_SUDT_CAPACITY;
-    // const scriptSize = BigInt(userLock.size() + tokenType.size());
-    // return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
+  private static minTokenChangeCapacity(userLock: Script, tokenType: Script): bigint {
+    const scriptSize = BigInt(userLock.size() + tokenType.size());
+    return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
   }
 
   // TODO: refactor
