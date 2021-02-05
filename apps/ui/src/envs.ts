@@ -6,10 +6,15 @@ BigNumber.config({ EXPONENTIAL_AT: 1e9 });
 export const UIEnvs = buildEnv({
   EXPLORER_URL: process.env.REACT_APP_CKB_EXPLORER_URL,
   ETHERSCAN_URL: process.env.REACT_APP_ETHERSCAN_URL || 'https://ropsten.etherscan.io',
+  DOCS_URL: process.env.REACT_APP_DOCS_URL || 'https://zoe-zhouzhou.github.io/gliaswap-docs/docs',
 });
 
 export function explore(url: string): string {
   return UIEnvs.get('EXPLORER_URL') + url;
+}
+
+export function docsFaq(hashtag: string) {
+  return `${UIEnvs.get('DOCS_URL')}/ref/faq/#${hashtag}`;
 }
 
 export function exploreAddress(address: string): string {
