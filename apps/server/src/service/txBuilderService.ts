@@ -240,8 +240,11 @@ export class TxBuilderService {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, token.typeScript);
-    const minCapacity =
-      ckb.getBalance() + constants.LIQUIDITY_ORDER_CAPACITY + minCKBChangeCapacity + minTokenChangeCapacity + txFee;
+    if (ckb.getBalance() + minTokenChangeCapacity <= constants.LIQUIDITY_ORDER_CAPACITY) {
+      ctx.throw(400, 'ckb amount pluse sudt capacity is smaller or equal to liquidity request capacity');
+    }
+
+    const minCapacity = ckb.getBalance() + minCKBChangeCapacity + minTokenChangeCapacity * 2n + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, token);
 
     // Generate genesis request lock script
@@ -253,8 +256,9 @@ export class TxBuilderService {
     const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
 
     // Generate genesis request output cell
+    const reqCapacity = ckb.getBalance() + minTokenChangeCapacity;
     const reqOutput = {
-      capacity: TxBuilderService.hexBigint(constants.LIQUIDITY_ORDER_CAPACITY + ckb.getBalance()),
+      capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
       type: token.typeScript,
     };
@@ -278,7 +282,7 @@ export class TxBuilderService {
       outputsData.push(tokenChangeData);
     }
 
-    let ckbChangeCapacity = collectedCells.inputCapacity - constants.LIQUIDITY_ORDER_CAPACITY - ckb.getBalance();
+    let ckbChangeCapacity = collectedCells.inputCapacity - reqCapacity;
     if (collectedCells.inputToken > token.getBalance()) {
       ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
     }
@@ -373,9 +377,10 @@ export class TxBuilderService {
         lock: req.userLock,
         type: tokenDesired.typeScript,
       };
-      const tokenChangeData = this.codec
-        .getSudtCellSerialization()
-        .encodeData(collectedCells.inputToken - tokenDesired.getBalance());
+
+      const encode = this.codec.getSudtCellSerialization().encodeData;
+      const tokenChangeData = encode(collectedCells.inputToken - tokenDesired.getBalance());
+
       outputs.push(tokenChangeOutput);
       outputsData.push(tokenChangeData);
     }
