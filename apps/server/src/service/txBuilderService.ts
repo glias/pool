@@ -331,6 +331,7 @@ export class TxBuilderService {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, tokenDesired.typeScript);
+
     const minCapacity =
       ckbDesired.getBalance() +
       constants.LIQUIDITY_ORDER_CAPACITY +
