@@ -63,7 +63,12 @@ export const InfoTable = ({ tokenA, tokenB, price, priceImpact, swapMode }: Info
           </TableRow>
         </>
       )}
-      <TableRow label={i18n.t('swap.order-table.swap-fee')} labelTooltip={i18n.t('swap.order-table.swap-fee-desc')}>
+      <TableRow
+        label={i18n.t('swap.order-table.swap-fee')}
+        labelTooltip={i18n.t(
+          `swap.order-table.${swapMode === SwapMode.CrossOut ? 'cross-chain-fee' : 'swap-fee-desc'}`,
+        )}
+      >
         <Balanced asset={{ ...tokenA, balance: swapFee }} />
       </TableRow>
     </Container>

@@ -191,11 +191,7 @@ export const CancelModal = () => {
       keyboard={!isSending}
     >
       {transactionStatus === TransactionStatus.Success ? (
-        <SuccessResult
-          txHash={cancelTxhash}
-          onDismiss={onCancel}
-          isEth={currentOrder?.type === SwapOrderType.CrossChainOrder}
-        />
+        <SuccessResult txHash={cancelTxhash} onDismiss={onCancel} isEth={false} />
       ) : null}
       {transactionStatus === TransactionStatus.Decline ? (
         <DeclineResult onDismiss={onCancel} errMessage={errorMessage} />

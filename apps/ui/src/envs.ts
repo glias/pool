@@ -39,5 +39,5 @@ export function exploreBlock(blockNumber: number): string {
 }
 
 export function exploreTransaction(txHash: string): string {
-  return explore(`/transactions/${txHash}`);
+  return explore(`/transaction/${txHash}`);
 }

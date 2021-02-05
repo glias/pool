@@ -17,6 +17,8 @@ import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useQueryClient } from 'react-query';
 import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
 import { docsFaq } from 'envs';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
+import BigNumber from 'bignumber.js';
 
 export const SwapModal = () => {
   const {
@@ -65,31 +67,47 @@ export const SwapModal = () => {
     switch (swapMode) {
       case SwapMode.CrossIn:
       case SwapMode.CrossOut:
-        return 'crosschain';
+        return '(crosschain)';
       case SwapMode.CrossChainOrder:
-        return 'crosschain order';
+        return '(crosschain order)';
       default:
-        return 'order';
+        return null;
     }
   }, [swapMode]);
+
+  const [{ slippage }] = useGlobalSetting();
 
   const placeLockOrder = useCallback(async () => {
     if (currentEthTx) {
       const txHash = await sendEthTransaction(currentEthTx);
-      const shadowAsset =
-        swapMode === SwapMode.CrossChainOrder
-          ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
-          : null;
+      const isCrossChainOrder = swapMode === SwapMode.CrossChainOrder;
+      const shadowAsset = isCrossChainOrder
+        ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
+        : null;
       const pendingOrder = buildPendingSwapOrder(
         shadowAsset ? { ...shadowAsset, balance: tokenA.balance } : tokenA,
         tokenB,
         txHash,
         shadowAsset ? SwapOrderType.CrossChainOrder : SwapOrderType.CrossChain,
       );
+      if (isCrossChainOrder) {
+        pendingOrder.amountOut.balance = new BigNumber(pendingOrder.amountOut.balance)
+          .times(1 - slippage)
+          .toFixed(0, BigNumber.ROUND_DOWN);
+      }
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
       return txHash;
     }
-  }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders, swapMode, shadowEthAssets]);
+  }, [
+    currentEthTx,
+    sendEthTransaction,
+    tokenA,
+    tokenB,
+    setAndCacheCrossChainOrders,
+    swapMode,
+    shadowEthAssets,
+    slippage,
+  ]);
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
@@ -177,7 +195,11 @@ export const SwapModal = () => {
       keyboard={!isPlacingOrder}
     >
       {transactionStatus === TransactionStatus.Success ? (
-        <SuccessResult txHash={swapTxhash} onDismiss={onCancel} isEth={swapMode !== SwapMode.NormalOrder} />
+        <SuccessResult
+          txHash={swapTxhash}
+          onDismiss={onCancel}
+          isEth={swapMode !== SwapMode.NormalOrder && swapMode !== SwapMode.CrossOut}
+        />
       ) : null}
       {transactionStatus === TransactionStatus.Decline ? (
         <DeclineResult onDismiss={onCancel} errMessage={errorMessage} />
@@ -187,7 +209,7 @@ export const SwapModal = () => {
           <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
             <span>
               {i18n.t('swap.swap-modal.swap')}
-              {`(${operation})`}
+              {operation}
             </span>
           </Form.Item>
           <Form.Item label={i18n.t('swap.cancel-modal.pay')}>

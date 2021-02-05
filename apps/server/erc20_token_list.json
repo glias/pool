@@ -25,7 +25,7 @@
             "symbol": "USDC",
             "decimals": 6,
             "logoURI": "http://121.196.29.165:3040/token/usdc.png",
-            "address": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
+            "address": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
             "chainType":"Ethereum"
         }
     },
@@ -35,7 +35,7 @@
             "symbol": "USDT",
             "decimals": 6,
             "logoURI": "http://121.196.29.165:3040/token/usdt.png",
-            "address": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
+            "address": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
             "chainType":"Ethereum"
         }
     }

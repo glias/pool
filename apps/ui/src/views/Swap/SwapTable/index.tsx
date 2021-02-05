@@ -9,7 +9,12 @@ import BigNumber from 'bignumber.js';
 import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
 import { useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { EthErc20AssetWithBalance, GliaswapAssetWithBalance, ShadowFromEthWithBalance } from '@gliaswap/commons';
+import {
+  EthErc20AssetWithBalance,
+  GliaswapAssetWithBalance,
+  isCkbNativeAsset,
+  ShadowFromEthWithBalance,
+} from '@gliaswap/commons';
 import { useState } from 'react';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
@@ -19,6 +24,7 @@ import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFrom
 import { InfoTable } from './InfoTable';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { HashType, Script } from '@lay2/pw-core';
+import { useMemo } from 'react';
 
 const FormContainer = styled(Form)`
   .submit {
@@ -239,6 +245,8 @@ export const SwapTable: React.FC = () => {
     [setReceive, swapMode, form, tokenA.decimals, setPay, tokenB.decimals, payReserve, receiveReserve],
   );
 
+  const isCkbBuySudt = useMemo(() => isCkbNativeAsset(tokenA), [tokenA]);
+
   const checkPay = useCallback(
     (_: unknown, value: string) => {
       const val = new BigNumber(value);
@@ -254,6 +262,13 @@ export const SwapTable: React.FC = () => {
       if (val.isLessThanOrEqualTo(0)) {
         setIsPayInvalid(true);
         return Promise.reject(i18n.t('validation.lte-zero'));
+      }
+
+      if (swapMode === SwapMode.NormalOrder && isCkbBuySudt) {
+        if (val.isLessThan(4)) {
+          setIsPayInvalid(true);
+          return Promise.reject(i18n.t('validation.minimum-pay'));
+        }
       }
 
       if (val.isNaN()) {
@@ -275,7 +290,7 @@ export const SwapTable: React.FC = () => {
 
       return Promise.resolve();
     },
-    [tokenA.decimals, payMax, setIsPayInvalid, payReserve, swapMode],
+    [tokenA.decimals, payMax, setIsPayInvalid, payReserve, swapMode, isCkbBuySudt],
   );
 
   const checkReceive = useCallback(

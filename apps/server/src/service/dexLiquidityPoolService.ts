@@ -2,7 +2,7 @@ import { Context } from 'koa';
 import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
 import { Cell, ScriptBuilder, Token } from '../model';
-import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
+import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
@@ -29,7 +29,7 @@ export class DexLiquidityPoolService {
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
-    const factory = new DexOrderChainFactory(OrderType.LIQUIDITY, infoCell);
+    const factory = new DexOrderChainFactory(ORDER_TYPE.LIQUIDITY, infoCell);
     const orderLock = ScriptBuilder.buildLiquidityOrderLockScript();
     const queryOptions: QueryOptions = {
       lock: {

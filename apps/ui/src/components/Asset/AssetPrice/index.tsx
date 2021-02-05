@@ -1,11 +1,16 @@
 import { SwapOutlined } from '@ant-design/icons';
-import { Asset, AssetWithBalance, utils } from '@gliaswap/commons';
-import BigNumber from 'bignumber.js';
+import { AssetWithBalance } from '@gliaswap/commons';
 import { HumanizeBalance } from 'components/Balance';
 import React from 'react';
 import styled from 'styled-components';
+import { BN } from 'suite';
 
-type AssetPriceProps = { assets: Asset[]; prices: string[] } | { assets: AssetWithBalance[] };
+interface AssetPriceProps {
+  /**
+   * the pool assets
+   */
+  assets: AssetWithBalance[];
+}
 
 const SwapIcon = styled(SwapOutlined)`
   border-radius: 50%;
@@ -16,22 +21,21 @@ const SwapIcon = styled(SwapOutlined)`
 `;
 
 export const AssetBaseQuotePrices: React.FC<AssetPriceProps> = (props) => {
-  const { assets } = props;
-
-  const prices = utils.has(props, 'prices')
-    ? props.prices
-    : (assets as AssetWithBalance[]).map((asset) => asset.balance);
-
-  const [base] = prices;
-
-  const quotedPrice = prices.map((price) => new BigNumber(price).div(base).times(10 ** assets[0].decimals));
+  const [baseAsset, ...otherAssets] = props.assets;
 
   return (
     <>
-      {(assets as AssetWithBalance[]).map((asset, i) => (
+      {otherAssets.map((otherAsset, i) => (
         <span key={i}>
-          <HumanizeBalance showSuffix asset={asset} value={quotedPrice[i]} maxToFormat={8} />
-          {i < assets.length - 1 && <SwapIcon />}
+          <HumanizeBalance showSuffix asset={otherAsset} value={10 ** otherAsset.decimals} />
+          <SwapIcon />
+          <HumanizeBalance
+            showSuffix
+            asset={baseAsset}
+            value={BN(baseAsset.balance)
+              .div(otherAsset.balance)
+              .times(10 ** otherAsset.decimals)}
+          />
         </span>
       ))}
     </>
