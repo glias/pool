@@ -4,7 +4,6 @@ import Gift from 'assets/img/gift.png';
 import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import i18n from 'i18n';
 import { SwapMode } from './context';
-import { docsFaq } from 'envs';
 
 export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: boolean }) => {
   const amount = swapMode === SwapMode.CrossIn ? '142' : !isBid ? SWAP_CELL_ASK_CAPACITY : SWAP_CELL_BID_CAPACITY;
@@ -18,9 +17,6 @@ export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: bool
           {i18n.t('swap.swap-modal.cross-meta', {
             amount,
           })}
-          <a href={docsFaq('why-lock-my-addtional-ckb-when-i-make-a-swap')} target="_blank" rel="noreferrer noopener">
-            {i18n.t('swap.swap-modal.learn-why')}
-          </a>
         </div>
       </div>
     </MetaContainer>

@@ -16,6 +16,7 @@ import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants'
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useQueryClient } from 'react-query';
 import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
+import { docsFaq } from 'envs';
 
 export const SwapModal = () => {
   const {
@@ -217,6 +218,13 @@ export const SwapModal = () => {
                     values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
                     components={{ bold: <strong /> }}
                   />
+                  <a
+                    href={docsFaq('why-lock-my-addtional-ckb-when-i-make-a-swap')}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {i18n.t('swap.swap-modal.learn-why')}
+                  </a>
                 </MetaContainer>
               </Form.Item>
             ) : null
