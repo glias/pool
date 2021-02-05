@@ -929,8 +929,9 @@ export class TxBuilderService {
   }
 
   private static minTokenChangeCapacity(userLock: Script, tokenType: Script): bigint {
-    const scriptSize = BigInt(userLock.size() + tokenType.size());
-    return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
+    return 154n * constants.CKB_DECIMAL;
+    // const scriptSize = BigInt(userLock.size() + tokenType.size());
+    // return (scriptSize + 8n + constants.MIN_SUDT_DATA_SIZE) * constants.CKB_DECIMAL;
   }
 
   // TODO: refactor
