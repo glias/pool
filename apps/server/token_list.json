@@ -75,10 +75,10 @@
         "shadowFromType": "erc20",
         "shadowFromAddress": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
         "info": {
-            "name": "ckUSDC",
-            "symbol": "ckUSDC",
+            "name": "ckUSDT",
+            "symbol": "ckUSDT",
             "decimals": 6,
-            "logoURI": "http://121.196.29.165:3040/token/usdc.png",
+            "logoURI": "http://121.196.29.165:3040/token/usdt.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf28cdyfgl2xuglt7fpur0wq30lrvzz4934wux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nqalf2n",
             "chainType":"Nervos"
         }
@@ -93,10 +93,10 @@
         "shadowFromType": "erc20",
         "shadowFromAddress": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
         "info": {
-            "name": "ckUSDT",
-            "symbol": "ckUSDT",
+            "name": "ckUSDC",
+            "symbol": "ckUSDC",
             "decimals": 6,
-            "logoURI": "http://121.196.29.165:3040/token/usdt.png",
+            "logoURI": "http://121.196.29.165:3040/token/usdc.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf288e354z7kctlsm9a2m2uxgncf6mufsclwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nv78tkl",
             "chainType":"Nervos"
         }
