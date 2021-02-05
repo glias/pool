@@ -3,7 +3,7 @@ import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionW
 import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
-import { DexOrderChainFactory, OrderType } from '../model/orders/dexOrderChainFactory';
+import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { txBuilder } from '.';
 
@@ -48,7 +48,7 @@ export class DexSwapService {
     const txs = await this.dexRepository.collectTransactions(queryOptions, true);
 
     // const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
-    const factory = new DexOrderChainFactory(OrderType.SWAP, null);
+    const factory = new DexOrderChainFactory(ORDER_TYPE.SWAP, null);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
@@ -92,7 +92,7 @@ export class DexSwapService {
     }
 
     const orders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(OrderType.CROSS_CHAIN, null);
+    const factory = new DexOrderChainFactory(ORDER_TYPE.CROSS_CHAIN, null);
 
     txs.forEach((x) => {
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);

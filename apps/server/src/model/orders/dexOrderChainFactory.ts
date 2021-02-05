@@ -37,7 +37,7 @@ class LiquidityOrderMatcher implements OrderMatcher {
   }
 }
 
-export enum OrderType {
+export enum ORDER_TYPE {
   CROSS_CHAIN = 'crossChain',
   SWAP = 'swap',
   LIQUIDITY = 'liquidity',
@@ -52,9 +52,9 @@ export class DexOrderChainFactory {
   private poolInfo: PoolInfo;
 
   constructor(orderType: string, poolInfo: PoolInfo) {
-    this.isSwapOrder = orderType === OrderType.LIQUIDITY ? false : true;
+    this.isSwapOrder = orderType === ORDER_TYPE.LIQUIDITY ? false : true;
     this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
-    if (orderType === OrderType.CROSS_CHAIN) {
+    if (orderType === ORDER_TYPE.CROSS_CHAIN) {
       this.orderMatcher = new BridgeMatcher();
     }
     this.markTheCellThatHasBeenTracked = new Set();
