@@ -1,10 +1,11 @@
 import { MockRepositoryFactory } from '../../mockRepositoryFactory';
 import { DexLiquidityPoolService } from '../../../service/dexLiquidityPoolService';
-import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, POOL_INFO_TYPE_SCRIPT } from '../../../config';
+
 import { mockGliaPoolInfo } from './mockData';
 
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
+import { PoolInfo } from '../../../model';
 sinonStubPromise(sinon);
 
 describe('/v1/liquidity-pool', () => {
@@ -14,8 +15,8 @@ describe('/v1/liquidity-pool', () => {
   beforeEach(() => {
     const lock = {
       script: {
-        code_hash: INFO_LOCK_CODE_HASH,
-        hash_type: INFO_LOCK_HASH_TYPE,
+        code_hash: PoolInfo.LOCK_CODE_HASH,
+        hash_type: PoolInfo.LOCK_HASH_TYPE,
         args: '0x',
       },
       argsLen: 'any',
@@ -25,12 +26,12 @@ describe('/v1/liquidity-pool', () => {
       .resolves([])
       .withArgs({
         lock: lock,
-        type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
+        type: PoolInfo.TYPE_SCRIPTS['GLIA'].toLumosScript(),
       })
       .resolves([mockGliaPoolInfo])
       .withArgs({
         lock: lock,
-        type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
+        type: PoolInfo.TYPE_SCRIPTS['ckETH'].toLumosScript(),
       })
       .resolves([mockGliaPoolInfo]);
   });
@@ -44,8 +45,8 @@ describe('/v1/liquidity-pool', () => {
 
     expect(result.length).toEqual(2);
     expect(result).toEqual([
-      service.toPoolInfo(mockGliaPoolInfo, POOL_INFO_TYPE_SCRIPT[0]),
-      service.toPoolInfo(mockGliaPoolInfo, POOL_INFO_TYPE_SCRIPT[1]),
+      service.toPoolInfo(mockGliaPoolInfo, PoolInfo.TYPE_SCRIPTS['GLIA']),
+      service.toPoolInfo(mockGliaPoolInfo, PoolInfo.TYPE_SCRIPTS['ckETH']),
     ]);
   });
 });
@@ -57,8 +58,8 @@ describe('/v1/liquidity-pool/pool-id', () => {
   beforeEach(async () => {
     const lock = {
       script: {
-        code_hash: INFO_LOCK_CODE_HASH,
-        hash_type: INFO_LOCK_HASH_TYPE,
+        code_hash: PoolInfo.LOCK_CODE_HASH,
+        hash_type: PoolInfo.LOCK_HASH_TYPE,
         args: '0x',
       },
       argsLen: 'any',
@@ -68,12 +69,12 @@ describe('/v1/liquidity-pool/pool-id', () => {
       .resolves([])
       .withArgs({
         lock: lock,
-        type: POOL_INFO_TYPE_SCRIPT[0].toLumosScript(),
+        type: PoolInfo.TYPE_SCRIPTS['GLIA'].toLumosScript(),
       })
       .resolves([mockGliaPoolInfo])
       .withArgs({
         lock: lock,
-        type: POOL_INFO_TYPE_SCRIPT[1].toLumosScript(),
+        type: PoolInfo.TYPE_SCRIPTS['ckETH'].toLumosScript(),
       })
       .resolves([mockGliaPoolInfo]);
   });
@@ -83,7 +84,7 @@ describe('/v1/liquidity-pool/pool-id', () => {
   });
 
   it('get /v1/liquidity-pool/pool-id', async () => {
-    const result = await service.getLiquidityPoolByPoolId(POOL_INFO_TYPE_SCRIPT[1].toHash());
-    expect(result).toEqual(service.toPoolInfo(mockGliaPoolInfo, POOL_INFO_TYPE_SCRIPT[1]));
+    const result = await service.getLiquidityPoolByPoolId(PoolInfo.TYPE_SCRIPTS['GLIA'].toHash());
+    expect(result).toEqual(service.toPoolInfo(mockGliaPoolInfo, PoolInfo.TYPE_SCRIPTS['ckETH']));
   });
 });
