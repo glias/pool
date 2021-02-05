@@ -64,11 +64,11 @@ export const SwapModal = () => {
     switch (swapMode) {
       case SwapMode.CrossIn:
       case SwapMode.CrossOut:
-        return 'crosschain';
+        return '(crosschain)';
       case SwapMode.CrossChainOrder:
-        return 'crosschain order';
+        return '(crosschain order)';
       default:
-        return 'order';
+        return null;
     }
   }, [swapMode]);
 
@@ -186,7 +186,7 @@ export const SwapModal = () => {
           <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
             <span>
               {i18n.t('swap.swap-modal.swap')}
-              {`(${operation})`}
+              {operation}
             </span>
           </Form.Item>
           <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
