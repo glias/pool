@@ -256,6 +256,13 @@ export const SwapTable: React.FC = () => {
         return Promise.reject(i18n.t('validation.lte-zero'));
       }
 
+      if (swapMode === SwapMode.NormalOrder) {
+        if (val.isLessThan(4)) {
+          setIsPayInvalid(true);
+          return Promise.reject(i18n.t('validation.minimum-pay'));
+        }
+      }
+
       if (val.isNaN()) {
         setIsPayInvalid(true);
         return Promise.reject(i18n.t('validation.invalid-number'));
