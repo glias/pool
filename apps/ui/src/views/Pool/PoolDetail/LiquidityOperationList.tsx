@@ -5,7 +5,6 @@ import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanace
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { QueryTips } from 'components/QueryTips';
-import dayjs from 'dayjs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
@@ -14,6 +13,7 @@ import React, { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { dayjs } from 'third-party';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
@@ -97,7 +97,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       if (!currentUserLock) throw new Error('The current user is lock is not found, maybe the wallet is disconnected');
       return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId });
     },
-    { enabled: currentUserLock != null },
+    { enabled: currentUserLock != null, refetchInterval: 10000 },
   );
 
   const {
@@ -112,12 +112,8 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   }
 
   const { data: summaries } = query;
-  const { isLoading: isSendingCancelRequest, mutateAsync: sendCancelOperationTransaction } = useMutation(
-    ['sendCancelLiquidityOperation'],
-    async () => {
-      if (!readyToSendTransaction) throw new Error('The operation request transaction is not generated');
-      return sendCancelLiquidityOperationTransaction().finally(() => setReadyToCancelOperation(null));
-    },
+  const { mutateAsync: sendCancelOperationTransaction } = useMutation(['sendCancelLiquidityOperation'], async () =>
+    sendCancelLiquidityOperationTransaction(),
   );
 
   if (!currentUserLock) return null;
@@ -161,7 +157,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <OperationConfirmModal
         visible={!!readyToCancelOperation}
         onOk={() => sendCancelOperationTransaction()}
-        onCancel={() => !isSendingCancelRequest && setReadyToCancelOperation(null)}
+        onCancel={() => setReadyToCancelOperation(null)}
         operation={
           readyToCancelOperation && (
             <Text strong type="danger">

@@ -1,19 +1,23 @@
-import { Button, message } from 'antd';
+import { Button } from 'antd';
+import { ButtonProps } from 'antd/lib/button';
 import { ModalContainer } from 'components/ModalContainer';
+import { DeclineResult, SuccessResult } from 'components/TransactionResult';
 import i18n from 'i18n';
-import React, { useState } from 'react';
+import React from 'react';
+import { useMutation } from 'react-query';
 import styled from 'styled-components';
 
 interface LiquidityOperationConfirmProps {
   operation: React.ReactNode;
-  confirm?: React.ReactNode;
-  onOk: () => Promise<unknown>;
+  confirmText?: React.ReactNode;
+  confirmButtonType?: ButtonProps['type'];
+  onOk: () => Promise<string>;
   onCancel?: () => void;
   className?: string;
   visible?: boolean;
 }
 
-const LiquidityOperationConfirmWrapper = styled.div`
+const OperationConfirmationWrapper = styled.div`
   .label {
     color: #7e7e7e;
   }
@@ -29,32 +33,49 @@ const LiquidityOperationConfirmWrapper = styled.div`
 
 export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = ({
   operation,
-  confirm,
+  confirmText,
   className,
   children,
   onOk,
   onCancel,
   visible,
+  confirmButtonType = 'primary',
 }) => {
-  const [confirming, setConfirming] = useState(false);
+  const { data: txHash, mutate: sendTransaction, isLoading: isSendingTransaction, reset, status, error } = useMutation<
+    string,
+    Error
+  >(['sendTransaction', onOk], () => onOk());
 
-  async function onClick() {
-    setConfirming(true);
-    onOk()
-      .finally(() => setConfirming(false))
-      .catch((e) => message.error(e.message));
+  function onModalCancel() {
+    if (isSendingTransaction) return;
+    onCancel?.();
+    reset();
   }
 
-  return (
-    <ModalContainer onCancel={onCancel} width={360} title={i18n.t('Review')} visible={visible} footer={false}>
-      <LiquidityOperationConfirmWrapper className={className}>
+  const confirmContent = (() => {
+    if (status === 'success' && txHash) {
+      return <SuccessResult txHash={txHash} onDismiss={onCancel} />;
+    }
+
+    if (status === 'error' && error) {
+      return <DeclineResult errMessage={error?.message} onDismiss={onCancel} />;
+    }
+
+    return (
+      <OperationConfirmationWrapper className={className}>
         <div className="label">{i18n.t('Operation')}</div>
         <div>{operation}</div>
         <section className="confirm-content">{children}</section>
-        <Button type="primary" block onClick={onClick} loading={confirming}>
-          {confirm ?? i18n.t('Confirm')}
+        <Button block type={confirmButtonType} onClick={() => sendTransaction()} loading={isSendingTransaction}>
+          {confirmText ?? i18n.t('Confirm')}
         </Button>
-      </LiquidityOperationConfirmWrapper>
+      </OperationConfirmationWrapper>
+    );
+  })();
+
+  return (
+    <ModalContainer onCancel={onModalCancel} width={360} title={i18n.t('Review')} visible={visible} footer={false}>
+      {confirmContent}
     </ModalContainer>
   );
 };
