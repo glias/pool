@@ -6,13 +6,13 @@ import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { QueryTips } from 'components/QueryTips';
 import dayjs from 'dayjs';
-import { exploreTypeHash } from 'envs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -39,9 +39,7 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool ID')}</div>
-        <a href={exploreTypeHash(summary.poolId)} target="_blank" rel="noreferrer">
-          {truncateMiddle(summary.poolId)}
-        </a>
+        <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t(upperFirst(summary.type))}</div>
