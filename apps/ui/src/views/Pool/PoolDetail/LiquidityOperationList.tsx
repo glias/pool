@@ -6,13 +6,13 @@ import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { QueryTips } from 'components/QueryTips';
 import dayjs from 'dayjs';
-import { exploreTypeHash } from 'envs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -39,9 +39,7 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool ID')}</div>
-        <a href={exploreTypeHash(summary.poolId)} target="_blank" rel="noreferrer">
-          {truncateMiddle(summary.poolId)}
-        </a>
+        <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div className="label">{i18n.t(upperFirst(summary.type))}</div>
@@ -99,7 +97,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       if (!currentUserLock) throw new Error('The current user is lock is not found, maybe the wallet is disconnected');
       return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId });
     },
-    { enabled: currentUserLock != null },
+    { enabled: currentUserLock != null, refetchInterval: 10000 },
   );
 
   const {
@@ -114,12 +112,8 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   }
 
   const { data: summaries } = query;
-  const { isLoading: isSendingCancelRequest, mutateAsync: sendCancelOperationTransaction } = useMutation(
-    ['sendCancelLiquidityOperation'],
-    async () => {
-      if (!readyToSendTransaction) throw new Error('The operation request transaction is not generated');
-      return sendCancelLiquidityOperationTransaction().finally(() => setReadyToCancelOperation(null));
-    },
+  const { mutateAsync: sendCancelOperationTransaction } = useMutation(['sendCancelLiquidityOperation'], async () =>
+    sendCancelLiquidityOperationTransaction(),
   );
 
   if (!currentUserLock) return null;
@@ -163,7 +157,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <OperationConfirmModal
         visible={!!readyToCancelOperation}
         onOk={() => sendCancelOperationTransaction()}
-        onCancel={() => !isSendingCancelRequest && setReadyToCancelOperation(null)}
+        onCancel={() => setReadyToCancelOperation(null)}
         operation={
           readyToCancelOperation && (
             <Text strong type="danger">

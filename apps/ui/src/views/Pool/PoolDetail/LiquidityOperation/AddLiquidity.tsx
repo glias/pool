@@ -11,7 +11,6 @@ import { useAddLiquidity } from 'hooks/useAddLiquidity';
 import i18n from 'i18n';
 import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
-import { useMutation } from 'react-query';
 import styled from 'styled-components';
 import { Amount, createAssetWithBalance } from 'suite';
 import { RequestFeeLabel } from './components/RequestFeeLabel';
@@ -87,6 +86,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     userFreeBalances,
     onUserInputReadyToAddAmount,
     readyToAddShare,
+    readyToReceiveLPAmount,
     readyToAddAmounts,
     sendReadyToAddLiquidityTransaction,
     readyToAddLiquidityTransaction,
@@ -101,11 +101,6 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     actions.setSubmitting(false);
     setConfirming(true);
   };
-
-  const { isLoading, mutateAsync: sendAddLiquidityTransaction } = useMutation(
-    'sendReadyToAddLiquidityTransaction',
-    () => sendReadyToAddLiquidityTransaction().finally(() => setConfirming(false)),
-  );
 
   function validateAmount(input: string, userBalance: Amount, asset: AssetWithBalance): string | undefined {
     if (!input || !/^\d*(\.\d*)?$/.test(input)) return i18n.t(`Please fill in a valid number`);
@@ -277,8 +272,8 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
       <OperationConfirmModal
         visible={confirming}
-        onOk={() => sendAddLiquidityTransaction()}
-        onCancel={() => !isLoading && setConfirming(false)}
+        onOk={() => sendReadyToAddLiquidityTransaction()}
+        onCancel={() => setConfirming(false)}
         operation={<Text strong>{i18n.t('Add Liquidity')}</Text>}
       >
         {confirming && (
@@ -297,7 +292,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <div className="label">{i18n.t('Receive(EST)')}</div>
             <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
               <div>
-                <HumanizeBalance asset={poolAsset1} value={readyToAddShare} />
+                <HumanizeBalance asset={poolAsset1} value={readyToReceiveLPAmount} />
               </div>
               <div>
                 <PoolAssetSymbol assets={poolAssets} />

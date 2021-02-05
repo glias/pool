@@ -9,8 +9,8 @@ import { etherscanTransaction, exploreTransaction } from 'envs';
 
 export interface ResultProps {
   txHash: string;
-  isEth: boolean;
-  onDismiss: () => void;
+  isEth?: boolean;
+  onDismiss?: () => void;
 }
 
 export const ResultContainer = styled.div`
@@ -50,7 +50,7 @@ export const SuccessResult = ({ txHash, isEth, onDismiss }: ResultProps) => {
   );
 };
 
-export const DeclineResult = ({ errMessage, onDismiss }: { errMessage: React.ReactNode; onDismiss: () => void }) => {
+export const DeclineResult = ({ errMessage, onDismiss }: { errMessage: React.ReactNode; onDismiss?: () => void }) => {
   return (
     <ResultContainer>
       <Result title={i18n.t('result.decline')} icon={<DeclineSvg />} status="error" subTitle={errMessage} />

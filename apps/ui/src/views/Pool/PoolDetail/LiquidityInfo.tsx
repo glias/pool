@@ -2,10 +2,10 @@ import { Empty, Skeleton, Tag, Typography } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
-import { exploreTypeHash } from 'envs';
 import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
 import i18n from 'i18n';
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { truncateMiddle } from 'utils';
 
 const { Text } = Typography;
@@ -71,9 +71,7 @@ export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Pool ID')}</div>
         <div>
-          <a rel="noreferrer" href={exploreTypeHash(poolId)} target="_blank">
-            {truncateMiddle(poolId)}
-          </a>
+          <Link to={`/pool/${poolId}`}>{truncateMiddle(poolId)}</Link>
         </div>
       </SpaceBetweenRow>
       <UserLiquidityInfo />

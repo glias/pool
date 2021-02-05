@@ -69,13 +69,6 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
   const removePercent = useMemo(() => BN(readyToRemoveShare).times(100).toNumber(), [readyToRemoveShare]);
 
-  const {
-    isLoading: isSendingRemoveTransaction,
-    mutateAsync: sendRemoveTransaction,
-  } = useMutation('sendRemoveLiquidityTransaction', async () =>
-    sendRemoveLiquidityTransaction().finally(() => setConfirming(false)),
-  );
-
   function setRemovePercent(percent: number) {
     setReadyToRemoveShare(BN(percent).div(100).toNumber());
   }
@@ -161,8 +154,8 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
       <OperationConfirmModal
         visible={confirming}
-        onOk={() => sendRemoveTransaction()}
-        onCancel={() => !isSendingRemoveTransaction && setConfirming(false)}
+        onOk={() => sendRemoveLiquidityTransaction()}
+        onCancel={() => setConfirming(false)}
         operation={<Text strong>{i18n.t('Remove Liquidity')}</Text>}
       >
         {readyToSendTransactionWithFee && (

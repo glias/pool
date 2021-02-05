@@ -1,15 +1,11 @@
-import { WarningOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { Spin, Tooltip } from 'antd';
-import dayjs from 'dayjs';
-import i18n from 'i18n';
 import React, { useMemo } from 'react';
 import { QueryObserverResult } from 'react-query';
 import styled from 'styled-components';
 
 interface UpdateStatusProps {
   query: QueryObserverResult;
-
-  timeFormat?: string;
 }
 
 const UpdateStatusWrapper = styled.span`
@@ -19,13 +15,16 @@ const UpdateStatusWrapper = styled.span`
 `;
 
 export const QueryTips: React.FC<UpdateStatusProps> = (props) => {
-  const { timeFormat = 'HH:mm:ss' } = props;
   const { dataUpdatedAt, status } = props.query;
 
   const lastUpdated = useMemo(() => {
     if (!dataUpdatedAt) return null;
-    return <Tooltip overlay={i18n.t(`last update at`)}>{dayjs(dataUpdatedAt).format(timeFormat)}</Tooltip>;
-  }, [dataUpdatedAt, timeFormat]);
+    return (
+      <Tooltip overlay={() => `updated ${((Date.now() - dataUpdatedAt) / 1000).toFixed(0)}s ago`}>
+        <CheckCircleOutlined style={{ color: 'rgba(0,200,0,0.75)' }} />
+      </Tooltip>
+    );
+  }, [dataUpdatedAt]);
 
   const statusNode = useMemo(() => {
     if (status === 'loading' || status === 'idle') return <Spin size="small" />;
