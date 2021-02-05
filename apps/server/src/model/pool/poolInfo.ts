@@ -2,17 +2,16 @@ import { Cell, Script } from '..';
 import { Token } from '..';
 import { HashType } from '@ckb-lumos/base';
 import dotenv from 'dotenv';
+import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE } from '../../config';
 dotenv.config();
 
 export class PoolInfo {
   // INFO CELL
-  static TYPE_CODE_HASH =
-    process.env.INFO_TYPE_CODE_HASH || '0xb31869abb8b9f2f62bbb89ad89e525fa39b54ee57383a53949a89d80fc468929';
-  static TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
+  static TYPE_CODE_HASH = INFO_TYPE_CODE_HASH;
+  static TYPE_HASH_TYPE = INFO_TYPE_HASH_TYPE;
 
-  static LOCK_CODE_HASH =
-    process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';
-  static LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
+  static LOCK_CODE_HASH = INFO_LOCK_CODE_HASH;
+  static LOCK_HASH_TYPE: HashType = INFO_LOCK_HASH_TYPE;
 
   static TYPE_ARGS: Record<string, string> = {
     GLIA: '0x0000000000000000000000000000000000000000000000000000000000000016',

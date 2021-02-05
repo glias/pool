@@ -1,3 +1,4 @@
+import { HashType } from '@ckb-lumos/base';
 import * as constants from '@gliaswap/constants';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -16,6 +17,15 @@ export const mysqlInfo: MySqlConnectionConfig = {
 };
 
 export const env = process.env.NODE_ENV || 'development';
+
+// INFO CELL
+export const INFO_TYPE_CODE_HASH =
+  process.env.INFO_TYPE_CODE_HASH || '0xb31869abb8b9f2f62bbb89ad89e525fa39b54ee57383a53949a89d80fc468929';
+export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
+
+export const INFO_LOCK_CODE_HASH =
+  process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';
+export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
 
 export const PW_LOCK_CODE_HASH =
   process.env.PW_LOCK_CODE_HASH || '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63';
