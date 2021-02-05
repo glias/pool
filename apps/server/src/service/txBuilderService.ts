@@ -331,13 +331,11 @@ export class TxBuilderService {
     // Collect free ckb and free token cells
     const minCKBChangeCapacity = TxBuilderService.minCKBChangeCapacity(req.userLock);
     const minTokenChangeCapacity = TxBuilderService.minTokenChangeCapacity(req.userLock, tokenDesired.typeScript);
+    if (ckbDesired.getBalance() + minTokenChangeCapacity * 2n <= constants.LIQUIDITY_ORDER_CAPACITY) {
+      ctx.throw(400, 'ckb amount plus two sudt capacity is smaller or equal than liquidty request capacity');
+    }
 
-    const minCapacity =
-      ckbDesired.getBalance() +
-      constants.LIQUIDITY_ORDER_CAPACITY +
-      minCKBChangeCapacity +
-      minTokenChangeCapacity * 3n +
-      txFee;
+    const minCapacity = ckbDesired.getBalance() + minCKBChangeCapacity + minTokenChangeCapacity * 3n + txFee;
     const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock, tokenDesired);
 
     // Generate add liquidity request lock script
@@ -356,7 +354,7 @@ export class TxBuilderService {
 
     // Generate add liquidity request output cell
     // According to design, injected ckb amount is req.cap - lpt.cap - token.cap
-    const reqCapacity = constants.LIQUIDITY_ORDER_CAPACITY + ckbDesired.getBalance() + minTokenChangeCapacity * 2n;
+    const reqCapacity = ckbDesired.getBalance() + minTokenChangeCapacity * 2n;
     const reqOutput = {
       capacity: TxBuilderService.hexBigint(reqCapacity),
       lock: reqLock,
