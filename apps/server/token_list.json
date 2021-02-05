@@ -73,7 +73,7 @@
             "args": "0xd15bc6b88eebbb4e5c62de9e8349e2ec54ca1a7ee36a5b5288f0045ef3d00b98"
         },
         "shadowFromType": "erc20",
-        "shadowFromAddress": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
+        "shadowFromAddress": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
         "info": {
             "name": "ckUSDC",
             "symbol": "ckUSDC",
@@ -91,7 +91,7 @@
             "args": "0x2a24421f1ca1b3f90aaadd8e4906f44dcb573f66e0469021ca4da0ed3487d857"
         },
         "shadowFromType": "erc20",
-        "shadowFromAddress": "0x1cf98d2a2f5b0BFc365EAb6Ae1913C275bE2618F",
+        "shadowFromAddress": "0x1F0D2251f51b88FaFc90f06F7022FF8d82154B1a",
         "info": {
             "name": "ckUSDT",
             "symbol": "ckUSDT",
