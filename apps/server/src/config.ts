@@ -1,9 +1,7 @@
 import * as constants from '@gliaswap/constants';
-import { HashType } from '@ckb-lumos/base';
 import dotenv from 'dotenv';
 dotenv.config();
 import { MySqlConnectionConfig } from 'knex';
-import * as dex from './model';
 
 export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
@@ -32,15 +30,6 @@ export const SWAP_LOCK_CODE_HASH =
   process.env.SWAP_LOCK_CODE_HASH || '0xe3f6cb7bbdeb241eb8cff071092d9ecc643fc99451ec0f50e67dc0dfab08ff47';
 export const SWAP_LOCK_HASH_TYPE = process.env.SWAP_LOCK_HASH_TYPE || 'data';
 
-// INFO CELL
-export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0xb31869abb8b9f2f62bbb89ad89e525fa39b54ee57383a53949a89d80fc468929';
-export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'data';
-
-export const INFO_LOCK_CODE_HASH =
-  process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';
-export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
-
 export const SUDT_TYPE_CODE_HASH =
   process.env.SUDT_TYPE_CODE_HASH || '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4';
 export const SUDT_TYPE_HASH_TYPE = process.env.SUDT_TYPE_HASH_TYPE || 'type';
@@ -50,31 +39,6 @@ export const CKB_STR_TO_HASH =
   '0x636b6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
 export const CKB_TOKEN_TYPE_HASH = constants.CKB_TYPE_HASH;
-
-// TODO: refactor to PoolHolder, <Symbol, TypeArgs>
-export const POOL_INFO_TYPE_ARGS: Record<string, string> = {
-  GLIA: '0x0000000000000000000000000000000000000000000000000000000000000016',
-  ckETH: '0x0000000000000000000000000000000000000000000000000000000000000012',
-  ckDAI: '0x0000000000000000000000000000000000000000000000000000000000000013',
-  ckUSDC: '0x0000000000000000000000000000000000000000000000000000000000000014',
-  ckUSDT: '0x0000000000000000000000000000000000000000000000000000000000000015',
-};
-
-export const POOL_INFO_TYPE_SCRIPT: dex.Script[] = [
-  new dex.Script(INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE, POOL_INFO_TYPE_ARGS['GLIA']),
-  new dex.Script(INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE, POOL_INFO_TYPE_ARGS['ckETH']),
-  new dex.Script(INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE, POOL_INFO_TYPE_ARGS['ckDAI']),
-  new dex.Script(INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE, POOL_INFO_TYPE_ARGS['ckUSDC']),
-  new dex.Script(INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE, POOL_INFO_TYPE_ARGS['ckUSDT']),
-];
-
-export const POOL_ID: Record<string, string> = {
-  GLIA: POOL_INFO_TYPE_SCRIPT[0].toHash(),
-  ckETH: POOL_INFO_TYPE_SCRIPT[1].toHash(),
-  ckDAI: POOL_INFO_TYPE_SCRIPT[2].toHash(),
-  ckUSDC: POOL_INFO_TYPE_SCRIPT[3].toHash(),
-  ckUSDT: POOL_INFO_TYPE_SCRIPT[4].toHash(),
-};
 
 export const PW_LOCK_DEP = {
   outPoint: {

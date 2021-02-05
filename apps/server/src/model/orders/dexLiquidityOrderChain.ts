@@ -5,7 +5,7 @@ import {
   LiquidityOrderCellArgs,
   PoolInfo,
 } from '..';
-import { CKB_TOKEN_TYPE_HASH, POOL_ID } from '../../config';
+import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
@@ -37,7 +37,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const sudtToken =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
-        : TokenHolderFactory.getInstance().getTokenBySymbol(this.getSudtSymbol());
+        : TokenHolderFactory.getInstance().getTokenBySymbol(PoolInfo.getSudtSymbol(this.poolInfo.infoCell));
     const amountA = ckbToken;
     const amountB = sudtToken;
 
@@ -48,7 +48,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
-      poolId: POOL_ID[amountB.info.symbol],
+      poolId: PoolInfo.TYPE_SCRIPTS[amountB.info.symbol].toHash(),
       transactionHash: transactionHash,
       timestamp: this.tx.txStatus.timestamp,
       amountIn: amountA,
@@ -145,33 +145,6 @@ export class DexLiquidityChain extends DexOrderChain {
     });
 
     return result;
-  }
-
-  private getSudtSymbol() {
-    const infoCellArgs = CellInfoSerializationHolderFactory.getInstance()
-      .getLiquidityCellSerialization()
-      .decodeArgs(this.cell.lock.args);
-    let sudtType = '';
-    if (POOL_ID['GLIA'] === infoCellArgs.infoTypeHash) {
-      sudtType = 'GLIA';
-    }
-
-    if (POOL_ID['ckETH'] === infoCellArgs.infoTypeHash) {
-      sudtType = 'ckETH';
-    }
-
-    if (POOL_ID['ckDAI'] === infoCellArgs.infoTypeHash) {
-      sudtType = 'ckDAI';
-    }
-
-    if (POOL_ID['ckUSDC'] === infoCellArgs.infoTypeHash) {
-      sudtType = 'ckUSDC';
-    }
-
-    if (POOL_ID['ckUSDT'] === infoCellArgs.infoTypeHash) {
-      sudtType = 'ckUSDT';
-    }
-    return sudtType;
   }
 
   filterOrderHistory(): boolean {
