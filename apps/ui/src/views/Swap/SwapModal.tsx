@@ -194,7 +194,11 @@ export const SwapModal = () => {
       keyboard={!isPlacingOrder}
     >
       {transactionStatus === TransactionStatus.Success ? (
-        <SuccessResult txHash={swapTxhash} onDismiss={onCancel} isEth={swapMode !== SwapMode.NormalOrder} />
+        <SuccessResult
+          txHash={swapTxhash}
+          onDismiss={onCancel}
+          isEth={swapMode !== SwapMode.NormalOrder && swapMode !== SwapMode.CrossOut}
+        />
       ) : null}
       {transactionStatus === TransactionStatus.Decline ? (
         <DeclineResult onDismiss={onCancel} errMessage={errorMessage} />
