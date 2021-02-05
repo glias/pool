@@ -16,6 +16,8 @@ import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants'
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useQueryClient } from 'react-query';
 import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
+import BigNumber from 'bignumber.js';
 
 export const SwapModal = () => {
   const {
@@ -72,23 +74,39 @@ export const SwapModal = () => {
     }
   }, [swapMode]);
 
+  const [{ slippage }] = useGlobalSetting();
+
   const placeLockOrder = useCallback(async () => {
     if (currentEthTx) {
       const txHash = await sendEthTransaction(currentEthTx);
-      const shadowAsset =
-        swapMode === SwapMode.CrossChainOrder
-          ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
-          : null;
+      const isCrossChainOrder = swapMode === SwapMode.CrossChainOrder;
+      const shadowAsset = isCrossChainOrder
+        ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
+        : null;
       const pendingOrder = buildPendingSwapOrder(
         shadowAsset ? { ...shadowAsset, balance: tokenA.balance } : tokenA,
         tokenB,
         txHash,
         shadowAsset ? SwapOrderType.CrossChainOrder : SwapOrderType.CrossChain,
       );
+      if (isCrossChainOrder) {
+        pendingOrder.amountOut.balance = new BigNumber(pendingOrder.amountOut.balance)
+          .times(1 - slippage)
+          .toFixed(0, BigNumber.ROUND_DOWN);
+      }
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
       return txHash;
     }
-  }, [currentEthTx, sendEthTransaction, tokenA, tokenB, setAndCacheCrossChainOrders, swapMode, shadowEthAssets]);
+  }, [
+    currentEthTx,
+    sendEthTransaction,
+    tokenA,
+    tokenB,
+    setAndCacheCrossChainOrders,
+    swapMode,
+    shadowEthAssets,
+    slippage,
+  ]);
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
