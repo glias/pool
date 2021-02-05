@@ -1,5 +1,5 @@
-import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, POOL_INFO_TYPE_SCRIPT } from '../../../config';
-import { CellInfoSerializationHolderFactory, Script, TokenHolderFactory } from '../../../model';
+import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE } from '../../../config';
+import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../../../model';
 
 export const mockGliaPoolInfo = {
   cellOutput: {
@@ -11,10 +11,10 @@ export const mockGliaPoolInfo = {
         .getInfoCellSerialization()
         .encodeArgs(
           TokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash,
-          POOL_INFO_TYPE_SCRIPT[0].toHash(),
+          PoolInfo.TYPE_SCRIPTS['GLIA'].toHash(),
         ),
     ),
-    type: POOL_INFO_TYPE_SCRIPT[0],
+    type: PoolInfo.TYPE_SCRIPTS['GLIA'],
   },
   outPoint: {
     txHash: 'txHash',
@@ -37,11 +37,11 @@ export const mockCkEthPoolInfo = {
         .getInfoCellSerialization()
         .encodeArgs(
           TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash,
-          POOL_INFO_TYPE_SCRIPT[0].toHash(),
+          PoolInfo.TYPE_SCRIPTS['ckETH'].toHash(),
         ),
     ),
 
-    type: POOL_INFO_TYPE_SCRIPT[1],
+    type: PoolInfo.TYPE_SCRIPTS['ckETH'],
   },
   outPoint: {
     txHash: 'txHash',

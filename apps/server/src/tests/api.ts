@@ -6,7 +6,7 @@ import * as commons from '@gliaswap/commons';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { TokenHolderFactory } from '../../src/model';
+import { PoolInfo, TokenHolderFactory } from '../../src/model';
 import { txBuilder } from '../../src/service';
 import * as config from '../../src/config';
 
@@ -50,7 +50,7 @@ const generateToken = (amount: bigint, symbol: string) => {
 
 const generateLPToken = (amount: bigint, tokenSymbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(tokenSymbol);
-  const infoTypeScriptArgs = config.POOL_INFO_TYPE_ARGS[tokenSymbol];
+  const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[tokenSymbol];
 
   const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
 
@@ -127,10 +127,10 @@ const postRequest = async (url: string, req: Record<string, unknown>, callback?:
 };
 
 async function createTestPool(tokenSymbol: string) {
-  if (!config.POOL_ID[tokenSymbol]) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new Error(`unknown token symbol: ${tokenSymbol}`);
   }
-  console.log(`create ${tokenSymbol} pool, id: ${config.POOL_ID[tokenSymbol]}`);
+  console.log(`create ${tokenSymbol} pool, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
   const lpToken = generateLPToken(0n, tokenSymbol);
   console.log(`expect lp token type hash ${lpToken.typeHash}`);
@@ -148,14 +148,14 @@ async function createTestPool(tokenSymbol: string) {
 }
 
 async function createGenesisTx(tokenSymbol: string) {
-  if (!config.POOL_ID[tokenSymbol]) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new Error(`unknown token symbol: ${tokenSymbol}`);
   }
-  console.log(`create ${tokenSymbol} genesis, id: ${config.POOL_ID[tokenSymbol]}`);
+  console.log(`create ${tokenSymbol} genesis, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
   const req = {
     assets: [ckbToken(10n * CKB_DECIMAL), generateToken(10n * CKB_DECIMAL, tokenSymbol)],
-    poolId: config.POOL_ID[tokenSymbol],
+    poolId: PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash(),
     lock: USER_LOCK,
     tips: ckbToken(0n),
   };
@@ -164,15 +164,15 @@ async function createGenesisTx(tokenSymbol: string) {
 }
 
 async function createAddLiquidityTx(tokenSymbol: string) {
-  if (!config.POOL_ID[tokenSymbol]) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new Error(`unknown token symbol: ${tokenSymbol}`);
   }
-  console.log(`create ${tokenSymbol} add liquidity, id: ${config.POOL_ID[tokenSymbol]}`);
+  console.log(`create ${tokenSymbol} add liquidity, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
   const req = {
     assetsWithDesiredAmount: [ckbToken(1000n * CKB_DECIMAL), generateToken(300n * CKB_DECIMAL, tokenSymbol)],
     assetsWithMinAmount: [ckbToken(100n * CKB_DECIMAL), generateToken(100n * CKB_DECIMAL, tokenSymbol)],
-    poolId: config.POOL_ID[tokenSymbol],
+    poolId: PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash(),
     lock: USER_LOCK,
     tips: ckbToken(0n),
   };
@@ -181,15 +181,15 @@ async function createAddLiquidityTx(tokenSymbol: string) {
 }
 
 async function createRemoveLiquidityTx(tokenSymbol: string) {
-  if (!config.POOL_ID[tokenSymbol]) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new Error(`unknown token symbol: ${tokenSymbol}`);
   }
-  console.log(`create ${tokenSymbol} remove liquidity, id: ${config.POOL_ID[tokenSymbol]}`);
+  console.log(`create ${tokenSymbol} remove liquidity, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
   const req = {
     assetsWithMinAmount: [ckbToken(10n * CKB_DECIMAL), generateToken(10n * CKB_DECIMAL, tokenSymbol)],
     lpToken: generateLPToken(50n * CKB_DECIMAL, tokenSymbol),
-    poolId: config.POOL_ID[tokenSymbol],
+    poolId: PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash(),
     lock: USER_LOCK,
     tips: ckbToken(0n),
   };
@@ -213,10 +213,10 @@ async function createCancelLiquidityTx(txHash: string) {
 }
 
 async function createSwapTx(tokenSymbol: string) {
-  if (!config.POOL_ID[tokenSymbol]) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new Error(`unknown token symbol: ${tokenSymbol}`);
   }
-  console.log(`create ${tokenSymbol} swap, id: ${config.POOL_ID[tokenSymbol]}`);
+  console.log(`create ${tokenSymbol} swap, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
   // const req = {
   //   assetInWithAmount: ckbToken(100n * CKB_DECIMAL),

@@ -488,11 +488,11 @@ export default class DexLiquidityPoolController {
       if (!token.info.symbol) {
         ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
       }
-      if (!config.POOL_INFO_TYPE_ARGS[token.info.symbol]) {
+      if (!PoolInfo.TYPE_ARGS[token.info.symbol]) {
         ctx.throw(400, `token ${token.info.symbol} type args not in config`);
       }
 
-      const infoTypeScriptArgs = config.POOL_INFO_TYPE_ARGS[token.info.symbol];
+      const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[token.info.symbol];
       const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
       lpTokenAmount.typeScript = lpTokenTypeScript;
     }

@@ -1,20 +1,12 @@
 import { Context } from 'koa';
 import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
-import { Cell, ScriptBuilder, Token } from '../model';
+import { Cell, PoolInfoHolder, ScriptBuilder, Token } from '../model';
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
-import {
-  CKB_TOKEN_TYPE_HASH,
-  POOL_INFO_TYPE_SCRIPT,
-  INFO_LOCK_CODE_HASH,
-  INFO_LOCK_HASH_TYPE,
-  POOL_INFO_TYPE_ARGS,
-  SUDT_TYPE_CODE_HASH,
-  SUDT_TYPE_HASH_TYPE,
-} from '../config';
+import { CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 
 export class DexLiquidityPoolService {
@@ -81,12 +73,12 @@ export class DexLiquidityPoolService {
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {
-    const poolInfos = await this.getPoolInfos();
+    const poolInfoHolder = await this.getPoolInfos();
     if (lock === null || lock === undefined) {
-      return poolInfos;
+      return poolInfoHolder.getPoolInfos();
     }
 
-    const userLiquiditys = await this.getUserPoolInfos(lock, poolInfos);
+    const userLiquiditys = await this.getUserPoolInfos(lock, poolInfoHolder);
     return userLiquiditys;
   }
 
@@ -95,9 +87,9 @@ export class DexLiquidityPoolService {
     return liquidityInfo.find((x) => x.poolId === poolId);
   }
 
-  private async getUserPoolInfos(lock: Script, poolInfos: PoolInfo[]): Promise<PoolInfo[]> {
+  private async getUserPoolInfos(lock: Script, poolInfoHolder: PoolInfoHolder): Promise<PoolInfo[]> {
     const userLiquiditys: PoolInfo[] = [];
-    for (const poolInfo of poolInfos) {
+    for (const poolInfo of poolInfoHolder.getPoolInfos()) {
       const typeScript = new Script(
         poolInfo.tokenB.typeScript.codeHash,
         'type',
@@ -153,14 +145,14 @@ export class DexLiquidityPoolService {
     return userLiquidityCells;
   }
 
-  private async getPoolInfos(): Promise<PoolInfo[]> {
+  private async getPoolInfos(): Promise<PoolInfoHolder> {
     const poolInfos: PoolInfo[] = [];
-    for (const type of POOL_INFO_TYPE_SCRIPT) {
+    for (const type of PoolInfo.getTypeScript()) {
       const queryOptions: QueryOptions = {
         lock: {
           script: {
-            code_hash: INFO_LOCK_CODE_HASH,
-            hash_type: INFO_LOCK_HASH_TYPE,
+            code_hash: PoolInfo.LOCK_CODE_HASH,
+            hash_type: PoolInfo.LOCK_HASH_TYPE,
             args: '0x',
           },
           argsLen: 'any',
@@ -177,55 +169,29 @@ export class DexLiquidityPoolService {
       poolInfos.push(this.toPoolInfo(infoCells[0], type));
     }
 
-    return poolInfos;
+    return new PoolInfoHolder(poolInfos);
   }
 
   toPoolInfo(infoCell: Cell, type: Script): PoolInfo {
     const argsData = CellInfoSerializationHolderFactory.getInstance()
       .getInfoCellSerialization()
       .decodeData(infoCell.data);
-    const sudtType = this.getSudtSymbol(infoCell);
+    const sudtType = PoolInfo.getSudtSymbol(infoCell);
     const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
     tokenB.balance = argsData.sudtReserve.toString();
 
     // Prevent modification to the same tokenA
     const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     tokenA.balance = argsData.ckbReserve.toString();
-    const poolInfo: PoolInfo = {
-      total: argsData.totalLiquidity.toString(),
-      lpToken: new Token(
-        new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash(),
-      ),
-      poolId: type.toHash(),
-      tokenA: tokenA,
-      tokenB: tokenB,
-      infoCell: infoCell,
-    };
+    const poolInfo = new PoolInfo(
+      type.toHash(),
+      argsData.totalLiquidity.toString(),
+      tokenA,
+      tokenB,
+      infoCell,
+      new Token(new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash()),
+    );
     return poolInfo;
-  }
-
-  private getSudtSymbol(poolCell: Cell) {
-    let sudtType = '';
-    if (POOL_INFO_TYPE_ARGS['GLIA'] === poolCell.cellOutput.type.args) {
-      sudtType = 'GLIA';
-    }
-
-    if (POOL_INFO_TYPE_ARGS['ckETH'] === poolCell.cellOutput.type.args) {
-      sudtType = 'ckETH';
-    }
-
-    if (POOL_INFO_TYPE_ARGS['ckDAI'] === poolCell.cellOutput.type.args) {
-      sudtType = 'ckDAI';
-    }
-
-    if (POOL_INFO_TYPE_ARGS['ckUSDC'] === poolCell.cellOutput.type.args) {
-      sudtType = 'ckUSDC';
-    }
-
-    if (POOL_INFO_TYPE_ARGS['ckUSDT'] === poolCell.cellOutput.type.args) {
-      sudtType = 'ckUSDT';
-    }
-    return sudtType;
   }
 
   public async buildCreateLiquidityPoolTx(

@@ -1,11 +1,5 @@
-import {
-  CKB_STR_TO_HASH,
-  INFO_LOCK_CODE_HASH,
-  POOL_INFO_TYPE_SCRIPT,
-  SWAP_LOCK_CODE_HASH,
-  SWAP_LOCK_HASH_TYPE,
-} from '../config';
-import { CellInfoSerializationHolderFactory, Script, TokenHolderFactory } from '../model';
+import { CKB_STR_TO_HASH, INFO_LOCK_CODE_HASH, SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
+import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import { ScriptBuilder } from '../model';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
@@ -278,7 +272,7 @@ export const mockGliaPoolInfo = [
           .getInfoCellSerialization()
           .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash),
       ),
-      type: POOL_INFO_TYPE_SCRIPT[0],
+      type: PoolInfo.TYPE_SCRIPTS['GLIA'],
     },
     outPoint: {
       txHash: 'txHash',
@@ -304,7 +298,7 @@ export const mockCkEthPoolInfo = [
           .encodeArgs(CKB_STR_TO_HASH, TokenHolderFactory.getInstance().getTokenBySymbol('ckETH').typeHash),
       ),
 
-      type: POOL_INFO_TYPE_SCRIPT[1],
+      type: PoolInfo.TYPE_SCRIPTS['ckETH'],
     },
     outPoint: {
       txHash: 'txHash',
