@@ -37,7 +37,8 @@ import {
 } from '@gliaswap/commons';
 import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
-import Axios, { AxiosInstance } from 'axios';
+import { Modal } from 'antd';
+import Axios, { AxiosError, AxiosInstance } from 'axios';
 import { merge } from 'lodash';
 import * as ServerTypes from 'suite/api/server-patch';
 import { BN, createAssetWithBalance } from 'suite/asset';
@@ -64,6 +65,20 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   constructor(/*private ethFetcher: EthAssetFetcher, serverUrl?: string*/) {
     this.axios = Axios.create({ baseURL: `${process.env.REACT_APP_SERVER_URL}/v1` });
+    this.axios.interceptors.response.use(
+      (res) => res,
+      (error: AxiosError) => {
+        if (
+          [
+            '/liquidity-pool/orders/add-liquidity',
+            '/liquidity-pool/orders/cancel',
+            '/liquidity-pool/orders/remove-liquidity',
+          ].includes(error.config.url ?? '')
+        ) {
+          Modal.error({ content: error.message || 'The transaction was generated failed, please try later' });
+        }
+      },
+    );
   }
 
   async getAssetList(): Promise<Asset[]> {
