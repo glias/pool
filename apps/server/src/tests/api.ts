@@ -9,6 +9,7 @@ dotenv.config();
 import { PoolInfo, TokenHolderFactory } from '../../src/model';
 import { txBuilder } from '../../src/service';
 import * as config from '../../src/config';
+import { BizException } from '../bizException';
 
 const USER_PRIV_KEY = process.env.USER_PRIV_KEY;
 const USER_ADDRESS = privateKeyToAddress(USER_PRIV_KEY, {
@@ -128,7 +129,7 @@ const postRequest = async (url: string, req: Record<string, unknown>, callback?:
 
 async function createTestPool(tokenSymbol: string) {
   if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
-    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+    throw new BizException(`unknown token symbol: ${tokenSymbol}`);
   }
   console.log(`create ${tokenSymbol} pool, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
@@ -142,14 +143,14 @@ async function createTestPool(tokenSymbol: string) {
 
   await postRequest(CREATE_POOL_URL, req, (resp) => {
     if (resp.data.lpToken.typeHash != lpToken.typeHash) {
-      throw new Error(`lp token type hash ${resp.data.lpToken.typeHash} dont match`);
+      throw new BizException(`lp token type hash ${resp.data.lpToken.typeHash} dont match`);
     }
   });
 }
 
 async function createGenesisTx(tokenSymbol: string) {
   if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
-    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+    throw new BizException(`unknown token symbol: ${tokenSymbol}`);
   }
   console.log(`create ${tokenSymbol} genesis, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
@@ -165,7 +166,7 @@ async function createGenesisTx(tokenSymbol: string) {
 
 async function createAddLiquidityTx(tokenSymbol: string) {
   if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
-    throw new Error(`unknown token symbol: ${tokenSymbol}`);
+    throw new BizException(`unknown token symbol: ${tokenSymbol}`);
   }
   console.log(`create ${tokenSymbol} add liquidity, id: ${PoolInfo.TYPE_SCRIPTS[tokenSymbol].toHash()}`);
 
