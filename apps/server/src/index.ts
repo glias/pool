@@ -1,10 +1,11 @@
 import Koa from 'koa';
-import logger from 'koa-logger';
+// import logger from 'koa-logger';
 import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
 import router from './routes';
 import { lumosRepository } from './repository';
 import cors from 'koa2-cors';
+import { accessLogger } from './logger';
 
 const app = new Koa();
 lumosRepository.init();
@@ -21,7 +22,7 @@ app.use(async function (ctx, next) {
 });
 app.use(cors());
 app.use(json());
-app.use(logger());
+app.use(accessLogger);
 app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 
