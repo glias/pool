@@ -166,7 +166,7 @@ export class DexLiquidityPoolService {
         continue;
       }
 
-      poolInfos.push(this.toPoolInfo(infoCells[0], type));
+      poolInfos.push(this.toPoolInfo(infoCells[infoCells.length - 1], type));
     }
 
     return new PoolInfoHolder(poolInfos);
