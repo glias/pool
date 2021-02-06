@@ -10,7 +10,7 @@ export enum ORDER_TYPE {
   BuyCKB = 1,
 }
 
-export enum SwapOrderType {
+export enum SWAP_ORDER_TYPE {
   CrossChain = 'CrossChain',
   CrossChainOrder = 'CrossChainOrder',
   Order = 'Order',
@@ -36,7 +36,7 @@ export class DexSwapOrderChain extends DexOrderChain {
 
     let amountIn;
     let amountOut;
-    if (!this._isOrder && this._bridgeInfo) {
+    if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
 
       if (this._isIn) {
@@ -105,15 +105,15 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   getType(): string {
-    if (this._isOrder) {
-      return SwapOrderType.CrossChainOrder;
+    if (this._isOrder && this._bridgeInfo) {
+      return SWAP_ORDER_TYPE.CrossChainOrder;
     }
 
     if (this._bridgeInfo) {
-      return SwapOrderType.CrossChain;
+      return SWAP_ORDER_TYPE.CrossChain;
     }
 
-    return SwapOrderType.Order;
+    return SWAP_ORDER_TYPE.Order;
   }
 
   getStatus(): string {
@@ -140,7 +140,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     const orders = this.getOrders();
     const result: Step[] = [];
 
-    if (this.getType() === SwapOrderType.CrossChain) {
+    if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
       const ckbStep: Step = new Step(this._bridgeInfo.ckb_tx_hash);
       if (this._isIn) {
@@ -156,13 +156,13 @@ export class DexSwapOrderChain extends DexOrderChain {
       return result;
     }
 
-    if (this.getType() === SwapOrderType.CrossChainOrder) {
+    if (this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
       const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
       result.push(ethStep);
       result.push(ethStep);
     }
 
-    if (this.getType() === SwapOrderType.Order) {
+    if (this.getType() === SWAP_ORDER_TYPE.Order) {
       const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
       result.push(step);
     }
@@ -176,13 +176,13 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    if (SwapOrderType.Order === this.getType()) {
+    if (SWAP_ORDER_TYPE.Order === this.getType()) {
       if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELING) {
         return true;
       }
     }
 
-    if (SwapOrderType.CrossChainOrder === this.getType()) {
+    if (SWAP_ORDER_TYPE.CrossChainOrder === this.getType()) {
       if (this.getStatus() === ORDER_STATUS.PENDING) {
         return false;
       }
@@ -192,7 +192,7 @@ export class DexSwapOrderChain extends DexOrderChain {
       }
     }
 
-    if (SwapOrderType.CrossChain === this.getType()) {
+    if (SWAP_ORDER_TYPE.CrossChain === this.getType()) {
       if (this.getStatus() === ORDER_STATUS.COMPLETED) {
         return true;
       }
