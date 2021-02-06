@@ -22,3 +22,6 @@ apps/server/.env
 
 # file history
 .history
+
+# log
+**log
