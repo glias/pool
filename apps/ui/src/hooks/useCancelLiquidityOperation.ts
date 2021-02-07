@@ -10,7 +10,7 @@ interface UseCancelLiquidityOperationState {
 }
 
 export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState {
-  const { api, currentUserLock, adapter } = useGliaswap();
+  const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const [readyToSendTransaction, setReadyToSendTransaction] = useState<
     SerializedTransactionToSignWithFee | undefined
   >();
@@ -28,6 +28,7 @@ export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState 
 
   async function sendCancelLiquidityOperationTransaction() {
     if (!readyToSendTransaction) throw new Error('Cannot find current user lock, maybe wallet is disconnected');
+    const adapter = assertsConnectedAdapter();
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToSendTransaction.transactionToSign),
     );

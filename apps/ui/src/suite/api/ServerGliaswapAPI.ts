@@ -194,7 +194,16 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     if (!res.data) return;
     // TODO DONT create asset here, use the server response
     res.data.lpToken = merge(
-      createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total),
+      createAssetWithBalance(
+        {
+          chainType: 'Nervos',
+          typeHash: '',
+          decimals: Math.ceil(
+            res.data.assets.reduce((lpTokenDecimal: number, asset: Asset) => lpTokenDecimal + asset.decimals, 0) / 2,
+          ),
+        },
+        res.data.total,
+      ),
       res.data.lpToken,
     );
     return res.data;

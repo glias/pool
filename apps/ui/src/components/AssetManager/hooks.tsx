@@ -52,6 +52,8 @@ const AssetManagerContainer = createContainer<AssetManagerValue>(
 
     const sendConfirmingTx = useCallback(async () => {
       if (!confirmingTx) throw new Error('Cannot found confirming transaction');
+      if (adapter.status !== 'connected') throw new Error('Wallet is not connected');
+
       const txHash = await adapter.signer.sendTransaction(confirmingTx);
       setConfirmingTx(null);
       return txHash;

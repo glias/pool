@@ -241,6 +241,7 @@ export const SwapModal = () => {
                     values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
                     components={{ bold: <strong /> }}
                   />
+                  &nbsp;
                   <a
                     href={docsFaq('why-lock-my-addtional-ckb-when-i-make-a-swap')}
                     target="_blank"
