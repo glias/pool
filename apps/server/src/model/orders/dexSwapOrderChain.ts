@@ -192,8 +192,11 @@ export class DexSwapOrderChain extends DexOrderChain {
       }
     }
 
-    if (SWAP_ORDER_TYPE.CrossChain === this.getType()) {
-      return true;
+    if (SwapOrderType.CrossChain === this.getType()) {
+      if (this.getStatus() === ORDER_STATUS.COMPLETED) {
+        return true;
+      }
+      return false;
     }
 
     return false;

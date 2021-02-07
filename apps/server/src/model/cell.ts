@@ -26,6 +26,13 @@ export class Script {
   args: string;
 
   constructor(codeHash: string, hashType: string, args: string) {
+    // Validate
+    ckbToolkit.validators.ValidateScript({
+      code_hash: codeHash,
+      hash_type: hashType,
+      args: args,
+    });
+
     this.codeHash = codeHash;
     this.hashType = hashType;
     this.args = args;
@@ -47,10 +54,12 @@ export class Script {
     return lumos.utils.computeScriptHash(this.toLumosScript());
   }
 
-  // FIXME: calculation raw tx hash
-  // FIXME: not serialize size
   size(): number {
-    return lumos.core.SerializeScript(ckbToolkit.normalizers.NormalizeScript(this.toLumosScript())).byteLength;
+    const codeHashSize = Buffer.from(this.codeHash.slice(2), 'hex').byteLength;
+    const hashTypeSize = 1;
+    const argsSize = Buffer.from(this.args.slice(2), 'hex').byteLength;
+
+    return codeHashSize + hashTypeSize + argsSize;
   }
 
   static deserialize(value: any): Script {

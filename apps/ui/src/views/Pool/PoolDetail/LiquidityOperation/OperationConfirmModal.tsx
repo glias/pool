@@ -54,11 +54,11 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
 
   const confirmContent = (() => {
     if (status === 'success' && txHash) {
-      return <SuccessResult txHash={txHash} onDismiss={onCancel} />;
+      return <SuccessResult txHash={txHash} onDismiss={onModalCancel} />;
     }
 
     if (status === 'error' && error) {
-      return <DeclineResult errMessage={error?.message} onDismiss={onCancel} />;
+      return <DeclineResult errMessage={error?.message} onDismiss={onModalCancel} />;
     }
 
     return (
