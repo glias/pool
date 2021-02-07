@@ -1,5 +1,4 @@
 import Koa from 'koa';
-// import logger from 'koa-logger';
 import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
 import router from './routes';
@@ -7,7 +6,6 @@ import { lumosRepository } from './repository';
 import cors from 'koa2-cors';
 import { BizException } from './bizException';
 import { accessLogger } from './logger';
-
 
 const app = new Koa();
 lumosRepository.init();
