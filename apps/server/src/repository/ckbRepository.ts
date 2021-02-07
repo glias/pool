@@ -16,6 +16,7 @@ import {
   TransactionWithStatus,
 } from '../model';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
+import { BizException } from '../bizException';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
@@ -49,7 +50,7 @@ export class CkbRepository implements DexRepository {
       await timeout(5000);
     }
 
-    throw new Error('send transaction timeout');
+    throw new BizException('send transaction timeout');
   }
 
   async collectCells(queryOptions: QueryOptions, filterPool = true, includePoolOutput?: boolean): Promise<Cell[]> {
@@ -207,7 +208,7 @@ export class CkbRepository implements DexRepository {
       return result;
     } catch (error) {
       console.error(error);
-      throw new Error('query bridge server error');
+      throw new BizException('query bridge server error');
     }
   }
 
@@ -244,7 +245,7 @@ export class CkbRepository implements DexRepository {
       return await this.getTransactions(hashes);
     } catch (error) {
       console.error(error);
-      throw new Error('query tx pool error!');
+      throw new BizException('query tx pool error!');
     }
   }
 

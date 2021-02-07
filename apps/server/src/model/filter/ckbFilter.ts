@@ -1,6 +1,7 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import { TransactionWithStatus, OutPoint, scriptEquals, CellOutput } from '..';
 import { Cell } from '..';
+import { BizException } from '../../bizException';
 
 export interface PoolFilter {
   getCellFilter(): CellFilter;
@@ -25,7 +26,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
     }
 
     if (!this.inputTxs) {
-      throw new Error('inputTxs not undefined');
+      throw new BizException('inputTxs not undefined');
     }
 
     const result = this.matchTxsByOutput(queryOptions);

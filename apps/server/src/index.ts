@@ -1,10 +1,10 @@
 import Koa from 'koa';
-// import logger from 'koa-logger';
 import json from 'koa-json';
 import bodyParser from 'koa-bodyparser';
 import router from './routes';
 import { lumosRepository } from './repository';
 import cors from 'koa2-cors';
+import { BizException } from './bizException';
 import { accessLogger } from './logger';
 
 const app = new Koa();
@@ -15,9 +15,13 @@ app.use(async function (ctx, next) {
   try {
     await next();
   } catch (err) {
-    console.error(err);
-    ctx.status = err.statusCode || err.status || 500;
-    ctx.body = { stack: err.stack, message: err.message };
+    if (err instanceof BizException) {
+      ctx.status = 400;
+      ctx.body = { message: err.message };
+    } else {
+      ctx.status = 500;
+      ctx.body = { stack: err.stack, message: err.message };
+    }
   }
 });
 app.use(cors());

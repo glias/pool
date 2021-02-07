@@ -1,6 +1,7 @@
 import { QueryOptions, Script, ScriptWrapper, utils } from '@ckb-lumos/base';
 import { Reader, RPC, validators } from 'ckb-js-toolkit';
 import knex from 'knex';
+import { BizException } from '../bizException';
 
 export class TransactionCollector {
   constructor(private knex: knex, private queryOptions: QueryOptions, private rpc: RPC, private includeStatus = true) {
@@ -17,7 +18,7 @@ export class TransactionCollector {
     }
 
     if (!queryOptions.lock && (!queryOptions.type || queryOptions.type === 'empty')) {
-      throw new Error('Either lock or type script must be provided!');
+      throw new BizException('Either lock or type script must be provided!');
     }
 
     // Wrap the plain `Script` into `ScriptWrapper`.
@@ -57,7 +58,7 @@ export class TransactionCollector {
       utils.assertHexadecimal('toBlock', queryOptions.toBlock);
     }
     if (queryOptions.order !== 'asc' && queryOptions.order !== 'desc') {
-      throw new Error('Order must be either asc or desc!');
+      throw new BizException('Order must be either asc or desc!');
     }
   }
 

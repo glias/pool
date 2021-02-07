@@ -4,6 +4,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import { BridgeInfo, Cell, Script, TransactionWithStatus } from '../model';
 import { DexRepository } from '../repository';
 import { ckbMethods } from '../repository/dexRepository';
+import { BizException } from '../bizException';
 
 export class MockRepositoryFactory {
   static getDexRepositoryInstance(): MockRepository {
@@ -13,7 +14,7 @@ export class MockRepositoryFactory {
 
 export class MockRepository implements DexRepository {
   getBlockTimestampByHash(blockHash: string): Promise<string> {
-    throw new Error('Method not implemented.');
+    throw new BizException('Method not implemented.');
   }
   async getForceBridgeHistory(
     lock: Script,
@@ -36,16 +37,16 @@ export class MockRepository implements DexRepository {
     return [];
   }
 
-  getTransactions(hashes: string[]): Promise<TransactionWithStatus[]> {
-    throw new Error('Method not implemented.');
+  async getTransactions(hashes: string[]): Promise<TransactionWithStatus[]> {
+    return [];
   }
 
   getTransaction(hash: string): Promise<TransactionWithStatus> {
-    throw new Error('Method not implemented.');
+    return null;
   }
 
-  sendTransaction(tx: CKBComponents.RawTransaction): Promise<string> {
-    throw new Error('Method not implemented.');
+  async sendTransaction(tx: CKBComponents.RawTransaction): Promise<string> {
+    return '';
   }
 
   mockCollectCells(): sinon.SinonStub<unknown[], unknown> | sinon.SinonStub<unknown[], unknown> {
