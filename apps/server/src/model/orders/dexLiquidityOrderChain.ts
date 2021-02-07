@@ -9,6 +9,7 @@ import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
+import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 export enum LIQUIDITY_ORDER_TYPE {
   ADD = 'add',
@@ -32,7 +33,6 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getOrderHistory(): OrderHistory {
     const transactionHash = this.getLastOrder().getTxHash();
-    const argsData = this.getArgsData();
     const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
     const sudtToken =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
@@ -42,8 +42,11 @@ export class DexLiquidityChain extends DexOrderChain {
     const amountB = sudtToken;
 
     // FIXME:
-    amountA.balance = argsData.ckbMin.toString();
-    amountB.balance = argsData.sudtMin.toString();
+    amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY * 2n).toString();
+    amountB.balance = CellInfoSerializationHolderFactory.getInstance()
+      .getLiquidityCellSerialization()
+      .decodeData(this.data)
+      .toString();
     const steps = this.buildStep();
     const status = this.getStatus();
 
