@@ -56,7 +56,7 @@ interface Progress {
 
 export const StepModal = () => {
   const { stepModalVisable, setStepModalVisable, currentOrder, setCurrentOrder } = useSwapContainer();
-  const { adapter, api } = useGliaswap();
+  const { api } = useGliaswap();
   const type = currentOrder?.type!;
   const tokenA = currentOrder?.amountIn! ?? Object.create(null);
   const tokenB = currentOrder?.amountOut! ?? Object.create(null);
@@ -177,14 +177,6 @@ export const StepModal = () => {
     return 0;
   }, [progress]);
 
-  const shouldCheckEthStatus = useMemo(() => {
-    const isCrossChainOrder = currentOrder?.type === SwapOrderType.CrossChainOrder;
-    const isFirstStep = currentOrder?.stage?.steps.length === 1;
-    return (
-      stepModalVisable && currentOrder?.stage.status === 'pending' && (isCrossChainOrder || isCrossIn) && isFirstStep
-    );
-  }, [stepModalVisable, currentOrder?.stage.status, currentOrder?.type, isCrossIn, currentOrder?.stage?.steps]);
-
   const shouldCheckCkbStatus = useMemo(() => {
     const isCrossChainOrder = currentOrder?.type === SwapOrderType.CrossChainOrder;
     const isFirstStep = currentOrder?.stage?.steps.length === 1;
@@ -192,29 +184,6 @@ export const StepModal = () => {
       stepModalVisable && currentOrder?.stage.status === 'pending' && (isCrossChainOrder || isCrossOut) && isFirstStep
     );
   }, [stepModalVisable, currentOrder?.stage.status, currentOrder?.type, isCrossOut, currentOrder?.stage?.steps]);
-
-  useQuery(
-    ['check-eth-tx-status', shouldCheckEthStatus, stepModalVisable, currentOrder?.transactionHash],
-    () => {
-      return adapter.raw.web3?.eth.getTransactionReceipt(currentOrder?.transactionHash!);
-    },
-    {
-      enabled: stepModalVisable && shouldCheckEthStatus && !!adapter.raw.web3 && !!currentOrder?.transactionHash,
-      refetchInterval: 5000,
-      refetchIntervalInBackground: true,
-      refetchOnMount: true,
-      onSuccess: () => {
-        setCurrentOrder((order) => {
-          order!.stage.steps[1] = {
-            transactionHash: currentOrder?.transactionHash!,
-            index: '0x',
-            errorMessage: '',
-          };
-          return order;
-        });
-      },
-    },
-  );
 
   useQuery(
     ['check-ckb-tx-status', shouldCheckCkbStatus, stepModalVisable, currentOrder?.transactionHash],
