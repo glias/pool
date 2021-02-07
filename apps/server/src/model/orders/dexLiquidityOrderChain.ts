@@ -42,7 +42,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const amountB = sudtToken;
 
     // FIXME:
-    amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+    amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY * 2n).toString();
     amountB.balance = CellInfoSerializationHolderFactory.getInstance()
       .getLiquidityCellSerialization()
       .decodeData(this.data)
