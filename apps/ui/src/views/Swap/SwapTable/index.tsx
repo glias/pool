@@ -146,7 +146,7 @@ export const SwapTable: React.FC = () => {
         const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
         setCurrentEthTx(data);
       } catch (error) {
-        throw new Error('The bridge server is failed to reponsed.');
+        throw new Error('The bridge server is fail to respond.');
       }
     },
     [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, web3, getSwapOrderLock],
