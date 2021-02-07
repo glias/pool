@@ -1,4 +1,9 @@
-import { CkbAssetWithBalance, LiquidityOperationType, LiquidityOperationSummary } from '@gliaswap/commons';
+import {
+  CkbAssetWithBalance,
+  LiquidityOperationStage,
+  LiquidityOperationSummary,
+  LiquidityOperationType,
+} from '@gliaswap/commons';
 import { merge } from 'lodash';
 import { createAssetWithBalance } from 'suite/asset';
 
@@ -65,15 +70,12 @@ export function transformLiquidityOperationInfo(data: LiquidityOperationInfo[]):
   return data.map<LiquidityOperationSummary>((info) => {
     const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken);
 
+    const steps = info.stage.steps.map((step) => ({ txHash: step.transactionHash }));
+
     return {
       poolId: info.poolId,
       model: 'UNISWAP',
-      status:
-        info.stage.status === ORDER_STATUS.PENDING
-          ? 'pending'
-          : info.stage.status === ORDER_STATUS.OPEN
-          ? 'open'
-          : 'canceling',
+      stage: { status: info.stage.status, steps } as LiquidityOperationStage,
       assets: [info.tokenA as CkbAssetWithBalance, info.tokenB as CkbAssetWithBalance],
       time: info.timestamp,
       txHash: info.transactionHash,
