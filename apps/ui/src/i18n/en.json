@@ -2,7 +2,7 @@
   "translation": {
     "result": {
       "dismiss": "Dismiss",
-      "explorer": "View on Nervos Exploroer",
+      "explorer": "View on CKB Exploroer",
       "etherscan": "View on Etherscan",
       "success": "Transaction Submitted",
       "decline": "Submission Declined"
