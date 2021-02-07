@@ -110,9 +110,17 @@ export const SwapTable: React.FC = () => {
       const { data } = await bridgeAPI.lock(tokenA as EthErc20AssetWithBalance, ckbAddress, ethAddress, web3!);
       setCurrentEthTx(data);
     } else {
-      const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowFromEthWithBalance, ckbAddress, ethAddress);
-      const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
-      setCurrentTx(tx);
+      try {
+        const { data } = await bridgeAPI.shadowAssetCrossOut(
+          tokenA as ShadowFromEthWithBalance,
+          ckbAddress,
+          ethAddress,
+        );
+        const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
+        setCurrentTx(tx);
+      } catch (error) {
+        throw new Error('The bridge server is fail to respond.');
+      }
     }
   }, [bridgeAPI, ckbAddress, ethAddress, setCurrentEthTx, setCurrentTx, swapMode, tokenA, web3]);
 
@@ -142,8 +150,12 @@ export const SwapTable: React.FC = () => {
       const ckbAddress = new Script(lock.codeHash, lock.args, lock.hashType === 'data' ? HashType.data : HashType.type)
         .toAddress()
         .toCKBAddress();
-      const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
-      setCurrentEthTx(data);
+      try {
+        const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
+        setCurrentEthTx(data);
+      } catch (error) {
+        throw new Error('The bridge server is fail to respond.');
+      }
     },
     [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, web3, getSwapOrderLock],
   );
@@ -265,7 +277,7 @@ export const SwapTable: React.FC = () => {
       }
 
       if (swapMode === SwapMode.NormalOrder && isCkbBuySudt) {
-        if (val.isLessThan(4)) {
+        if (val.isLessThanOrEqualTo(4)) {
           setIsPayInvalid(true);
           return Promise.reject(i18n.t('validation.minimum-pay'));
         }
