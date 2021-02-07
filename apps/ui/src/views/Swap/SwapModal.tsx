@@ -111,19 +111,19 @@ export const SwapModal = () => {
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
-      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
       return txHash;
     }
-  }, [currentCkbTx, adapter.raw.pw, tokenA, tokenB, setAndCacheCrossChainOrders]);
+  }, [currentCkbTx, adapter.signer, tokenA, tokenB, setAndCacheCrossChainOrders]);
 
   const placeNormalorder = useCallback(async () => {
     if (currentCkbTx) {
-      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       return txHash;
     }
-  }, [currentCkbTx, adapter.raw.pw]);
+  }, [currentCkbTx, adapter.signer]);
 
   const queryClient = useQueryClient();
 

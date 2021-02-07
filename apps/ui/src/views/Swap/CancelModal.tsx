@@ -136,7 +136,7 @@ export const CancelModal = () => {
   const cancelOrder = useCallback(async () => {
     setIsSending(true);
     try {
-      const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
+      const txhash = await adapter.signer.sendTransaction(cancelTx!);
       try {
         await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
       } catch (error) {
@@ -153,7 +153,7 @@ export const CancelModal = () => {
       setCancelTx(null);
     }
   }, [
-    adapter.raw.pw,
+    adapter.signer,
     cancelTx,
     addPendingCancelOrder,
     currentOrder?.transactionHash,
