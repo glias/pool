@@ -89,7 +89,7 @@ export const LiquidityOperationSteps: React.FC<LiquidityOperationStepsProps> = (
     );
   }
 
-  return <h1>23iuo4h3iuo</h1>;
+  return null;
 };
 
 const LiquidityOperationDetailWrapper = styled.div`
