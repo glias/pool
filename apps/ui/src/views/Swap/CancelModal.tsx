@@ -110,13 +110,13 @@ export const CancelModal = () => {
   const [cancelTx, setCancelTx] = useState<Transaction | null>(null);
 
   const { isFetching } = useQuery(
-    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock],
+    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock, isSending],
     async () => {
       const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
       return tx;
     },
     {
-      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash,
+      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash && isSending === false,
       onSuccess(tx) {
         setCancelTx(tx);
       },

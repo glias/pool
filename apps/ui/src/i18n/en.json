@@ -75,7 +75,7 @@
       "liquid": "Insufficient liquidity for this trade",
       "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet.",
       "confirming": "Please confirm or cancel the transaction in your wallet.",
-      "minimum-pay": "The minimum pay amount we support is 4 CKB"
+      "minimum-pay": "The minimum pay amount should bigger than 4 CKB"
     }
   }
 }

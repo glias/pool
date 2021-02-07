@@ -269,7 +269,7 @@ export const SwapTable: React.FC = () => {
       }
 
       if (swapMode === SwapMode.NormalOrder && isCkbBuySudt) {
-        if (val.isLessThan(4)) {
+        if (val.isLessThanOrEqualTo(4)) {
           setIsPayInvalid(true);
           return Promise.reject(i18n.t('validation.minimum-pay'));
         }
