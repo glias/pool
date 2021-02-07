@@ -110,9 +110,17 @@ export const SwapTable: React.FC = () => {
       const { data } = await bridgeAPI.lock(tokenA as EthErc20AssetWithBalance, ckbAddress, ethAddress, web3!);
       setCurrentEthTx(data);
     } else {
-      const { data } = await bridgeAPI.shadowAssetCrossOut(tokenA as ShadowFromEthWithBalance, ckbAddress, ethAddress);
-      const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
-      setCurrentTx(tx);
+      try {
+        const { data } = await bridgeAPI.shadowAssetCrossOut(
+          tokenA as ShadowFromEthWithBalance,
+          ckbAddress,
+          ethAddress,
+        );
+        const tx = await bridgeAPI.rawTransactionToPWTransaction(data.raw_tx);
+        setCurrentTx(tx);
+      } catch (error) {
+        throw new Error('The bridge server is fail to respond.');
+      }
     }
   }, [bridgeAPI, ckbAddress, ethAddress, setCurrentEthTx, setCurrentTx, swapMode, tokenA, web3]);
 
