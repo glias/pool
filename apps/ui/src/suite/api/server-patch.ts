@@ -1,4 +1,4 @@
-import { CkbAssetWithBalance, LiquidityOperationType, LiquidityOperationSummary } from '@gliaswap/commons';
+import { CkbAssetWithBalance, LiquidityOperationSummary, LiquidityOperationType } from '@gliaswap/commons';
 import { merge } from 'lodash';
 import { createAssetWithBalance } from 'suite/asset';
 
@@ -63,7 +63,9 @@ export interface StepsEntity {
 
 export function transformLiquidityOperationInfo(data: LiquidityOperationInfo[]): LiquidityOperationSummary[] {
   return data.map<LiquidityOperationSummary>((info) => {
-    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken);
+    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken, {
+      decimals: Math.ceil(info.tokenA.decimals + info.tokenB.decimals) / 2,
+    });
 
     return {
       poolId: info.poolId,

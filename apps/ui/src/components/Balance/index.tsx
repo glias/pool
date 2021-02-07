@@ -35,7 +35,7 @@ export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
   const { asset, value = asset.balance || 0, showSuffix, maxToFormat, ...otherProps } = props;
 
-  const balanceNum = value instanceof Amount ? value.withDecimal() : Amount.from(value, asset.decimals).withDecimal();
+  const balanceNum = Amount.from(value, asset.decimals).withDecimal();
 
   if (balanceNum.isNaN()) {
     return (

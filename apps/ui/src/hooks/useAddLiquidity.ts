@@ -46,7 +46,7 @@ export function useAddLiquidity(): UseAddLiquidityState {
     // the pool is not loaded
     if (!poolInfo || poolInfo.assets.length <= 0) return [0, Amount.fromZero(0)];
     if (!readyToAddAmounts || readyToAddAmounts.length <= 0 || !readyToAddAmounts[0] || !readyToAddAmounts[1]) {
-      return [0, Amount.fromZero(0)];
+      return [0, Amount.fromZero(poolInfo.lpToken.decimals)];
     }
 
     const poolLpTokenAmount = Amount.fromAsset(poolInfo.lpToken);
@@ -56,7 +56,10 @@ export function useAddLiquidity(): UseAddLiquidityState {
     if (!isPoolGenesis) {
       return [
         1,
-        Amount.from(BN(readyToAddAmounts[0].value).times(readyToAddAmounts[1].value).sqrt().decimalPlaces(0), 0),
+        Amount.from(
+          BN(readyToAddAmounts[0].value).times(readyToAddAmounts[1].value).sqrt().decimalPlaces(0),
+          poolInfo.lpToken.decimals,
+        ),
       ];
     }
 
@@ -68,7 +71,7 @@ export function useAddLiquidity(): UseAddLiquidityState {
 
     const share = readyToReceiveLPAmount.div(poolLpTokenAmount.value).toNumber();
 
-    return [share, Amount.from(readyToReceiveLPAmount, 0)];
+    return [share, Amount.from(readyToReceiveLPAmount, poolInfo.lpToken.decimals)];
   }, [isPoolGenesis, poolInfo, readyToAddAmounts]);
 
   function onUserInputReadyToAddAmount(userInput: string, indexOfPoolAssets: number) {
