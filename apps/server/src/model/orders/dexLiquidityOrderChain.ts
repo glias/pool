@@ -108,32 +108,6 @@ export class DexLiquidityChain extends DexOrderChain {
     return ORDER_STATUS.COMPLETED;
   }
 
-  isCancel(): boolean {
-    if (this.getOrders().length === 1) {
-      return false;
-    }
-
-    const last = this.getLastOrder();
-    if (last.tx.txStatus.status !== 'pending') {
-      return false;
-    }
-
-    if (
-      !scriptEquals.equalsLockScript(
-        last.tx.transaction.inputs[0].cellOutput.lock,
-        this.poolInfo.infoCell.cellOutput.lock,
-      ) &&
-      !scriptEquals.equalsLockScript(
-        last.tx.transaction.inputs[0].cellOutput.type,
-        this.poolInfo.infoCell.cellOutput.type,
-      )
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
   buildStep(): Step[] {
     const orders = this.getOrders();
     const result: Step[] = [];

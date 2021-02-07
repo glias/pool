@@ -1,4 +1,4 @@
-import { Script, Output, TransactionWithStatus, CellInfoSerializationHolder } from '..';
+import { Script, Output, TransactionWithStatus, CellInfoSerializationHolder, PoolInfo } from '..';
 import { CellInfoSerializationHolderFactory } from '../datas';
 import { Token } from '../tokens';
 
@@ -99,6 +99,23 @@ export abstract class DexOrderChain {
       cell = cell.nextOrderCell;
     }
     return txs;
+  }
+
+  isCancel(): boolean {
+    if (this.getOrders().length === 1) {
+      return false;
+    }
+
+    const last = this.getLastOrder();
+    if (last.tx.txStatus.status !== 'pending') {
+      return false;
+    }
+
+    if (!PoolInfo.getTypeScriptByPoolId(last.tx.transaction.inputs[0].cellOutput.type.toHash())) {
+      return true;
+    }
+
+    return false;
   }
 
   equalScript(script1: Script, script2: Script): boolean {

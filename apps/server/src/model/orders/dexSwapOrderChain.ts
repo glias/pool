@@ -117,6 +117,10 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   getStatus(): string {
+    if (this.isCancel()) {
+      return ORDER_STATUS.CANCELING;
+    }
+
     const orders = this.getOrders();
     if (this._isOrder || !this._bridgeInfo) {
       if (orders.length === 1) {
