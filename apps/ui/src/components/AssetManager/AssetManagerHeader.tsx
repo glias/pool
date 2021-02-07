@@ -68,10 +68,10 @@ const WalletConnectionStatusHeaderWrapper = styled.div`
 
 export const WalletConnectionStatusHeader = () => {
   const { t } = useTranslation();
-  const { adapter } = useGliaswap();
+  const { adapter, currentCkbAddress } = useGliaswap();
 
-  const { status, raw, signer } = adapter;
-  const address = signer.address.toCKBAddress();
+  const { status, raw } = adapter;
+  const address = currentCkbAddress;
 
   if (status !== 'connected') return null;
 

@@ -15,18 +15,21 @@ import {
   Script,
   ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
+import { addressToScript } from '@nervosnetwork/ckb-sdk-utils';
 import { ConnectStatus, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
-import { AdapterContextState } from 'commons/WalletAdapter/Provider';
+import { AdapterContextState, ConnectedAdapterState } from 'commons/WalletAdapter/Provider';
 import { RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import { useMemo } from 'react';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 interface GliaswapState {
-  /**
-   * the WalletConnectAdapter
-   * @see {AdapterContextState}
-   */
   adapter: AdapterContextState<Web3ModalAdapter>;
+
+  /**
+   * asserts is connected, get the connected adapter or throw an error if wallet is disconnected
+   */
+  assertsConnectedAdapter(): ConnectedAdapterState<Web3ModalAdapter>;
+
   // global assets info with balance
   realtimeAssets: RealtimeInfo<GliaswapAssetWithBalance[]>;
   /**
@@ -51,24 +54,32 @@ export function useGliaswap(): GliaswapState {
   const { assets, api, bridgeAPI } = useGliaswapContext();
 
   const currentUserLock = useMemo(() => {
-    if (adapter.status === 'connected') return adapter.signer.address.toLockScript();
+    if (adapter.status === 'connected') return addressToScript(adapter.signer.address);
     return undefined;
-  }, [adapter.signer.address, adapter.status]);
-  const walletConnectStatus = adapter.status;
+  }, [adapter.signer, adapter.status]);
 
   const currentCkbAddress = useMemo(() => {
-    return currentUserLock?.toAddress().toCKBAddress() ?? '';
-  }, [currentUserLock]);
+    return adapter.signer?.address ?? '';
+  }, [adapter.signer]);
 
   const currentEthAddress = useMemo(() => {
-    if (adapter.status === 'connected') return adapter.signer.address.addressString;
-    return '';
-  }, [adapter.signer.address.addressString, adapter.status]);
+    if (!currentUserLock) return '';
+    if (!adapter?.raw.web3?.utils) return currentUserLock.args;
+    return adapter.raw.web3.utils.toChecksumAddress(currentUserLock.args);
+  }, [adapter, currentUserLock]);
+
+  console.log(currentEthAddress);
+
+  function assertsConnectedAdapter(): ConnectedAdapterState<Web3ModalAdapter> {
+    if (adapter.status !== 'connected') throw new Error('The wallet is not connected');
+    return adapter;
+  }
 
   return {
     adapter,
+    assertsConnectedAdapter,
     realtimeAssets: assets,
-    walletConnectStatus,
+    walletConnectStatus: adapter.status,
     api,
     currentUserLock,
     currentCkbAddress,

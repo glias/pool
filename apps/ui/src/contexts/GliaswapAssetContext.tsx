@@ -1,7 +1,7 @@
 import { Asset, GliaswapAPI, GliaswapAssetWithBalance, isCkbAsset, isEthAsset } from '@gliaswap/commons';
+import { addressToScript } from '@nervosnetwork/ckb-sdk-utils';
 import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { createAssetWithBalance } from 'suite';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
@@ -36,16 +36,17 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     value: assetList.map((asset) => ({ ...asset, balance: '0' } as GliaswapAssetWithBalance)),
   });
 
-  const { signer, status: connectStatus, raw } = useWalletAdapter<Web3ModalAdapter>();
+  const adapter = useWalletAdapter<Web3ModalAdapter>();
+  const { raw, status: connectStatus } = adapter;
+
   const lockScript = useMemo(() => {
-    if (connectStatus !== 'connected') return null;
-    return signer.address.toLockScript();
-  }, [connectStatus, signer.address]);
+    if (adapter.status !== 'connected') return null;
+    return addressToScript(adapter.signer.address);
+  }, [adapter]);
 
   const currentEthAddress = useMemo(() => {
-    if (connectStatus === 'connected') return signer.address.addressString;
-    return '';
-  }, [signer.address, connectStatus]);
+    return lockScript?.args ?? '';
+  }, [lockScript]);
 
   const { data, status } = useQuery(
     ['getAssetsWithBalance', api, lockScript],

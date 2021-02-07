@@ -1,44 +1,46 @@
+import { LoadingOutlined } from '@ant-design/icons';
 import { GliaswapAssetWithBalance, isShadowEthAsset, SwapOrderType } from '@gliaswap/commons';
 import { Builder, Transaction } from '@lay2/pw-core';
 import { Form, message } from 'antd';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetSymbol } from 'components/Asset';
 import { ConfirmButton } from 'components/ConfirmButton';
+import { MetaContainer } from 'components/MetaContainer';
 import { ModalContainer } from 'components/ModalContainer';
 import { TableRow } from 'components/TableRow';
+import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
+import { useGliaswap } from 'hooks';
+import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
 import i18n from 'i18n';
-import React from 'react';
-import { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Trans } from 'react-i18next';
+import { useQuery, useQueryClient } from 'react-query';
 import styled from 'styled-components';
 import { displayBalance } from 'utils';
 import { useSwapContainer } from './context';
-import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
-import { MetaContainer } from 'components/MetaContainer';
-import { Trans } from 'react-i18next';
-import { useCallback } from 'react';
-import { useState } from 'react';
-import { useGliaswap } from 'contexts';
-import { useQuery, useQueryClient } from 'react-query';
-import { LoadingOutlined } from '@ant-design/icons';
-import { usePendingCancelOrders } from 'hooks/usePendingCancelOrders';
-import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
 
 export const Container = styled(ModalContainer)`
   .cancel {
     color: #f35252;
   }
+
   .hidden {
     visibility: hidden;
   }
+
   .ant-form-item {
     margin-bottom: 16px;
+
     .ant-form-item-label {
       padding: 0;
+
       label {
         font-size: 14px;
         line-height: 22px;
         color: #7e7e7e;
       }
     }
+
     .ant-form-item-control-input {
       line-height: 22px;
       min-height: 0;
@@ -54,6 +56,7 @@ export const Container = styled(ModalContainer)`
 export const Row = styled.div`
   display: flex;
   flex-direction: row;
+
   .amount {
     font-weight: bold;
     font-size: 14px;
@@ -62,6 +65,7 @@ export const Row = styled.div`
     align-items: flex-start;
     flex: 1;
   }
+
   .asset {
     font-weight: bold;
     font-size: 14px;
