@@ -142,8 +142,12 @@ export const SwapTable: React.FC = () => {
       const ckbAddress = new Script(lock.codeHash, lock.args, lock.hashType === 'data' ? HashType.data : HashType.type)
         .toAddress()
         .toCKBAddress();
-      const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
-      setCurrentEthTx(data);
+      try {
+        const { data } = await bridgeAPI.lock(amountInToken, ckbAddress, ethAddress, web3!);
+        setCurrentEthTx(data);
+      } catch (error) {
+        throw new Error('The bridge server is failed to reponsed.');
+      }
     },
     [bridgeAPI, ethAddress, setCurrentEthTx, shadowEthAssets, web3, getSwapOrderLock],
   );

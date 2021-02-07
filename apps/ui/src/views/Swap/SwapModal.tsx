@@ -152,15 +152,16 @@ export const SwapModal = () => {
       if (txhash) {
         setSwapTxhash(txhash);
       }
+      try {
+        await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+      } catch (error) {
+        //
+      }
       resetForm();
       setTransactionStatus(TransactionStatus.Success);
     } catch (error) {
       setErrorMessage(error.message);
       setTransactionStatus(TransactionStatus.Decline);
-    }
-
-    try {
-      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
     } finally {
       setIsPlacingOrder(false);
     }

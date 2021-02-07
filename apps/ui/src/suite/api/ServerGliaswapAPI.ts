@@ -77,6 +77,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         ) {
           Modal.error({ content: error.message || 'The transaction was generated failed, please try later' });
         }
+        return error;
       },
     );
   }

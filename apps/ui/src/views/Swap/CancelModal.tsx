@@ -137,18 +137,17 @@ export const CancelModal = () => {
     setIsSending(true);
     try {
       const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
+      try {
+        await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+      } catch (error) {
+        //
+      }
       setTransactionStatus(TransactionStatus.Success);
       setCancelTxhash(txhash);
       addPendingCancelOrder(currentOrder?.transactionHash!);
     } catch (error) {
       setErrorMessage(error.message);
       setTransactionStatus(TransactionStatus.Decline);
-    } finally {
-      setIsSending(false);
-      setCancelTx(null);
-    }
-    try {
-      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
     } finally {
       setIsSending(false);
       setCancelTx(null);
