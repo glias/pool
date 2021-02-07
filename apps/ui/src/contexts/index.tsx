@@ -1,10 +1,9 @@
-import { Asset, GliaswapAPI, GliaswapAssetWithBalance, Script } from '@gliaswap/commons';
+import { Asset, GliaswapAPI } from '@gliaswap/commons';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { message } from 'antd';
 import { useConstant } from 'commons/use-constant';
-import { ConnectStatus, Provider as AdapterProvider, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
-import { AdapterContextState } from 'commons/WalletAdapter/Provider';
-import { Provider as AssetProvider, RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
+import { Provider as AdapterProvider, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { Provider as AssetProvider } from 'contexts/GliaswapAssetContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
@@ -56,57 +55,3 @@ export const GliaswapProvider: React.FC = (props) => {
     </QueryClientProvider>
   );
 };
-
-interface GliaswapState {
-  /**
-   * the WalletConnectAdapter
-   * @see {AdapterContextState}
-   */
-  adapter: AdapterContextState<Web3ModalAdapter>;
-  // global assets info with balance
-  realtimeAssets: RealtimeInfo<GliaswapAssetWithBalance[]>;
-  /**
-   * an implement of GliaswapAPI
-   * @see {GliaswapAPI}
-   */
-  api: GliaswapAPI;
-  // wallet connect status
-  walletConnectStatus: ConnectStatus;
-  // when a wallet was connected, the user lock would be filled
-  currentUserLock?: Script;
-
-  currentCkbAddress: string;
-
-  currentEthAddress: string;
-}
-
-export function useGliaswap(): GliaswapState {
-  const adapter = useWalletAdapter<Web3ModalAdapter>();
-  const { assets, api } = useGliaswapContext();
-
-  const currentUserLock = useMemo(() => {
-    if (adapter.status === 'connected') return adapter.signer.address.toLockScript();
-    return undefined;
-  }, [adapter.signer.address, adapter.status]);
-
-  const currentCkbAddress = useMemo(() => {
-    return currentUserLock?.toAddress().toCKBAddress() ?? '';
-  }, [currentUserLock]);
-
-  const currentEthAddress = useMemo(() => {
-    if (adapter.status === 'connected') return adapter.signer.address.addressString;
-    return '';
-  }, [adapter.signer.address.addressString, adapter.status]);
-
-  const walletConnectStatus = adapter.status;
-
-  return {
-    adapter,
-    realtimeAssets: assets,
-    walletConnectStatus,
-    api,
-    currentUserLock,
-    currentCkbAddress,
-    currentEthAddress,
-  };
-}

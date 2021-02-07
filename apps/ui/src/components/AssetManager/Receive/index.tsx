@@ -1,11 +1,11 @@
-import PWCore from '@lay2/pw-core';
 import { Typography } from 'antd';
+import { AssetManagerHeader } from 'components/AssetManager/AssetManagerHeader';
+import { RadioItem, RadioTabs } from 'components/AssetManager/components/RadioTabs';
+import { useGliaswap } from 'hooks';
 import QRCode from 'qrcode.react';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { AssetManagerHeader } from 'components/AssetManager/AssetManagerHeader';
-import { RadioItem, RadioTabs } from 'components/AssetManager/components/RadioTabs';
 
 const { Text } = Typography;
 
@@ -25,8 +25,7 @@ const ReceiveWrapper = styled.div`
 
 export const Receive: React.FC = () => {
   const { t } = useTranslation();
-  const rawAddress = PWCore.provider.address;
-  const address = rawAddress.toCKBAddress();
+  const { currentCkbAddress: address } = useGliaswap();
 
   const qrCodeContent = useMemo(
     () => (
@@ -54,8 +53,7 @@ export const Receive: React.FC = () => {
 export const SelectableReceive: React.FC = () => {
   const [receiveWalletType, setReceiveWalletType] = useState('ckb');
   const { t } = useTranslation();
-  const rawAddress = PWCore.provider.address;
-  const address = receiveWalletType === 'ckb' ? rawAddress.toCKBAddress() : rawAddress.addressString;
+  const { currentCkbAddress: address } = useGliaswap();
 
   const qrCodeContent = useMemo(
     () => (

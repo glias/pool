@@ -28,12 +28,12 @@ export const WalletConnectButton: React.FC = (props) => {
   // auto connect if cached provider is found
   useEffect(() => {
     const disconnected = connectStatus === 'disconnected';
-    const hasConnected = adapter.raw.modal.cachedProvider;
+    const hasConnected = adapter.raw.web3Modal.cachedProvider;
     if (disconnected && hasConnected) adapter.connect();
   }, [connectStatus, adapter]);
 
   const buttonText = useMemo(() => {
-    if (connectStatus === 'connected') return truncateMiddle(adapter.signer.address.toCKBAddress());
+    if (adapter.status === 'connected') return truncateMiddle(adapter.signer.address);
     if (connectStatus === 'disconnected') return i18n.t('Connect Wallet');
     return i18n.t('Connecting');
   }, [connectStatus, adapter]);
@@ -48,7 +48,7 @@ export const WalletConnectButton: React.FC = (props) => {
 
     if (adapter.raw.provider.isMetaMask) return () => <img className="logo" src={providers.METAMASK.logo} alt="logo" />;
 
-    const cachedProvider = adapter.raw.modal.cachedProvider?.toUpperCase();
+    const cachedProvider = adapter.raw.web3Modal.cachedProvider?.toUpperCase();
     if (!(cachedProvider in providers)) return QuestionOutlined;
 
     const dataImage = providers[cachedProvider as keyof typeof providers]?.logo;
