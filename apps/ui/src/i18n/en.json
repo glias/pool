@@ -65,7 +65,9 @@
       "cancel-order": "Cancel Order"
     },
     "common": {
-      "max": "Max"
+      "max": "Max",
+      "pending-requests": "My Pending Requests",
+      "history-orders": "My History Orders"
     },
     "validation": {
       "lte-zero": "The value must be bigger than 0",

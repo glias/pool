@@ -1,8 +1,6 @@
 import React from 'react';
 import { List } from 'antd';
 import { Block } from 'components/Block';
-import { Title } from 'components/Title';
-import i18n from 'i18n';
 import { SwapOrder } from '@gliaswap/commons';
 import styled from 'styled-components';
 import { useQuery } from 'react-query';
@@ -11,6 +9,8 @@ import { useCallback, useMemo } from 'react';
 import { SwapItem } from './SwapItem';
 import { useSwapContainer } from './context';
 import { useSwapOrders } from 'hooks/usePendingCancelOrders';
+import { useState } from 'react';
+import { OrderSelectorStatus, OrdersSelector } from 'components/OrdersSelector';
 
 const ListContainer = styled.div`
   .ant-list-item {
@@ -72,7 +72,11 @@ export const SwapList: React.FC = () => {
     return [...crossChainOrders, ...(data ?? [])];
   }, [data, crossChainOrders]);
 
-  const matchedOrders = useSwapOrders(orderList);
+  const { pendingOrders, historyOrders } = useSwapOrders(orderList);
+  const [orderSelectorStatus, setOrderSelectorStatus] = useState(OrderSelectorStatus.Pending);
+  const matchedOrders = useMemo(() => {
+    return orderSelectorStatus === OrderSelectorStatus.Pending ? pendingOrders : historyOrders;
+  }, [orderSelectorStatus, pendingOrders, historyOrders]);
 
   const renderItem = useCallback((order: SwapOrder) => {
     return <SwapItem order={order} />;
@@ -80,7 +84,11 @@ export const SwapList: React.FC = () => {
 
   return (
     <Block>
-      <Title>{i18n.t('swap.order-list.title')}</Title>
+      <OrdersSelector
+        status={orderSelectorStatus}
+        pendingOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.Pending)}
+        historyOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.History)}
+      />
       <ListContainer>
         <List
           pagination={{ position: 'bottom', size: 'small' }}

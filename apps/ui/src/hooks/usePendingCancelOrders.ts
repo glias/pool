@@ -4,6 +4,7 @@ import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks';
 import { groupBy, values } from 'lodash';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useHistoryOrders } from './useHistoryOrders';
 
 export interface PendingCancelOrder {
   txHash: string;
@@ -59,8 +60,9 @@ export function sortByTimestamp<T extends SwapOrder>(a: T, b: T): number {
 
 export function useSwapOrders(orders: SwapOrder[]) {
   const [pendingCancelOrders] = usePendingCancelOrders();
-  return useMemo(() => {
-    const res = orders.map((o) => {
+  const { historyOrders, pendingOrders } = useHistoryOrders(orders);
+  const handledPendingOrders = useMemo(() => {
+    const res = pendingOrders.map((o) => {
       const pendingOrder = pendingCancelOrders.find(
         (p) => p.txHash === o.transactionHash || o.stage.steps.some((s) => s.transactionHash === p.txHash),
       );
@@ -77,9 +79,11 @@ export function useSwapOrders(orders: SwapOrder[]) {
       return o;
     });
     const [pending = [], rest = []] = values(groupBy(res, (o) => (o.stage.status === 'pending' ? 'pending' : 'rest')));
-    return pending
-      .sort(sortByTimestamp)
-      .concat(rest.sort(sortByTimestamp))
-      .filter((o) => o.stage.status !== 'completed');
-  }, [orders, pendingCancelOrders]);
+    return pending.sort(sortByTimestamp).concat(rest.sort(sortByTimestamp));
+  }, [pendingOrders, pendingCancelOrders]);
+
+  return {
+    historyOrders,
+    pendingOrders: handledPendingOrders,
+  };
 }
