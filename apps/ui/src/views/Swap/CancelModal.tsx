@@ -95,7 +95,7 @@ export const CancelModal = () => {
   const orderType = currentOrder?.type;
 
   const [isSending, setIsSending] = useState(false);
-  const { api, currentUserLock, adapter, currentEthAddress } = useGliaswap();
+  const { api, currentUserLock, currentEthAddress, assertsConnectedAdapter } = useGliaswap();
 
   const isCrossChainOrder = useMemo(() => {
     return orderType === SwapOrderType.CrossChainOrder;
@@ -138,6 +138,7 @@ export const CancelModal = () => {
   const [cancelTxhash, setCancelTxhash] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const cancelOrder = useCallback(async () => {
+    const adapter = assertsConnectedAdapter();
     setIsSending(true);
     try {
       const txhash = await adapter.signer.sendTransaction(cancelTx!);
@@ -157,7 +158,7 @@ export const CancelModal = () => {
       setCancelTx(null);
     }
   }, [
-    adapter.signer,
+    assertsConnectedAdapter,
     cancelTx,
     addPendingCancelOrder,
     currentOrder?.transactionHash,

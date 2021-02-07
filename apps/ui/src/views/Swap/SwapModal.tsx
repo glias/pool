@@ -35,7 +35,7 @@ export const SwapModal = () => {
     resetForm,
     isBid,
   } = useSwapContainer();
-  const { adapter, currentUserLock, currentEthAddress } = useGliaswap();
+  const { currentUserLock, currentEthAddress, assertsConnectedAdapter } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { shadowEthAssets } = useGliaswapAssets();
 
@@ -111,19 +111,21 @@ export const SwapModal = () => {
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
+      const adapter = assertsConnectedAdapter();
       const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
       return txHash;
     }
-  }, [currentCkbTx, adapter.signer, tokenA, tokenB, setAndCacheCrossChainOrders]);
+  }, [currentCkbTx, tokenA, tokenB, setAndCacheCrossChainOrders, assertsConnectedAdapter]);
 
   const placeNormalorder = useCallback(async () => {
     if (currentCkbTx) {
+      const adapter = assertsConnectedAdapter();
       const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       return txHash;
     }
-  }, [currentCkbTx, adapter.signer]);
+  }, [currentCkbTx, assertsConnectedAdapter]);
 
   const queryClient = useQueryClient();
 
