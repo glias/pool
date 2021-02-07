@@ -6,7 +6,6 @@ import {
   PoolInfo,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
-import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
@@ -125,9 +124,6 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
-      return true;
-    }
-    return false;
+    return true;
   }
 }

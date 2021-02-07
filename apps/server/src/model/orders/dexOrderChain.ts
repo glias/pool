@@ -107,15 +107,16 @@ export abstract class DexOrderChain {
     }
 
     const last = this.getLastOrder();
-    if (last.tx.txStatus.status !== 'pending') {
+
+    const infoCell = last.tx.transaction.inputs[0].cellOutput.type
+      ? PoolInfo.getTypeScriptByPoolId(last.tx.transaction.inputs[0].cellOutput.type.toHash())
+      : null;
+
+    if (infoCell) {
       return false;
     }
 
-    if (!PoolInfo.getTypeScriptByPoolId(last.tx.transaction.inputs[0].cellOutput.type.toHash())) {
-      return true;
-    }
-
-    return false;
+    return true;
   }
 
   equalScript(script1: Script, script2: Script): boolean {
