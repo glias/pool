@@ -32,8 +32,8 @@ export class Amount extends CommonsBalance {
     return new Amount(0, decimals);
   }
 
-  static from(balance: BigNumber.Value = 0, decimals: number): Amount {
-    return new Amount(balance, decimals);
+  static from(balance: Amount | BigNumber.Value = 0, decimals: number): Amount {
+    return new Amount(balance instanceof Amount ? balance.value : balance, decimals);
   }
 
   static fromHumanize(humanizeBalance: string, decimals: number) {

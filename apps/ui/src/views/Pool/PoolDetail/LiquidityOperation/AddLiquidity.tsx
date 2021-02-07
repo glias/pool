@@ -77,7 +77,8 @@ const AddLiquidityWrapper = styled.div`
 `;
 
 export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
-  const poolAssets = props.poolLiquidity.assets;
+  const poolLiquidity = props.poolLiquidity;
+  const poolAssets = poolLiquidity.assets;
   const [poolAsset1, poolAsset2] = poolAssets;
   const [confirming, setConfirming] = useState(false);
 
@@ -292,7 +293,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <div className="label">{i18n.t('Receive(EST)')}</div>
             <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
               <div>
-                <HumanizeBalance asset={poolAsset1} value={readyToReceiveLPAmount} />
+                <HumanizeBalance asset={poolLiquidity.lpToken} value={readyToReceiveLPAmount} />
               </div>
               <div>
                 <PoolAssetSymbol assets={poolAssets} />
