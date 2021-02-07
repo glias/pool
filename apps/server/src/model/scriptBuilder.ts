@@ -1,10 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { CellInfoSerializationHolderFactory, LiquidityOrderCellArgs, Script } from '.';
+import { LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE } from '../config';
 
 export const LIQUIDITY_ORDER_LOCK_SCRIPT = new Script(
-  process.env.LIQUIDITY_REQ_LOCK_CODE_HASH || '0x062f28d5303cf27273f89f88b03a4a591e70b1bf4983dd9c63dab9fad58aa9bb',
-  process.env.LIQUIDITY_REQ_LOCK_HASH_TYPE || 'data',
+  LIQUIDITY_LOCK_CODE_HASH,
+  LIQUIDITY_LOCK_HASH_TYPE,
   '0x', // 'user_lock_hash'
 );
 
