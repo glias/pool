@@ -68,8 +68,6 @@ export function useGliaswap(): GliaswapState {
     return adapter.raw.web3.utils.toChecksumAddress(currentUserLock.args);
   }, [adapter, currentUserLock]);
 
-  console.log(currentEthAddress);
-
   function assertsConnectedAdapter(): ConnectedAdapterState<Web3ModalAdapter> {
     if (adapter.status !== 'connected') throw new Error('The wallet is not connected');
     return adapter;
