@@ -26,7 +26,7 @@ interface UseAddLiquidityState {
 }
 
 export function useAddLiquidity(): UseAddLiquidityState {
-  const { api, currentUserLock, adapter } = useGliaswap();
+  const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const { ckbAssets: userCkbAssets } = useGliaswapAssets();
   const { data: poolInfo } = useQueryLiquidityInfo();
   const [{ slippage }] = useGlobalSetting();
@@ -149,6 +149,7 @@ export function useAddLiquidity(): UseAddLiquidityState {
 
   async function sendReadyToAddLiquidityTransaction(): Promise<string> {
     if (!readyToAddLiquidityTransaction) throw new Error('Cannot find the ready to add liquidity transaction');
+    const adapter = assertsConnectedAdapter();
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToAddLiquidityTransaction.transactionToSign),
     );
