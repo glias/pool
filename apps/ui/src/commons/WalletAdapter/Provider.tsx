@@ -1,83 +1,60 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
-import { dummyAdapter, dummySigner, throwDisconnected } from './adapters/Web3ModalAdapter';
-import { ConnectStatus, Signer, WalletAdapter } from './types';
+import React, { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
+import { ConnectStatus, Signer, Wallet, WalletAdapter } from './types';
 
-type Proxies<T, key extends keyof T> = T[key];
+type NoNillable<T> = T extends null | undefined ? never : T;
 
-export interface AdapterContextState<T extends WalletAdapter = WalletAdapter> {
-  status: ConnectStatus;
-  signer: Signer;
-
-  connect: Proxies<T, 'connect'>;
-  disconnect: Proxies<T, 'disconnect'>;
-
+export type ConnectedAdapterState<T extends Wallet<any, any>> = {
+  status: 'connected';
+  signer: NoNillable<T['signer']>;
   raw: T;
+} & Pick<T, 'connect' | 'disconnect'>;
+
+export type UnconnectedAdapterState<T extends Wallet<any, any>> = {
+  status: 'disconnected' | 'connecting';
+  signer: null;
+  raw: T;
+} & Pick<T, 'connect' | 'disconnect'>;
+
+export type AdapterContextState<T extends Wallet<any, any>> = ConnectedAdapterState<T> | UnconnectedAdapterState<T>;
+
+export const AdapterContext = createContext<AdapterContextState<any> | null>(null);
+
+interface ProviderProps<Unsigned, Signed> {
+  adapter: WalletAdapter<Unsigned, Signed>;
 }
 
-const AdapterContext = createContext<AdapterContextState | null>(null);
-
-interface ProviderProps {
-  adapter: WalletAdapter;
-}
-
-export const Provider: React.FC<ProviderProps> = (props) => {
+export function Provider<Unsigned, Signed>(props: PropsWithChildren<ProviderProps<Unsigned, Signed>>) {
   const { children, adapter } = props;
 
-  const [status, setStatus] = useState<ConnectStatus>('disconnected');
-  const [signer, setSigner] = useState<Signer>(dummySigner);
+  const [[status, signer], setConnector] = useState<[ConnectStatus, Signer<any, any> | null]>(() => [
+    'disconnected',
+    null,
+  ]);
 
-  const signerChangedSuccess = useCallback((signer: Signer) => {
-    setSigner(signer);
-    setStatus('connected');
-    return signer;
-  }, []);
+  useEffect(() => {
+    if (!adapter?.on) return;
+    adapter.on('connectStatusChanged', (status, connectedSigner) => {
+      setConnector([status, connectedSigner ?? null]);
+    });
+    adapter.on('signerChanged', (newSigner) => {
+      setConnector(['connected', newSigner]);
+    });
+  }, [adapter]);
 
-  const signerChangedFailed = useCallback((rejected: unknown) => {
-    console.log('failed', rejected);
+  const connect = useCallback(() => {
+    return adapter?.connect();
+  }, [adapter]);
 
-    setSigner(dummySigner);
-    setStatus('disconnected');
-    return rejected;
-  }, []);
+  const disconnect = useCallback(() => {
+    return adapter?.disconnect();
+  }, [adapter]);
 
-  const connect: AdapterContextState['connect'] = useCallback(
-    (config?: unknown) => {
-      setStatus('connecting');
+  const state = { connect, disconnect, raw: adapter, signer, status } as AdapterContextState<any>;
+  return <AdapterContext.Provider value={state}>{children}</AdapterContext.Provider>;
+}
 
-      adapter.on('signerChanged', async (signerResolver) => {
-        setStatus('connecting');
-        Promise.resolve(signerResolver).then((signer) => {
-          if (!signer) return signerChangedFailed(null);
-          return signerChangedSuccess(signer);
-        }, signerChangedFailed);
-      });
-
-      return adapter.connect(config).then(signerChangedSuccess, signerChangedFailed) as Promise<Signer>;
-    },
-    [adapter, signerChangedSuccess, signerChangedFailed],
-  );
-
-  const disconnect: AdapterContextState['disconnect'] = async () => {
-    if (typeof adapter.disconnect !== 'function') return;
-    await adapter.disconnect();
-    setStatus('connected');
-  };
-
-  const providerValue: AdapterContextState = { status, connect, signer, raw: adapter, disconnect };
-  return <AdapterContext.Provider value={providerValue}>{children}</AdapterContext.Provider>;
-};
-
-export function useWalletAdapter<T extends WalletAdapter>(): AdapterContextState<T> {
-  const context = useContext(AdapterContext);
-  if (context == null) {
-    return {
-      connect: throwDisconnected(),
-      signer: dummySigner,
-      raw: dummyAdapter as T,
-      status: 'disconnected',
-      disconnect: undefined,
-    };
-  }
-
-  return context as AdapterContextState<T>;
+export function useWalletAdapter<Adapter extends WalletAdapter<any, any>>(): AdapterContextState<Adapter> {
+  const adapter = useContext(AdapterContext);
+  if (adapter === null) throw new Error('');
+  return adapter;
 }

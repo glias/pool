@@ -35,7 +35,7 @@ export const SwapModal = () => {
     resetForm,
     isBid,
   } = useSwapContainer();
-  const { adapter, currentUserLock, currentEthAddress } = useGliaswap();
+  const { currentUserLock, currentEthAddress, assertsConnectedAdapter } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { shadowEthAssets } = useGliaswapAssets();
 
@@ -111,19 +111,21 @@ export const SwapModal = () => {
 
   const placeCrossOut = useCallback(async () => {
     if (currentCkbTx) {
-      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const adapter = assertsConnectedAdapter();
+      const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       const pendingOrder = buildPendingSwapOrder(tokenA, tokenB, txHash, SwapOrderType.CrossChain);
       setAndCacheCrossChainOrders((orders) => [pendingOrder, ...orders]);
       return txHash;
     }
-  }, [currentCkbTx, adapter.raw.pw, tokenA, tokenB, setAndCacheCrossChainOrders]);
+  }, [currentCkbTx, tokenA, tokenB, setAndCacheCrossChainOrders, assertsConnectedAdapter]);
 
   const placeNormalorder = useCallback(async () => {
     if (currentCkbTx) {
-      const txHash = await adapter.raw.pw.sendTransaction(currentCkbTx);
+      const adapter = assertsConnectedAdapter();
+      const txHash = await adapter.signer.sendTransaction(currentCkbTx);
       return txHash;
     }
-  }, [currentCkbTx, adapter.raw.pw]);
+  }, [currentCkbTx, assertsConnectedAdapter]);
 
   const queryClient = useQueryClient();
 
@@ -152,15 +154,16 @@ export const SwapModal = () => {
       if (txhash) {
         setSwapTxhash(txhash);
       }
+      try {
+        await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+      } catch (error) {
+        //
+      }
       resetForm();
       setTransactionStatus(TransactionStatus.Success);
     } catch (error) {
       setErrorMessage(error.message);
       setTransactionStatus(TransactionStatus.Decline);
-    }
-
-    try {
-      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
     } finally {
       setIsPlacingOrder(false);
     }
@@ -240,6 +243,7 @@ export const SwapModal = () => {
                     values={{ amount: isBid ? SWAP_CELL_BID_CAPACITY : SWAP_CELL_ASK_CAPACITY }}
                     components={{ bold: <strong /> }}
                   />
+                  &nbsp;
                   <a
                     href={docsFaq('why-lock-my-addtional-ckb-when-i-make-a-swap')}
                     target="_blank"

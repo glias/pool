@@ -1,7 +1,7 @@
 import { Button, Divider } from 'antd';
+import { AssetSymbol } from 'components/Asset/AssetSymbol';
 import { AssetManagerHeader } from 'components/AssetManager/AssetManagerHeader';
 import { useAssetManager } from 'components/AssetManager/hooks';
-import { AssetSymbol } from 'components/Asset/AssetSymbol';
 import { HumanizeBalance } from 'components/Balance';
 import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
@@ -40,10 +40,10 @@ export const SendConfirm = () => {
 
   const { search } = useLocation();
   const { replace } = useHistory();
-  const { adapter } = useGliaswap();
+  const { currentCkbAddress } = useGliaswap();
   const { currentAsset, sendConfirmingTx } = useAssetManager();
 
-  const from = adapter.signer.address.toCKBAddress();
+  const from = currentCkbAddress;
   const payload: ConfirmParamsPayload = (parse(search) as unknown) as ConfirmParamsPayload;
   const { amount, fee, to } = payload;
   const typeHash = currentAsset.typeHash;
