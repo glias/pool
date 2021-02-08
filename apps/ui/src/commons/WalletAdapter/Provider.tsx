@@ -55,6 +55,10 @@ export function Provider<Unsigned, Signed>(props: PropsWithChildren<ProviderProp
 
 export function useWalletAdapter<Adapter extends WalletAdapter<any, any>>(): AdapterContextState<Adapter> {
   const adapter = useContext(AdapterContext);
-  if (adapter === null) throw new Error('');
+  if (adapter === null) {
+    throw new Error(
+      `Adapter is not found, maybe the current component is not a child of ${AdapterContext.Provider.name}`,
+    );
+  }
   return adapter;
 }

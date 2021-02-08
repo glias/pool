@@ -4,6 +4,7 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import Pool from 'views/Pool';
 import Swap from 'views/Swap';
+import { ChainIDWarningModal } from './ChainIDWanringModal';
 import { ProtectionModal } from './ProtectionModal';
 
 export enum RoutePath {
@@ -29,9 +30,8 @@ const Containers = [
 
 const MainWrapper = styled.div`
   max-width: 516px;
-  margin: 0 auto;
   padding: 0 8px;
-  margin-top: 16px;
+  margin: 16px auto 0;
 `;
 
 const Routers = () => {
@@ -49,6 +49,7 @@ const Routers = () => {
         </MainWrapper>
       </Suspense>
       <ProtectionModal />
+      <ChainIDWarningModal />
     </BrowserRouter>
   );
 };
