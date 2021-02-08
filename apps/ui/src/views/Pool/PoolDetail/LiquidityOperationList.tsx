@@ -1,9 +1,11 @@
+import { InfoOutlined } from '@ant-design/icons';
 import { LiquidityOperationSummary } from '@gliaswap/commons';
 import { Button, Divider, List, Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
+import { ModalContainer } from 'components/ModalContainer';
 import { QueryTips } from 'components/QueryTips';
 import dayjs from 'dayjs';
 import { useGliaswap } from 'hooks';
@@ -17,20 +19,27 @@ import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
+import { LiquidityOperationDetail } from './LiquidityOperationSteps';
 
 const { Text } = Typography;
 
 interface LiquidityOrderItemProps {
   summary: LiquidityOperationSummary;
   onCancel: () => void;
+  onViewInfo: () => void;
 }
 
 const LiquidityOrderSummarySectionWrapper = styled.div`
   width: 100%;
+
+  .info-button {
+    top: -1px;
+  }
 `;
 
 const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) => {
   const summary = props.summary;
+  const status = summary.stage.status;
   return (
     <LiquidityOrderSummarySectionWrapper>
       <SpaceBetweenRow>
@@ -48,14 +57,11 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       <SpaceBetweenRow>
         <div />
         <div>
-          <Button
-            size="small"
-            onClick={props.onCancel}
-            loading={summary.status !== 'open'}
-            disabled={summary.status !== 'open'}
-          >
-            {summary.status === 'pending' ? 'Pending' : summary.status === 'open' ? 'Cancel' : 'Canceling'}
+          <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
+            {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
           </Button>
+          &nbsp;
+          <Button className="info-button" size="small" onClick={props.onViewInfo} icon={<InfoOutlined />} />
         </div>
       </SpaceBetweenRow>
     </LiquidityOrderSummarySectionWrapper>
@@ -90,6 +96,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const poolId = props.poolId;
   const { api, currentUserLock } = useGliaswap();
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityOperationSummary | null>(null);
+  const [viewingSummary, setViewingSummary] = useState<LiquidityOperationSummary | null>(null);
 
   const query = useQuery(
     ['getLiquidityOperationSummaries', poolId, currentUserLock],
@@ -149,10 +156,24 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
         dataSource={summaries}
         renderItem={(summary) => (
           <List.Item key={summary.txHash}>
-            <LiquidityOrderSummarySection summary={summary} onCancel={() => prepareCancelOperation(summary)} />
+            <LiquidityOrderSummarySection
+              summary={summary}
+              onCancel={() => prepareCancelOperation(summary)}
+              onViewInfo={() => setViewingSummary(summary)}
+            />
           </List.Item>
         )}
       />
+
+      <ModalContainer
+        width={360}
+        title={i18n.t('Progress')}
+        visible={!!viewingSummary}
+        onCancel={() => setViewingSummary(null)}
+        footer={false}
+      >
+        {viewingSummary && <LiquidityOperationDetail summary={viewingSummary} />}
+      </ModalContainer>
 
       <OperationConfirmModal
         visible={!!readyToCancelOperation}
