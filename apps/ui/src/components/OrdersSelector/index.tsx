@@ -24,9 +24,10 @@ export interface OrdersSelectorProps {
   status: OrderSelectorStatus;
   pendingOnClick?: () => void;
   historyOnClick?: () => void;
+  extra?: React.ReactNode;
 }
 
-export const OrdersSelector: React.FC<OrdersSelectorProps> = ({ status, pendingOnClick, historyOnClick }) => {
+export const OrdersSelector: React.FC<OrdersSelectorProps> = ({ status, pendingOnClick, historyOnClick, extra }) => {
   const pendingText = i18n.t('common.pending-requests');
   const historyText = i18n.t('common.history-orders');
 
@@ -44,6 +45,7 @@ export const OrdersSelector: React.FC<OrdersSelectorProps> = ({ status, pendingO
           {status === OrderSelectorStatus.History ? historyText : null}
           {status === OrderSelectorStatus.Pending ? pendingText : null}
           <TriangleSvg />
+          {extra}
         </Title>
       </DropdropContainer>
     </Dropdown>

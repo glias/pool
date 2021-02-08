@@ -18,7 +18,7 @@ export interface SwapOrder {
   amountIn: GliaswapAssetWithBalance;
   amountOut: GliaswapAssetWithBalance;
   stage: {
-    status: 'pending' | 'completed' | 'canceling';
+    status: 'pending' | 'completed' | 'canceling' | 'canceled';
     steps: SwapStep[];
   };
   type: SwapOrderType;
