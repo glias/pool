@@ -57,4 +57,9 @@ export class Web3ModalAdapter extends AbstractWalletAdapter<Transaction, Transac
     });
     return this.signer;
   }
+
+  async disconnect(): Promise<void> {
+    this.web3Modal.clearCachedProvider();
+    await super.disconnect();
+  }
 }
