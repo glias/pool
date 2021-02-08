@@ -87,8 +87,7 @@ export const AssetRow = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
 };
 
 export const CancelModal = () => {
-  const { cancelModalVisable, currentOrder, setCancelModalVisable } = useSwapContainer();
-
+  const { cancelModalVisable, setCancelModalVisable, currentOrder } = useSwapContainer();
   const tokenA = currentOrder?.amountIn!;
   const tokenB = currentOrder?.amountOut!;
 

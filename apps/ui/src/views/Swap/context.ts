@@ -42,7 +42,6 @@ const useSwap = () => {
   const [cancelModalVisable, setCancelModalVisable] = useState(false);
   const [reviewModalVisable, setReviewModalVisable] = useState(false);
   const [stepModalVisable, setStepModalVisable] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
   const { ckbNativeAsset } = useGliaswapAssets();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
@@ -214,7 +213,10 @@ const useSwap = () => {
             setAndCacheCrossChainOrders((orders) => {
               return orders.map((order) => {
                 const txhash = order.stage.steps[0].transactionHash;
-                if (order.type === SwapOrderType.CrossChainOrder && receipt.transactionHash === txhash) {
+                if (
+                  (order.type === SwapOrderType.CrossChainOrder || order.type === SwapOrderType.CrossChain) &&
+                  receipt.transactionHash === txhash
+                ) {
                   order.stage.steps[1] = cloneDeep(order.stage.steps[0]);
                 }
                 return order;
@@ -278,6 +280,12 @@ const useSwap = () => {
     setReceive('');
   }, [form]);
 
+  const [currentOrderTxHash, setCurrentOrderTxHash] = useState('');
+  const [swapList, setSwapList] = useState<SwapOrder[]>([]);
+  const currentOrder = useMemo(() => {
+    return swapList.find((o) => o.stage.steps[0].transactionHash === currentOrderTxHash);
+  }, [swapList, currentOrderTxHash]);
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -285,8 +293,6 @@ const useSwap = () => {
     setReviewModalVisable,
     stepModalVisable,
     setStepModalVisable,
-    currentOrder,
-    setCurrentOrder,
     currentCkbTx,
     currentEthTx,
     setCurrentTx,
@@ -314,6 +320,9 @@ const useSwap = () => {
     ckbEnoughMessage,
     form,
     resetForm,
+    currentOrder,
+    setSwapList,
+    setCurrentOrderTxHash,
   };
 };
 
