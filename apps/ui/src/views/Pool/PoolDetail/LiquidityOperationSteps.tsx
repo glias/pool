@@ -73,7 +73,7 @@ export const LiquidityOperationSteps: React.FC<LiquidityOperationStepsProps> = (
     return (
       <Steps direction="vertical" size="small" current={2}>
         {renderStepItem('Submitted', stage.steps[0].txHash)}
-        {renderStepItem('Confirming on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
         {renderStepItem('Removing Liquidity')}
       </Steps>
     );
@@ -83,7 +83,7 @@ export const LiquidityOperationSteps: React.FC<LiquidityOperationStepsProps> = (
     return (
       <Steps direction="vertical" size="small" current={2}>
         {renderStepItem('Submitted', stage.steps[0].txHash)}
-        {renderStepItem('Confirming on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
         {renderStepItem('Cancelling Remove Liquidity', stage.steps[2].txHash)}
       </Steps>
     );
