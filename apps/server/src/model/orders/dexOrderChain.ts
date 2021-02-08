@@ -12,6 +12,7 @@ export const enum ORDER_STATUS {
   OPEN = 'open',
   COMPLETED = 'completed',
   CANCELING = 'canceling',
+  CANCELED = 'canceled',
 }
 
 export class Step {

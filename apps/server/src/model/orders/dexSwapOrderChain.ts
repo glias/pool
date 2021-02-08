@@ -118,7 +118,11 @@ export class DexSwapOrderChain extends DexOrderChain {
 
   getStatus(): string {
     if (this.isCancel()) {
-      return ORDER_STATUS.CANCELING;
+      if (this.getLastOrder().tx.txStatus.status === 'pending') {
+        return ORDER_STATUS.CANCELING;
+      } else {
+        return ORDER_STATUS.CANCELED;
+      }
     }
 
     const orders = this.getOrders();
@@ -182,12 +186,6 @@ export class DexSwapOrderChain extends DexOrderChain {
   filterOrderHistory(): boolean {
     if (SWAP_ORDER_TYPE.Order === this.getType()) {
       return true;
-      // if (
-      //   this.getStatus() !== ORDER_STATUS.COMPLETED
-      //   // && this.getStatus() !== ORDER_STATUS.CANCELING
-      // ) {
-      //   return true;
-      // }
     }
 
     if (SWAP_ORDER_TYPE.CrossChainOrder === this.getType()) {
@@ -196,13 +194,6 @@ export class DexSwapOrderChain extends DexOrderChain {
       }
 
       return true;
-
-      // if (
-      //   this.getStatus() !== ORDER_STATUS.COMPLETED
-      //   // && this.getStatus() !== ORDER_STATUS.CANCELING
-      // ) {
-      //   return true;
-      // }
     }
 
     if (SWAP_ORDER_TYPE.CrossChain === this.getType()) {

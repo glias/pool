@@ -88,7 +88,11 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getStatus(): string {
     if (this.isCancel()) {
-      return ORDER_STATUS.CANCELING;
+      if (this.getLastOrder().tx.txStatus.status === 'pending') {
+        return ORDER_STATUS.CANCELING;
+      } else {
+        return ORDER_STATUS.CANCELED;
+      }
     }
 
     const orders = this.getOrders();
