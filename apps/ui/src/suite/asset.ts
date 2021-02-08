@@ -2,12 +2,14 @@ import {
   Asset,
   AssetWithBalance,
   ChainSpec,
+  CkbAssetWithBalance,
   GliaswapAssetWithBalance,
   isCkbNativeAsset,
   isCkbSudtAsset,
   utils,
 } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
+import { Amount } from './AssetBalance';
 
 export function BN(value: BigNumber.Value): BigNumber {
   return new BigNumber(value || 0);
@@ -37,17 +39,31 @@ export function calcTotalBalance(asset: Asset | GliaswapAssetWithBalance): BigNu
 
 export function createAssetWithBalance<T extends ChainSpec>(
   asset: T | Partial<Asset>,
-  balance: BigNumber.Value = 0,
+  balance: Amount | BigNumber.Value = 0,
 ): T & AssetWithBalance {
+  const decimals = 'decimals' in asset && typeof asset.decimals === 'number' ? asset.decimals : 0;
+
   return {
     chainType: 'Nervos',
     name: 'unknown',
     symbol: 'unknown',
-    decimals: 0,
+    decimals,
     logoURI: '',
     ...asset,
-    balance: BN(balance).decimalPlaces(0, BigNumber.ROUND_FLOOR).toString(),
+    balance: Amount.from(balance, decimals).value.toString(),
   } as T & AssetWithBalance;
+}
+
+export function createNervosAssetPlaceholder(balance: BigNumber.Value = 0): CkbAssetWithBalance {
+  return {
+    chainType: 'Nervos',
+    typeHash: '0x',
+    name: 'unknown',
+    symbol: 'unknown',
+    logoURI: '',
+    decimals: 0,
+    balance: BN(balance).toString(),
+  };
 }
 
 export { Amount } from './AssetBalance';

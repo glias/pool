@@ -10,76 +10,85 @@ import { useGliaswap } from 'hooks/useGliaswap';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
 import update from 'immutability-helper';
-import { zip } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
-import { BN, createAssetWithBalance } from 'suite';
+import { Amount, BN, createAssetWithBalance, createNervosAssetPlaceholder } from 'suite';
 
-interface UseRemoveLiquidityState {
+interface Derived {
+  readyToRemoveShare: number;
+  readyToReceiveAssets: CkbAssetWithBalance[];
+  readyToRemoveLpToken: CkbAssetWithBalance;
+}
+
+interface UseRemoveLiquidityState extends Derived {
   generateRemoveLiquidityTransaction: () => Promise<SerializedTransactionToSignWithFee>;
   setReadyToRemoveShare: (share: number) => void;
   // a number between (0,1]
-  readyToRemoveShare: number;
   readyToSendTransactionWithFee: Maybe<SerializedTransactionToSignWithFee>;
-  readyToReceiveAssets: CkbAssetWithBalance[];
-  readyToRemoveLpToken: CkbAssetWithBalance;
   sendRemoveLiquidityTransaction: () => Promise<string>;
 }
 
+interface ReadyToRemoveLiquidity {
+  share: number;
+  receivedAssetsAmount: Amount[];
+  removedLPAmount: Amount;
+}
+
 export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
-  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery(poolId);
+  const { userLiquidityQuery } = useLiquidityQuery(poolId);
   const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();
 
-  const [readyToRemoveShare, setReadyToRemoveShare] = useState(0);
+  // const [readyToRemoveShare, setReadyToRemoveShare] = useState(0);
+  const [readyToRemove, setReadyToRemove] = useState<ReadyToRemoveLiquidity | null>();
   const [readyToSendTransactionWithFee, setReadyToSendTransactionWithFee] = useState<
     SerializedTransactionToSignWithFee | undefined
   >();
 
-  const [readyToReceiveAssets, readyToRemoveLpToken] = useMemo<[CkbAssetWithBalance[], CkbAssetWithBalance]>(() => {
-    if (!poolLiquidityQuery.data || !userLiquidityQuery.data) {
-      const placeholder = createAssetWithBalance({
-        name: 'unknown',
-        chainType: 'Nervos',
-        symbol: 'unknown',
-        decimals: 0,
-      }) as CkbAssetWithBalance;
-      return [[] as CkbAssetWithBalance[], placeholder];
-    }
+  function setReadyToRemoveShare(share: number) {
+    if (!userLiquidityQuery.data) throw new Error('The pool info is not loaded');
+    const { lpToken, assets: poolAssets } = userLiquidityQuery.data;
 
-    const readyToRemoveLpToken = update(userLiquidityQuery.data.lpToken, {
-      balance: (balance) => {
-        return BN(balance).times(readyToRemoveShare).decimalPlaces(0).toString();
-      },
-    });
+    const lpTokenReserve = Amount.fromAsset(lpToken);
+    const removedLPAmount = lpTokenReserve.newValue((val) => val.times(share));
 
-    const readyToReceiveAssets = zip(poolLiquidityQuery.data.assets, userLiquidityQuery.data.assets).map(
-      ([poolAsset, userAsset], i) => {
-        return update(userAsset!, {
-          balance: () => {
-            if (!poolLiquidityQuery.data || !poolAsset) {
-              throw new Error(`cannot find pool liquidity asset: assets[${i}]`);
-            }
-
-            return price
-              .getRemoveLiquidityReceiveAssetAmount(
-                BN(readyToRemoveLpToken.balance),
-                BN(poolAsset.balance),
-                BN(poolLiquidityQuery.data.lpToken.balance),
-              )
-              .toString();
-          },
-        });
-      },
+    const receivedAssetsAmount = poolAssets.map((poolAsset) =>
+      Amount.fromAsset(poolAsset).newValue((poolReserve) =>
+        price.getRemoveLiquidityReceiveAssetAmount(removedLPAmount.value, poolReserve, lpTokenReserve.value),
+      ),
     );
 
-    return [readyToReceiveAssets, readyToRemoveLpToken];
-  }, [poolLiquidityQuery.data, readyToRemoveShare, userLiquidityQuery.data]);
-
-  useEffect(() => {
+    setReadyToRemove({ share, removedLPAmount, receivedAssetsAmount });
+    // when the share ready to be removed changes,
+    // the transactions ready to be sent before that time shall also expire
     setReadyToSendTransactionWithFee(undefined);
-  }, [readyToRemoveShare]);
+  }
+
+  const { readyToRemoveShare, readyToReceiveAssets, readyToRemoveLpToken } = useMemo<Derived>(() => {
+    if (!userLiquidityQuery.data) {
+      return { readyToRemoveShare: 0, readyToReceiveAssets: [], readyToRemoveLpToken: createNervosAssetPlaceholder() };
+    }
+
+    const poolAssets = userLiquidityQuery.data.assets;
+    const poolLpToken = userLiquidityQuery.data.lpToken;
+
+    if (!readyToRemove) {
+      return {
+        readyToRemoveShare: 0,
+        readyToReceiveAssets: poolAssets.map((poolAsset) => createAssetWithBalance(poolAsset, 0)),
+        readyToRemoveLpToken: createAssetWithBalance(poolLpToken, 0),
+      };
+    }
+
+    return {
+      readyToRemoveShare: readyToRemove.share,
+      readyToReceiveAssets: readyToRemove.receivedAssetsAmount.map((amount, i) =>
+        createAssetWithBalance(poolAssets[i], amount),
+      ),
+      readyToRemoveLpToken: createAssetWithBalance(poolLpToken, readyToRemove.removedLPAmount),
+    };
+  }, [readyToRemove, userLiquidityQuery]);
 
   async function generateRemoveLiquidityTransaction() {
     if (!userLiquidityQuery.data) throw new Error('The user liquidity is not loaded');
@@ -113,7 +122,10 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToSendTransactionWithFee.transactionToSign),
     );
+
     await queryClient.refetchQueries('getLiquidityOperationSummaries');
+    setReadyToRemove(null);
+
     return txHash;
   }
 
