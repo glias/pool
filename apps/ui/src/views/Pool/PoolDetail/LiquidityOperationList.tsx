@@ -13,7 +13,7 @@ import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
-import { useMutation, useQuery } from 'react-query';
+import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
@@ -111,7 +111,13 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
     generateCancelLiquidityOperationTransaction,
     readyToSendTransaction,
     sendCancelLiquidityOperationTransaction,
+    refreshReadyToSendTransaction,
   } = useCancelLiquidityOperation();
+
+  function cancelCancelOperation() {
+    setReadyToCancelOperation(null);
+    refreshReadyToSendTransaction();
+  }
 
   async function prepareCancelOperation(operation: LiquidityOperationSummary): Promise<void> {
     setReadyToCancelOperation(operation);
@@ -119,9 +125,6 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   }
 
   const { data: summaries } = query;
-  const { mutateAsync: sendCancelOperationTransaction } = useMutation(['sendCancelLiquidityOperation'], async () =>
-    sendCancelLiquidityOperationTransaction(),
-  );
 
   if (!currentUserLock) return null;
 
@@ -176,9 +179,9 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       </ModalContainer>
 
       <OperationConfirmModal
-        visible={!!readyToCancelOperation}
-        onOk={() => sendCancelOperationTransaction()}
-        onCancel={() => setReadyToCancelOperation(null)}
+        visible={!!readyToSendTransaction}
+        onOk={sendCancelLiquidityOperationTransaction}
+        onCancel={cancelCancelOperation}
         operation={
           readyToCancelOperation && (
             <Text strong type="danger">

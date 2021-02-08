@@ -83,6 +83,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
               error.message ||
               'The transaction was generated failed, please try later',
           });
+          throw error;
         } else {
           throw error;
         }
