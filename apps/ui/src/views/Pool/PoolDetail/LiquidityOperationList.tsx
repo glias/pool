@@ -6,16 +6,13 @@ import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanace
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import { ModalContainer } from 'components/ModalContainer';
-import { OrderSelectorStatus, OrdersSelector } from 'components/OrdersSelector';
 import { QueryTips } from 'components/QueryTips';
 import dayjs from 'dayjs';
 import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
-import { useHistoryOrders } from 'hooks/useHistoryOrders';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useState } from 'react';
-import { useMemo } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -60,11 +57,9 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       <SpaceBetweenRow>
         <div />
         <div>
-          {status === 'completed' || status === 'canceled' ? null : (
-            <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
-              {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
-            </Button>
-          )}
+          <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
+            {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
+          </Button>
           &nbsp;
           <Button className="info-button" size="small" onClick={props.onViewInfo} icon={<InfoOutlined />} />
         </div>
@@ -123,16 +118,10 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
     await generateCancelLiquidityOperationTransaction(operation.txHash);
   }
 
-  const { data: summaries = [] } = query;
+  const { data: summaries } = query;
   const { mutateAsync: sendCancelOperationTransaction } = useMutation(['sendCancelLiquidityOperation'], async () =>
     sendCancelLiquidityOperationTransaction(),
   );
-
-  const { pendingOrders, historyOrders } = useHistoryOrders(summaries);
-  const [orderSelectorStatus, setOrderSelectorStatus] = useState(OrderSelectorStatus.Pending);
-  const matchedOrders = useMemo(() => {
-    return orderSelectorStatus === OrderSelectorStatus.Pending ? pendingOrders : historyOrders;
-  }, [orderSelectorStatus, pendingOrders, historyOrders]);
 
   if (!currentUserLock) return null;
 
@@ -153,18 +142,18 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
 
   return (
     <LiquidityOrderListWrapper>
-      <OrdersSelector
-        status={orderSelectorStatus}
-        pendingOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.Pending)}
-        historyOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.History)}
-        extra={<QueryTips query={query} />}
-      />
+      <SpaceBetweenRow className="title">
+        <div>
+          {i18n.t('My Pending Request')}
+          <QueryTips query={query} />
+        </div>
+      </SpaceBetweenRow>
       <Divider style={{ margin: '4px 0 0' }} />
 
       <List
         pagination={{ position: 'bottom', size: 'small' }}
         bordered={false}
-        dataSource={matchedOrders}
+        dataSource={summaries}
         renderItem={(summary) => (
           <List.Item key={summary.txHash}>
             <LiquidityOrderSummarySection
