@@ -50,7 +50,7 @@ export function createAssetWithBalance<T extends ChainSpec>(
     decimals,
     logoURI: '',
     ...asset,
-    balance: Amount.from(balance, decimals).value.toString(),
+    balance: Amount.from(balance, decimals).value.decimalPlaces(0, BigNumber.ROUND_FLOOR).toString(),
   } as T & AssetWithBalance;
 }
 
@@ -62,7 +62,7 @@ export function createNervosAssetPlaceholder(balance: BigNumber.Value = 0): CkbA
     symbol: 'unknown',
     logoURI: '',
     decimals: 0,
-    balance: BN(balance).toString(),
+    balance: BN(balance).decimalPlaces(0, BigNumber.ROUND_FLOOR).toString(),
   };
 }
 
