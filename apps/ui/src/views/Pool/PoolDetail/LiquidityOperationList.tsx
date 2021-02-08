@@ -58,7 +58,7 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
         <div />
         <div>
           <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
-            {status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling'}
+            {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
           </Button>
           &nbsp;
           <Button className="info-button" size="small" onClick={props.onViewInfo} icon={<InfoOutlined />} />
