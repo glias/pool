@@ -69,7 +69,7 @@ export function useAddLiquidity(): UseAddLiquidityState {
       poolLpTokenAmount.value,
     );
 
-    const share = readyToReceiveLPAmount.div(poolLpTokenAmount.value).toNumber();
+    const share = readyToReceiveLPAmount.div(poolLpTokenAmount.value.plus(readyToReceiveLPAmount)).toNumber();
 
     return [share, Amount.from(readyToReceiveLPAmount, poolInfo.lpToken.decimals)];
   }, [isPoolGenesis, poolInfo, readyToAddAmounts]);
