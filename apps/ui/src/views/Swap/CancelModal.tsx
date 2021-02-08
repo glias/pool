@@ -111,15 +111,21 @@ export const CancelModal = () => {
   }, [isCrossChainOrder, tokenA]);
 
   const [cancelTx, setCancelTx] = useState<Transaction | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState(TransactionStatus.Normal);
 
   const { isFetching } = useQuery(
-    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock, isSending],
+    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock, isSending, transactionStatus],
     async () => {
       const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
       return tx;
     },
     {
-      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash && isSending === false,
+      enabled:
+        cancelModalVisable &&
+        !!currentUserLock &&
+        !!currentOrder?.transactionHash &&
+        isSending === false &&
+        transactionStatus === TransactionStatus.Normal,
       onSuccess(tx) {
         setCancelTx(tx);
       },
@@ -131,7 +137,6 @@ export const CancelModal = () => {
     },
   );
 
-  const [transactionStatus, setTransactionStatus] = useState(TransactionStatus.Normal);
   const [, addPendingCancelOrder] = usePendingCancelOrders();
   const queryClient = useQueryClient();
   const [cancelTxhash, setCancelTxhash] = useState('');

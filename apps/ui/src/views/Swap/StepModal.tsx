@@ -160,9 +160,11 @@ export const StepModal = () => {
         isEth: false,
       },
       {
-        title: i18n.t(stageStatus === 'canceling' ? 'actions.cancel-order' : 'swap.progress.sucess'),
+        title: i18n.t(
+          stageStatus === 'canceling' || stageStatus === 'canceled' ? 'actions.cancel-order' : 'swap.progress.sucess',
+        ),
         description: `${tokenA.symbol} ➜ ${tokenB.symbol}`,
-        txHash: orderSteps?.[3]?.transactionHash,
+        txHash: orderSteps?.[2]?.transactionHash,
         isEth: false,
       },
     ];
@@ -231,7 +233,15 @@ export const StepModal = () => {
       width="360px"
     >
       <section className="step">
-        <Steps direction="vertical" size="small" current={currentIndex}>
+        <Steps
+          direction="vertical"
+          size="small"
+          current={
+            currentOrder?.stage?.status === 'completed' || currentOrder?.stage?.status === 'canceled'
+              ? currentIndex + 1
+              : currentIndex
+          }
+        >
           {progress.map((p, i) => {
             const title = p.txHash ? (
               <a target="_blank" rel="noopener noreferrer" href={buildURL(p.txHash, p.isEth)}>

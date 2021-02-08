@@ -143,11 +143,11 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
       ) : null;
     return (
       <>
-        {cancelBtn}
+        {order.stage.status === 'completed' || order.stage.status === 'canceled' ? null : cancelBtn}
         <Button type="default" icon={<InfoSvg />} onClick={openStepModal} />
       </>
     );
-  }, [status, type, openCancelModal, openStepModal]);
+  }, [status, type, openCancelModal, openStepModal, order.stage.status]);
 
   return (
     <List.Item>

@@ -45,7 +45,7 @@ export class PoolInfo {
     this.infoCell = infoCell;
   }
 
-  static getTypeScript(): Script[] {
+  static getTypeScripts(): Script[] {
     return [
       PoolInfo.TYPE_SCRIPTS['GLIA'],
       PoolInfo.TYPE_SCRIPTS['ckETH'],
@@ -53,6 +53,10 @@ export class PoolInfo {
       PoolInfo.TYPE_SCRIPTS['ckUSDC'],
       PoolInfo.TYPE_SCRIPTS['ckUSDT'],
     ];
+  }
+
+  static getTypeScriptByPoolId(poolId: string): Script {
+    return PoolInfo.getTypeScripts().find((x) => x.toHash() === poolId);
   }
 
   static getSudtSymbol(poolCell: Cell): string {

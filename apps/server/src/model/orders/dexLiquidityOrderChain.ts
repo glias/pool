@@ -6,7 +6,6 @@ import {
   PoolInfo,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
-import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
@@ -96,7 +95,11 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getStatus(): string {
     if (this.isCancel()) {
-      return ORDER_STATUS.CANCELING;
+      if (this.getLastOrder().tx.txStatus.status === 'pending') {
+        return ORDER_STATUS.CANCELING;
+      } else {
+        return ORDER_STATUS.CANCELED;
+      }
     }
 
     const orders = this.getOrders();
@@ -113,32 +116,6 @@ export class DexLiquidityChain extends DexOrderChain {
     }
 
     return ORDER_STATUS.COMPLETED;
-  }
-
-  isCancel(): boolean {
-    if (this.getOrders().length === 1) {
-      return false;
-    }
-
-    const last = this.getLastOrder();
-    if (last.tx.txStatus.status !== 'pending') {
-      return false;
-    }
-
-    if (
-      !scriptEquals.equalsLockScript(
-        last.tx.transaction.inputs[0].cellOutput.lock,
-        this.poolInfo.infoCell.cellOutput.lock,
-      ) &&
-      !scriptEquals.equalsLockScript(
-        last.tx.transaction.inputs[0].cellOutput.type,
-        this.poolInfo.infoCell.cellOutput.type,
-      )
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   buildStep(): Step[] {
@@ -158,7 +135,7 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+    if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELED) {
       return true;
     }
     return false;
