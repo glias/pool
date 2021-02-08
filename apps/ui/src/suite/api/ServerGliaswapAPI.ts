@@ -75,7 +75,12 @@ export class ServerGliaswapAPI implements GliaswapAPI {
             '/liquidity-pool/orders/remove-liquidity',
           ].includes(error.config.url ?? '')
         ) {
-          Modal.error({ content: error.message || 'The transaction was generated failed, please try later' });
+          Modal.error({
+            content:
+              error.response?.data?.message ||
+              error.message ||
+              'The transaction was generated failed, please try later',
+          });
         } else {
           throw error;
         }
