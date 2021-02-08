@@ -194,6 +194,7 @@ export const SwapTable: React.FC = () => {
       if (setSelf) {
         form.setFieldsValue({ pay: val });
         setPay(val);
+        form.validateFields(['pay']);
       }
 
       if (swapMode === SwapMode.CrossIn) {

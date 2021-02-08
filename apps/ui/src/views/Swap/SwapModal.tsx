@@ -63,18 +63,6 @@ export const SwapModal = () => {
     return tokenA!;
   }, [isCrossChainOrder, tokenA, shadowEthAssets]);
 
-  const operation = useMemo(() => {
-    switch (swapMode) {
-      case SwapMode.CrossIn:
-      case SwapMode.CrossOut:
-        return '(crosschain)';
-      case SwapMode.CrossChainOrder:
-        return '(crosschain order)';
-      default:
-        return null;
-    }
-  }, [swapMode]);
-
   const [{ slippage }] = useGlobalSetting();
 
   const placeLockOrder = useCallback(async () => {
@@ -210,10 +198,7 @@ export const SwapModal = () => {
       {transactionStatus === TransactionStatus.Normal ? (
         <Form layout="vertical">
           <Form.Item label={i18n.t('swap.cancel-modal.operation')}>
-            <span>
-              {i18n.t('swap.swap-modal.swap')}
-              {operation}
-            </span>
+            <span>{i18n.t('swap.swap-modal.swap')}</span>
           </Form.Item>
           <Form.Item label={i18n.t('swap.cancel-modal.pay')}>
             <AssetRow asset={tokenA!} />
