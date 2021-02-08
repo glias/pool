@@ -45,7 +45,7 @@ export class DexSwapService {
       },
       order: 'desc',
     };
-    const txs = await this.dexRepository.collectTransactions(queryOptions, true);
+    const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
 
     // const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
     const factory = new DexOrderChainFactory(ORDER_TYPE.SWAP, null);

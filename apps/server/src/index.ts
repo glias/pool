@@ -4,8 +4,8 @@ import bodyParser from 'koa-bodyparser';
 import router from './routes';
 import { lumosRepository } from './repository';
 import cors from 'koa2-cors';
+import { accessLogger, Logger } from './logger';
 import { BizException } from './bizException';
-import { accessLogger } from './logger';
 
 const app = new Koa();
 lumosRepository.init();
@@ -15,6 +15,7 @@ app.use(async function (ctx, next) {
   try {
     await next();
   } catch (err) {
+    Logger.error(err);
     if (err instanceof BizException) {
       ctx.status = 400;
       ctx.body = { message: err.message };

@@ -147,7 +147,7 @@ export class DexLiquidityPoolService {
 
   private async getPoolInfos(): Promise<PoolInfoHolder> {
     const poolInfos: PoolInfo[] = [];
-    for (const type of PoolInfo.getTypeScript()) {
+    for (const type of PoolInfo.getTypeScripts()) {
       const queryOptions: QueryOptions = {
         lock: {
           script: {

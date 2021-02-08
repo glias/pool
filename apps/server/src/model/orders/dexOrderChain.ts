@@ -1,4 +1,4 @@
-import { Script, Output, TransactionWithStatus, CellInfoSerializationHolder } from '..';
+import { Script, Output, TransactionWithStatus, CellInfoSerializationHolder, PoolInfo } from '..';
 import { CellInfoSerializationHolderFactory } from '../datas';
 import { Token } from '../tokens';
 
@@ -12,6 +12,7 @@ export const enum ORDER_STATUS {
   OPEN = 'open',
   COMPLETED = 'completed',
   CANCELING = 'canceling',
+  CANCELED = 'canceled',
 }
 
 export class Step {
@@ -99,6 +100,24 @@ export abstract class DexOrderChain {
       cell = cell.nextOrderCell;
     }
     return txs;
+  }
+
+  isCancel(): boolean {
+    if (this.getOrders().length === 1) {
+      return false;
+    }
+
+    const last = this.getLastOrder();
+
+    const infoCell = last.tx.transaction.inputs[0].cellOutput.type
+      ? PoolInfo.getTypeScriptByPoolId(last.tx.transaction.inputs[0].cellOutput.type.toHash())
+      : null;
+
+    if (infoCell) {
+      return false;
+    }
+
+    return true;
   }
 
   equalScript(script1: Script, script2: Script): boolean {

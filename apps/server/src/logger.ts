@@ -18,4 +18,4 @@ log4js.configure({
   categories: { default: { appenders: ['pool', 'console'], level: 'info' } },
 });
 export const Logger: log4js.Logger = log4js.getLogger();
-export const accessLogger: Koa.Middleware = log4js.koaLogger(log4js.getLogger());
+export const accessLogger: Koa.Middleware = log4js.koaLogger(Logger);
