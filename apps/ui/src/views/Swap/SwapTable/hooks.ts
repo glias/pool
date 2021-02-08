@@ -15,7 +15,7 @@ import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
-import { calcBalance, calcPrice, calcPriceImpact } from './fee';
+import { calcBalance, calcPrice, calcPriceImpact, toStringNumberOrZero } from './fee';
 import { useLiquidityPoolInfo } from 'hooks/useLiquidityPool';
 
 export type CurrentPoolInfo = [CkbAssetWithBalance, CkbSudtAssetWithBalance] | [];
@@ -76,17 +76,17 @@ export const useSwapTable = ({
   const payReserve = useMemo(() => {
     const [ckb, sudt] = currentPoolInfo;
     if (isBid) {
-      return ckb?.balance ?? '0';
+      return toStringNumberOrZero(ckb?.balance);
     }
-    return sudt?.balance ?? '0';
+    return toStringNumberOrZero(sudt?.balance);
   }, [isBid, currentPoolInfo]);
 
   const receiveReserve = useMemo(() => {
     const [ckb, sudt] = currentPoolInfo;
     if (isBid) {
-      return sudt?.balance ?? '0';
+      return toStringNumberOrZero(sudt?.balance);
     }
-    return ckb?.balance ?? '0';
+    return toStringNumberOrZero(ckb?.balance);
   }, [isBid, currentPoolInfo]);
 
   useEffect(() => {

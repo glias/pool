@@ -78,3 +78,8 @@ export function displayPercent(val: string) {
 
   return `${percent.toFixed(2, BigNumber.ROUND_DOWN)} %`;
 }
+
+export function toStringNumberOrZero(val: string | undefined) {
+  const v = new BigNumber(val ?? '0');
+  return v.isNaN() ? '0' : v.toFixed();
+}
