@@ -11,6 +11,7 @@ import { useCallback, useMemo } from 'react';
 import { SwapItem } from './SwapItem';
 import { useSwapContainer } from './context';
 import { useSwapOrders } from 'hooks/usePendingCancelOrders';
+import { useEffect } from 'react';
 
 const ListContainer = styled.div`
   .ant-list-item {
@@ -44,7 +45,7 @@ export function isSameTxHash(hash1?: string, hash2?: string) {
 export const SwapList: React.FC = () => {
   const { currentUserLock, currentEthAddress } = useGliaswap();
   const { api } = useGliaswap();
-  const { setAndCacheCrossChainOrders, crossChainOrders } = useSwapContainer();
+  const { setAndCacheCrossChainOrders, crossChainOrders, setSwapList } = useSwapContainer();
   const { data, status } = useQuery(
     ['swap-list', currentUserLock, currentEthAddress],
     () => {
@@ -73,6 +74,10 @@ export const SwapList: React.FC = () => {
   }, [data, crossChainOrders]);
 
   const matchedOrders = useSwapOrders(orderList);
+
+  useEffect(() => {
+    setSwapList(matchedOrders);
+  }, [matchedOrders, setSwapList]);
 
   const renderItem = useCallback((order: SwapOrder) => {
     return <SwapItem order={order} />;
