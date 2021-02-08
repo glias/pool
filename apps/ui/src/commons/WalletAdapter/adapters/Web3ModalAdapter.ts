@@ -35,7 +35,10 @@ export class Web3ModalAdapter extends AbstractWalletAdapter<Transaction, Transac
   }
 
   protected async getSigner(this: Web3ModalAdapter) {
-    const provider = await this.web3Modal.connect();
+    const provider = await this.web3Modal.connect().catch((e) => {
+      this.web3Modal.clearCachedProvider();
+      throw e;
+    });
     const web3 = new Web3(provider);
     const pwWeb3ModalProvider = new PWWeb3ModalProvider(web3);
     await this.pw.init(pwWeb3ModalProvider, new PwCollector(''), this.#ckbChainId);

@@ -1,9 +1,10 @@
+import { AppHeader } from 'components/Header';
 import React, { Suspense } from 'react';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
-import { AppHeader } from 'components/Header';
 import styled from 'styled-components';
 import Pool from 'views/Pool';
 import Swap from 'views/Swap';
+import { ProtectionModal } from './ProtectionModal';
 
 export enum RoutePath {
   Launch = '/',
@@ -47,6 +48,7 @@ const Routers = () => {
           </Switch>
         </MainWrapper>
       </Suspense>
+      <ProtectionModal />
     </BrowserRouter>
   );
 };
