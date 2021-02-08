@@ -8,7 +8,7 @@
             "name": "CKB",
             "symbol": "CKB",
             "decimals": 8,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/ckb.svg",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/ckb.svg",
             "address": "",
             "chainType":"Nervos"
         }
@@ -24,7 +24,7 @@
             "name": "Gliaswap Test Token",
             "symbol": "GLIA",
             "decimals": 8,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/glias.png",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/glias.png",
             "address": "ckt1qyqppsrmkue95prhy4faekhqg7re5zxh8czq8w7sdn",
             "chainType":"Nervos"
         }
@@ -42,7 +42,7 @@
             "name": "ckETH",
             "symbol": "ckETH",
             "decimals": 18,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/eth.png",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/eth.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf2qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3n39hh3y",
             "chainType":"Nervos"
         }
@@ -60,7 +60,7 @@
             "name": "ckDAI",
             "symbol": "ckDAI",
             "decimals": 18,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/dai.png",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/dai.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azft3zqrkx47pdetrn0rwyy2c8kf8xalktptwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nlvy8yz",
             "chainType":"Nervos"
         }
@@ -78,7 +78,7 @@
             "name": "ckUSDT",
             "symbol": "ckUSDT",
             "decimals": 6,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/usdt.png",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/usdt.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf28cdyfgl2xuglt7fpur0wq30lrvzz4934wux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nqalf2n",
             "chainType":"Nervos"
         }
@@ -96,7 +96,7 @@
             "name": "ckUSDC",
             "symbol": "ckUSDC",
             "decimals": 6,
-            "logoURI": "https://gliaswap.ckbapp.dev/token/usdc.png",
+            "logoURI": "https://gliaswaptest.ckbapp.dev/token/usdc.png",
             "address": "ckt1qn7e29wuzh8z8pd2hpd0yxnv38tuqql2cy2ae0get28jntv3d2e3vvcfujyy3afy8h4jukyc7rv9v9hz5azf288e354z7kctlsm9a2m2uxgncf6mufsclwux0dvgdx7u6cmv9swsy4kappmrptygvxwa5v6n07y83zwa4g3nv78tkl",
             "chainType":"Nervos"
         }

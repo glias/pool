@@ -13,7 +13,7 @@ export const ckbNativeAsset: CkbNativeAsset = {
   chainType: 'Nervos',
   typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
   symbol: 'CKB',
-  logoURI: 'https://gliaswap.ckbapp.dev/token/ckb.svg',
+  logoURI: 'https://gliaswaptest.ckbapp.dev/token/ckb.svg',
   name: 'CKB',
   decimals: 8,
 };
@@ -32,7 +32,7 @@ export const ckbSudtGlia: CkbSudtAsset = {
   decimals: 8,
   symbol: 'GLIA',
   name: 'Glia Test Token',
-  logoURI: 'https://gliaswap.ckbapp.dev/token/glias.png',
+  logoURI: 'https://gliaswaptest.ckbapp.dev/token/glias.png',
   typeHash: '0x788c79191970e313693351531930b46a708b1ca58f6d414ddc8a8827afb554ff',
 };
 
