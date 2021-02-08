@@ -7,6 +7,7 @@ interface UseCancelLiquidityOperationState {
   generateCancelLiquidityOperationTransaction: (txHash: string) => Promise<SerializedTransactionToSignWithFee>;
   sendCancelLiquidityOperationTransaction: () => Promise<string>;
   readyToSendTransaction: SerializedTransactionToSignWithFee | undefined;
+  refreshReadyToSendTransaction: () => void;
 }
 
 export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState {
@@ -27,7 +28,7 @@ export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState 
   }
 
   async function sendCancelLiquidityOperationTransaction() {
-    if (!readyToSendTransaction) throw new Error('Cannot find current user lock, maybe wallet is disconnected');
+    if (!readyToSendTransaction) throw new Error('The transaction was not fully generated, please try again');
     const adapter = assertsConnectedAdapter();
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToSendTransaction.transactionToSign),
@@ -37,9 +38,14 @@ export function useCancelLiquidityOperation(): UseCancelLiquidityOperationState 
     return txHash;
   }
 
+  function refreshReadyToSendTransaction() {
+    setReadyToSendTransaction(undefined);
+  }
+
   return {
     sendCancelLiquidityOperationTransaction,
     generateCancelLiquidityOperationTransaction: generateLiquidityCancelOperationTransaction,
     readyToSendTransaction,
+    refreshReadyToSendTransaction,
   };
 }
