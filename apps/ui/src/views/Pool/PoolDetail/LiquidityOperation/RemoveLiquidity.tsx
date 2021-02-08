@@ -22,15 +22,6 @@ interface RemoveLiquidityProps {
 }
 
 const RemoveLiquidityWrapper = styled.div`
-  .bold {
-    font-weight: bold;
-    font-size: 18px;
-  }
-
-  .amount {
-    font-size: 18px;
-  }
-
   .arrow-icon {
     display: block;
     margin: 16px auto;
@@ -47,7 +38,7 @@ const RemoveLiquidityWrapper = styled.div`
 `;
 
 const ReceiveAssets = styled(AssetBalanceList)`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
 
   .column-numerical {

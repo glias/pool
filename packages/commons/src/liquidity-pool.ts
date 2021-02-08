@@ -1,13 +1,5 @@
 import { CkbAssetWithBalance } from '.';
 
-export type OperationRequestStatus =
-  // the request transaction is pending in the transaction pool
-  | 'pending'
-  // the request transaction is committed and waiting for aggregating
-  | 'open'
-  // the cancel request transaction is pending in transaction pool
-  | 'canceling';
-
 export type LiquidityOperationType =
   // add liquidity
   | 'add'
@@ -31,14 +23,23 @@ export interface LiquidityInfo extends PoolInfo {
   lpToken: LPTokenWithBalance;
 }
 
+export type LiquidityOperationStage = Submitted | Confirmed | Canceling;
+
+// the request transaction is pending in the transaction pool
+type Submitted = { status: 'pending'; steps: [{ txHash: string }] };
+// the request transaction is committed and waiting for aggregating
+type Confirmed = { status: 'open'; steps: [{ txHash: string }, { txHash: string }] };
+// the cancel request transaction is pending in transaction pool
+type Canceling = { status: 'canceling'; steps: [{ txHash: string }, { txHash: string }, { txHash: string }] };
+
 export interface LiquidityOperationSummary extends PoolInfo {
   txHash: string;
   // yyyy-MM-dd HH:mm:ss
   time: string;
-  status: OperationRequestStatus;
   assets: LiquidityAssetWithBalance[];
   lpToken: LPTokenWithBalance;
   type: LiquidityOperationType;
+  stage: LiquidityOperationStage;
 }
 
 export interface PoolShareInfo {

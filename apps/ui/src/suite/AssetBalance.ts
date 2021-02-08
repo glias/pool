@@ -64,8 +64,10 @@ export class Amount extends CommonsBalance {
     return this.withDecimal().decimalPlaces(this.assetDecimals).toString();
   }
 
-  newValue(value: BigNumber.Value | ((balanceWithoutDecimal: BigNumber) => BigNumber.Value)): Amount {
-    if (typeof value === 'function') return new Amount(value(this.value), this.assetDecimals);
+  newValue(value: BigNumber.Value | ((balanceWithoutDecimal: BigNumber) => BigNumber)): Amount {
+    if (typeof value === 'function') {
+      return new Amount(value(this.value).decimalPlaces(0, BigNumber.ROUND_FLOOR), this.assetDecimals);
+    }
     return new Amount(value, this.assetDecimals);
   }
 

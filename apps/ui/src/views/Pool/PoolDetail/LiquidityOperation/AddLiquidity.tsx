@@ -181,12 +181,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   return (
     <AddLiquidityWrapper>
-      <Formik<InputFields>
-        onSubmit={onSubmit}
-        initialValues={{ amount1: '', amount2: '' }}
-        isInitialValid={false}
-        validate={validate}
-      >
+      <Formik<InputFields> onSubmit={onSubmit} initialValues={{ amount1: '', amount2: '' }} validate={validate}>
         {(form) => (
           <Form layout="vertical">
             <Form.Item name="amount1" label={i18n.t('Asset 1')}>

@@ -87,15 +87,14 @@ export const AssetRow = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
 };
 
 export const CancelModal = () => {
-  const { cancelModalVisable, currentOrder, setCancelModalVisable } = useSwapContainer();
-
+  const { cancelModalVisable, setCancelModalVisable, currentOrder } = useSwapContainer();
   const tokenA = currentOrder?.amountIn!;
   const tokenB = currentOrder?.amountOut!;
 
   const orderType = currentOrder?.type;
 
   const [isSending, setIsSending] = useState(false);
-  const { api, currentUserLock, adapter, currentEthAddress } = useGliaswap();
+  const { api, currentUserLock, currentEthAddress, assertsConnectedAdapter } = useGliaswap();
 
   const isCrossChainOrder = useMemo(() => {
     return orderType === SwapOrderType.CrossChainOrder;
@@ -114,13 +113,13 @@ export const CancelModal = () => {
   const [cancelTx, setCancelTx] = useState<Transaction | null>(null);
 
   const { isFetching } = useQuery(
-    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock],
+    ['cancel-order', cancelModalVisable, currentOrder?.transactionHash, currentUserLock, isSending],
     async () => {
       const { tx } = await api.cancelSwapOrders(currentOrder?.transactionHash!, currentUserLock!);
       return tx;
     },
     {
-      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash,
+      enabled: cancelModalVisable && !!currentUserLock && !!currentOrder?.transactionHash && isSending === false,
       onSuccess(tx) {
         setCancelTx(tx);
       },
@@ -138,9 +137,15 @@ export const CancelModal = () => {
   const [cancelTxhash, setCancelTxhash] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const cancelOrder = useCallback(async () => {
+    const adapter = assertsConnectedAdapter();
     setIsSending(true);
     try {
-      const txhash = await adapter.raw.pw.sendTransaction(cancelTx!);
+      const txhash = await adapter.signer.sendTransaction(cancelTx!);
+      try {
+        await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+      } catch (error) {
+        //
+      }
       setTransactionStatus(TransactionStatus.Success);
       setCancelTxhash(txhash);
       addPendingCancelOrder(currentOrder?.transactionHash!);
@@ -151,14 +156,8 @@ export const CancelModal = () => {
       setIsSending(false);
       setCancelTx(null);
     }
-    try {
-      await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
-    } finally {
-      setIsSending(false);
-      setCancelTx(null);
-    }
   }, [
-    adapter.raw.pw,
+    assertsConnectedAdapter,
     cancelTx,
     addPendingCancelOrder,
     currentOrder?.transactionHash,

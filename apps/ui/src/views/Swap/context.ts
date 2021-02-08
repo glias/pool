@@ -8,6 +8,7 @@ import {
   isEthNativeAsset,
   isShadowEthAsset,
   SwapOrder,
+  SwapOrderType,
 } from '@gliaswap/commons';
 import PWCore, { Transaction } from '@lay2/pw-core';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
@@ -19,6 +20,7 @@ import BigNumber from 'bignumber.js';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import i18n from 'i18n';
 import { Form } from 'antd';
+import { cloneDeep } from 'lodash';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -40,7 +42,6 @@ const useSwap = () => {
   const [cancelModalVisable, setCancelModalVisable] = useState(false);
   const [reviewModalVisable, setReviewModalVisable] = useState(false);
   const [stepModalVisable, setStepModalVisable] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<SwapOrder>();
   const [currentCkbTx, setCurrentTx] = useState<Transaction>();
   const { ckbNativeAsset } = useGliaswapAssets();
   const [currentEthTx, setCurrentEthTx] = useState<TransactionConfig>();
@@ -166,30 +167,6 @@ const useSwap = () => {
     }
   }, [setERC20ApproveStatus, web3, currentERC20, bridgeAPI, ethAddress]);
 
-  const sendEthTransaction = useCallback(
-    (tx: TransactionConfig, cb?: (txHash: string) => Promise<void>): Promise<string> => {
-      if (!web3 || !ethAddress) {
-        return Promise.resolve('');
-      }
-      delete tx.gasPrice;
-      delete tx.nonce;
-
-      return new Promise((resolve, reject) => {
-        web3.eth
-          .sendTransaction({
-            ...tx,
-            from: ethAddress,
-          })
-          .once('transactionHash', async (txHash) => {
-            await cb?.(txHash);
-            resolve(txHash);
-          })
-          .on('error', (err) => reject(err));
-      });
-    },
-    [web3, ethAddress],
-  );
-
   const isWalletNotConnected = useMemo(() => {
     return adapter.status !== 'connected';
   }, [adapter.status]);
@@ -212,6 +189,44 @@ const useSwap = () => {
       });
     },
     [currentCkbAddress, setCrossChainOrders, isWalletNotConnected],
+  );
+
+  const sendEthTransaction = useCallback(
+    (tx: TransactionConfig, cb?: (txHash: string) => Promise<void>): Promise<string> => {
+      if (!web3 || !ethAddress) {
+        return Promise.resolve('');
+      }
+      delete tx.gasPrice;
+      delete tx.nonce;
+
+      return new Promise((resolve, reject) => {
+        web3.eth
+          .sendTransaction({
+            ...tx,
+            from: ethAddress,
+          })
+          .once('transactionHash', async (txHash) => {
+            await cb?.(txHash);
+            resolve(txHash);
+          })
+          .once('confirmation', (_, receipt) => {
+            setAndCacheCrossChainOrders((orders) => {
+              return orders.map((order) => {
+                const txhash = order.stage.steps[0].transactionHash;
+                if (
+                  (order.type === SwapOrderType.CrossChainOrder || order.type === SwapOrderType.CrossChain) &&
+                  receipt.transactionHash === txhash
+                ) {
+                  order.stage.steps[1] = cloneDeep(order.stage.steps[0]);
+                }
+                return order;
+              });
+            });
+          })
+          .on('error', (err) => reject(err));
+      });
+    },
+    [web3, ethAddress, setAndCacheCrossChainOrders],
   );
 
   const isBid = useMemo(() => {
@@ -265,6 +280,12 @@ const useSwap = () => {
     setReceive('');
   }, [form]);
 
+  const [currentOrderTxHash, setCurrentOrderTxHash] = useState('');
+  const [swapList, setSwapList] = useState<SwapOrder[]>([]);
+  const currentOrder = useMemo(() => {
+    return swapList.find((o) => o.stage.steps[0].transactionHash === currentOrderTxHash);
+  }, [swapList, currentOrderTxHash]);
+
   return {
     cancelModalVisable,
     setCancelModalVisable,
@@ -272,8 +293,6 @@ const useSwap = () => {
     setReviewModalVisable,
     stepModalVisable,
     setStepModalVisable,
-    currentOrder,
-    setCurrentOrder,
     currentCkbTx,
     currentEthTx,
     setCurrentTx,
@@ -301,6 +320,9 @@ const useSwap = () => {
     ckbEnoughMessage,
     form,
     resetForm,
+    currentOrder,
+    setSwapList,
+    setCurrentOrderTxHash,
   };
 };
 

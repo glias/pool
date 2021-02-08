@@ -55,15 +55,16 @@ interface Progress {
 }
 
 export const StepModal = () => {
-  const { stepModalVisable, setStepModalVisable, currentOrder, setCurrentOrder } = useSwapContainer();
-  const { adapter, api } = useGliaswap();
+  const { stepModalVisable, setStepModalVisable, setAndCacheCrossChainOrders, currentOrder } = useSwapContainer();
+  const { api } = useGliaswap();
   const type = currentOrder?.type!;
   const tokenA = currentOrder?.amountIn! ?? Object.create(null);
   const tokenB = currentOrder?.amountOut! ?? Object.create(null);
   const stageStatus = currentOrder?.stage.status;
   const orderSteps = useMemo(() => {
     return currentOrder?.stage.steps ?? [];
-  }, [currentOrder?.stage.steps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrder?.stage.steps, currentOrder?.stage.steps.length]);
 
   const isCrossIn = useMemo(() => {
     return type === SwapOrderType.CrossChain && isEthAsset(tokenA);
@@ -165,7 +166,8 @@ export const StepModal = () => {
         isEth: false,
       },
     ];
-  }, [type, isCrossIn, isCrossOut, orderSteps, tokenA?.symbol, tokenB?.symbol, stageStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, isCrossIn, isCrossOut, orderSteps, tokenA?.symbol, tokenB?.symbol, stageStatus, orderSteps.length]);
 
   const currentIndex = useMemo(() => {
     for (let i = progress.length - 1; i >= 0; i--) {
@@ -177,14 +179,6 @@ export const StepModal = () => {
     return 0;
   }, [progress]);
 
-  const shouldCheckEthStatus = useMemo(() => {
-    const isCrossChainOrder = currentOrder?.type === SwapOrderType.CrossChainOrder;
-    const isFirstStep = currentOrder?.stage?.steps.length === 1;
-    return (
-      stepModalVisable && currentOrder?.stage.status === 'pending' && (isCrossChainOrder || isCrossIn) && isFirstStep
-    );
-  }, [stepModalVisable, currentOrder?.stage.status, currentOrder?.type, isCrossIn, currentOrder?.stage?.steps]);
-
   const shouldCheckCkbStatus = useMemo(() => {
     const isCrossChainOrder = currentOrder?.type === SwapOrderType.CrossChainOrder;
     const isFirstStep = currentOrder?.stage?.steps.length === 1;
@@ -194,47 +188,34 @@ export const StepModal = () => {
   }, [stepModalVisable, currentOrder?.stage.status, currentOrder?.type, isCrossOut, currentOrder?.stage?.steps]);
 
   useQuery(
-    ['check-eth-tx-status', shouldCheckEthStatus, stepModalVisable, currentOrder?.transactionHash],
-    () => {
-      return adapter.raw.web3?.eth.getTransactionReceipt(currentOrder?.transactionHash!);
-    },
-    {
-      enabled: stepModalVisable && shouldCheckEthStatus && !!adapter.raw.web3 && !!currentOrder?.transactionHash,
-      refetchInterval: 5000,
-      refetchIntervalInBackground: true,
-      refetchOnMount: true,
-      onSuccess: () => {
-        setCurrentOrder((order) => {
-          order!.stage.steps[1] = {
-            transactionHash: currentOrder?.transactionHash!,
-            index: '0x',
-            errorMessage: '',
-          };
-          return order;
-        });
-      },
-    },
-  );
-
-  useQuery(
     ['check-ckb-tx-status', shouldCheckCkbStatus, stepModalVisable, currentOrder?.transactionHash],
     () => {
       return api.ckb.rpc.getTransaction(currentOrder?.transactionHash!);
     },
     {
       enabled: stepModalVisable && shouldCheckCkbStatus && !!api.ckb && !!currentOrder?.transactionHash,
-      refetchInterval: 5000,
+      refetchInterval: 3000,
       refetchIntervalInBackground: true,
       refetchOnMount: true,
       onSuccess: (res) => {
         if (res?.txStatus?.status === 'committed') {
-          setCurrentOrder((order) => {
-            order!.stage.steps[1] = {
-              transactionHash: currentOrder?.transactionHash!,
-              index: '0x',
-              errorMessage: '',
-            };
-            return order;
+          setAndCacheCrossChainOrders((orders) => {
+            return orders.map((order) => {
+              const txhash = res?.transaction?.hash;
+              const isMatched = order.stage.steps.some((s) => s.transactionHash === txhash);
+              const step = {
+                transactionHash: res?.transaction?.hash,
+                errorMessage: '',
+                index: '0x',
+              };
+              if (order.type === SwapOrderType.CrossChainOrder && isMatched) {
+                order.stage.steps[2] = step;
+              }
+              if (order.type === SwapOrderType.CrossChain && isMatched) {
+                order.stage.steps[1] = step;
+              }
+              return order;
+            });
           });
         }
       },
