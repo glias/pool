@@ -38,7 +38,10 @@ export abstract class AbstractWalletAdapter<Unsigned, Signed> implements WalletA
     this.emitter.emit('connectStatusChanged', 'connecting');
     return this.getSigner().then(
       (signer) => this.afterConnected(signer),
-      () => this.afterDisconnected(),
+      (e) => {
+        this.afterDisconnected();
+        throw e;
+      },
     );
   }
 
