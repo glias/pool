@@ -76,6 +76,8 @@ export class ServerGliaswapAPI implements GliaswapAPI {
           ].includes(error.config.url ?? '')
         ) {
           Modal.error({ content: error.message || 'The transaction was generated failed, please try later' });
+        } else {
+          throw error;
         }
       },
     );
@@ -192,7 +194,16 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     if (!res.data) return;
     // TODO DONT create asset here, use the server response
     res.data.lpToken = merge(
-      createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, res.data.total),
+      createAssetWithBalance(
+        {
+          chainType: 'Nervos',
+          typeHash: '',
+          decimals: Math.ceil(
+            res.data.assets.reduce((lpTokenDecimal: number, asset: Asset) => lpTokenDecimal + asset.decimals, 0) / 2,
+          ),
+        },
+        res.data.total,
+      ),
       res.data.lpToken,
     );
     return res.data;
@@ -253,7 +264,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   async cancelSwapOrders(txHash: string, lock: CkbScript): Promise<{ tx: Transaction }> {
     const { data } = await this.axios.post('/swap/orders/cancel', { txHash, lock }).catch((err) => {
-      return Promise.reject(err.response.data);
+      return Promise.reject(err?.response?.data ?? err);
     });
     return { tx: TransactionHelper.deserializeTransactionToSign(data.tx) };
   }
@@ -286,7 +297,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         },
       })
       .catch((err) => {
-        return Promise.reject(err.response.data);
+        return Promise.reject(err?.response?.data ?? err);
       });
 
     return data;
@@ -320,7 +331,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         },
       })
       .catch((err) => {
-        return Promise.reject(err.response.data);
+        return Promise.reject(err?.response?.data ?? err);
       });
     const tx = TransactionHelper.deserializeTransactionToSign(data.tx);
     return {

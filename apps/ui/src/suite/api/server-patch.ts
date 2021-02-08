@@ -68,7 +68,9 @@ export interface StepsEntity {
 
 export function transformLiquidityOperationInfo(data: LiquidityOperationInfo[]): LiquidityOperationSummary[] {
   return data.map<LiquidityOperationSummary>((info) => {
-    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken);
+    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken, {
+      decimals: Math.ceil(info.tokenA.decimals + info.tokenB.decimals) / 2,
+    });
 
     const steps = info.stage.steps.map((step) => ({ txHash: step.transactionHash }));
 

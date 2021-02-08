@@ -28,7 +28,7 @@ interface UseRemoveLiquidityState {
 
 export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
   const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery(poolId);
-  const { api, currentUserLock, adapter } = useGliaswap();
+  const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();
 
@@ -109,6 +109,7 @@ export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
 
   async function sendRemoveLiquidityTransaction(): Promise<string> {
     if (!readyToSendTransactionWithFee) throw new Error('The remove liquidity transaction is not ready');
+    const adapter = assertsConnectedAdapter();
     const txHash = await adapter.signer.sendTransaction(
       TransactionHelper.deserializeTransactionToSign(readyToSendTransactionWithFee.transactionToSign),
     );

@@ -52,7 +52,7 @@ export const SwapList: React.FC = () => {
     },
     {
       enabled: !!currentUserLock,
-      refetchInterval: 5000,
+      refetchInterval: 10e3,
       refetchIntervalInBackground: true,
       onSuccess: (orders) => {
         setAndCacheCrossChainOrders((cacheOrders) => {

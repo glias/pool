@@ -140,6 +140,32 @@ export class DexSwapOrderChain extends DexOrderChain {
     const orders = this.getOrders();
     const result: Step[] = [];
 
+    if (this.tx.txStatus.status === 'pending') {
+      if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
+        const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
+        const ckbStep: Step = new Step(this._bridgeInfo.ckb_tx_hash);
+        if (this._isIn) {
+          result.push(ethStep);
+        } else {
+          result.push(ckbStep);
+        }
+
+        return result;
+      }
+
+      if (this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
+        const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
+        result.push(ethStep);
+        return result;
+      }
+
+      if (this.getType() === SWAP_ORDER_TYPE.Order) {
+        const step: Step = new Step(this.tx.transaction.hash, this.index.toString());
+        result.push(step);
+        return result;
+      }
+    }
+
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const ethStep: Step = new Step(this._bridgeInfo.eth_tx_hash);
       const ckbStep: Step = new Step(this._bridgeInfo.ckb_tx_hash);
