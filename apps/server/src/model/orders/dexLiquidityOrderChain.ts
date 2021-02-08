@@ -128,6 +128,9 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    return true;
+    if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+      return true;
+    }
+    return false;
   }
 }
