@@ -28,6 +28,7 @@ import {
   Maybe,
   PoolInfo,
   PoolModel,
+  price,
   Script as CkbScript,
   SerializedTransactionToSignWithFee,
   SerializedTransactonToSign,
@@ -39,9 +40,10 @@ import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import { Modal } from 'antd';
 import Axios, { AxiosError, AxiosInstance } from 'axios';
+import BigNumber from 'bignumber.js';
 import { merge } from 'lodash';
 import * as ServerTypes from 'suite/api/server-patch';
-import { BN, createAssetWithBalance } from 'suite/asset';
+import { Amount, BN, createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
 import { LiquidityResponse } from './patch/liquidity-pools';
@@ -252,8 +254,44 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityOperationSummary[]> {
-    const res = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
-    return ServerTypes.transformLiquidityOperationInfo(res.data);
+    const summariesRes = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
+    const summaries = ServerTypes.transformLiquidityOperationInfo(summariesRes.data);
+    // TODO the lpToken amount of add summaries in response is wrong, replace me when server fixed it
+    const pool = await this.getLiquidityInfo({ poolId: filter.poolId });
+    if (!pool) throw new Error(`Cannot find the pool ${filter.poolId}`);
+
+    summaries.forEach((summary) => {
+      if (summary.stage.status !== 'open' && summary.stage.status !== 'pending') return;
+
+      // the add liquidity request's LP token amount is wrong, the current balance of lp token in response is tokenB's
+      if (summary.type === 'add') {
+        summary.lpToken.balance = Amount.fromAsset(summary.lpToken)
+          .newValue(() =>
+            price.getAddLiquidityReceiveLPAmount(
+              BN(summary.assets[0].balance),
+              BN(pool.assets[0].balance),
+              BN(pool.lpToken.balance),
+            ),
+          )
+          .value.toString();
+        return;
+      }
+
+      // the remove liquidity request's assets amount is wrong, the current balance of summary in response is min asset amount
+      // if (summary.type === 'remove')
+      summary.assets.forEach((asset, i) => {
+        asset.balance = price
+          .getRemoveLiquidityReceiveAssetAmount(
+            BN(summary.lpToken.balance),
+            BN(pool.assets[i].balance),
+            BN(pool.lpToken.balance),
+          )
+          .decimalPlaces(0, BigNumber.ROUND_FLOOR)
+          .toString();
+      });
+    });
+
+    return summaries;
   }
 
   async getSwapOrders(lock: CkbScript, ethAddress: string): Promise<SwapOrder[]> {
