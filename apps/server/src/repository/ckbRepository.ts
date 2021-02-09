@@ -2,7 +2,7 @@ import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
 import { DexRepository, txHash } from '.';
-import { ckbConfig, forceBridgeServerUrl } from '../config';
+import { ckbConfig, FORCE_BRIDGE_SERVER_URL } from '../config';
 import {
   BridgeInfo,
   Cell,
@@ -196,7 +196,7 @@ export class CkbRepository implements DexRepository {
     try {
       const userLock = lock.toPwScript();
       const QueryOptions = {
-        url: `${forceBridgeServerUrl}/get_crosschain_history`,
+        url: `${FORCE_BRIDGE_SERVER_URL}/get_crosschain_history`,
         method: 'POST',
         body: {
           lock_sender_addr: userLock.args.slice(2, 42),

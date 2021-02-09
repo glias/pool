@@ -33,11 +33,8 @@ export class DexSwapService {
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
     const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
-    const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
 
     const orders: DexOrderChain[] = [];
-    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
-    crossOrders.forEach((x) => orders.push(x));
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -46,8 +43,10 @@ export class DexSwapService {
       order: 'desc',
     };
     const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
+    const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
+    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
+    crossOrders.forEach((x) => orders.push(x));
 
-    // const temp = txs.filter((x) => x.transaction.outputs.filter((y) => y.lock.args.slice(100, 164) === userLockHash));
     const factory = new DexOrderChainFactory(ORDER_TYPE.SWAP, null);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
