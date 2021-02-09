@@ -83,3 +83,7 @@ export function toStringNumberOrZero(val: string | undefined) {
   const v = new BigNumber(val ?? '0');
   return v.isNaN() ? '0' : v.toFixed();
 }
+
+export function toHexRoundUp(bn: BigNumber) {
+  return new BigNumber(bn.toFixed(0, BigNumber.ROUND_UP)).toString(16);
+}

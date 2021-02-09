@@ -30,7 +30,7 @@ export function removeTrailingZero(str: string) {
 export function displayBalance(asset: GliaswapAssetWithBalance) {
   const balance = new BigNumber(asset.balance)
     .div(new BigNumber(10).pow(asset.decimals))
-    .toFormat(8, BigNumber.ROUND_DOWN);
+    .toFormat(asset.decimals, BigNumber.ROUND_UP);
 
   return removeTrailingZero(balance.toString());
 }

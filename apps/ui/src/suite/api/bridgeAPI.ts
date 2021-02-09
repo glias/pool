@@ -7,6 +7,7 @@ import axios from 'axios';
 import { RPC as ToolKitRpc } from 'ckb-js-toolkit';
 import { Builder, Cell, CellDep, OutPoint, RawTransaction, Script, Transaction } from '@lay2/pw-core';
 import { APPROVE_ABI, BRIDGE_SETTINGS } from './abi';
+import { toHexRoundUp } from 'views/Swap/SwapTable/fee';
 
 const toHexString = (str: string | number) => {
   return `0x${new BigNumber(str).toString(16)}`;
@@ -38,8 +39,8 @@ export class BridgeAPI {
 
   async shadowAssetCrossOut(asset: ShadowFromEthWithBalance, ckbAddress: string, ethAddress: string) {
     const payWithDecimal = new BigNumber(asset.balance);
-    const amount = `0x${payWithDecimal.toString(16)}`;
-    const unlockFee = `0x${payWithDecimal.times(CROSS_CHAIN_FEE).toString(16)}`;
+    const amount = `0x${toHexRoundUp(payWithDecimal)}`;
+    const unlockFee = `0x${toHexRoundUp(payWithDecimal.times(CROSS_CHAIN_FEE))}`;
     return axios
       .post(`${FORCE_BRIDGER_SERVER_URL}/burn`, {
         from_lockscript_addr: ckbAddress,
