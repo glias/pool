@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { Balanced } from '../SwapItem';
 import { SwapMode } from '../context';
 import { displayPercent } from './fee';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
 
 const Container = styled(Form.Item)``;
 
@@ -25,6 +26,7 @@ export interface InfoTableProps {
 export const InfoTable = ({ tokenA, tokenB, price, priceImpact, swapMode }: InfoTableProps) => {
   const ckb = isCkbNativeAsset(tokenA) ? tokenA : tokenB;
   const sudt = isCkbNativeAsset(tokenA) ? tokenB : tokenA;
+  const [{ slippage }] = useGlobalSetting();
 
   const isCrossOut = useMemo(() => {
     return swapMode === SwapMode.CrossOut;
@@ -53,7 +55,7 @@ export const InfoTable = ({ tokenA, tokenB, price, priceImpact, swapMode }: Info
             label={i18n.t('swap.order-table.min-receive')}
             labelTooltip={i18n.t('swap.order-table.min-receive-desc')}
           >
-            <Balanced asset={{ ...tokenB, balance: new BigNumber(tokenB.balance).times(0.995).toString() }} />
+            <Balanced asset={{ ...tokenB, balance: new BigNumber(tokenB.balance).times(1 - slippage).toString() }} />
           </TableRow>
           <TableRow
             label={i18n.t('swap.order-table.price-impact')}

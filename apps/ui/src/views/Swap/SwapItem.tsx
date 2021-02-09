@@ -149,13 +149,20 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     );
   }, [status, type, openCancelModal, openStepModal, order.stage.status]);
 
+  const receiveLabel = useMemo(() => {
+    if (order.type === SwapOrderType.CrossChain || order.stage.status === 'completed') {
+      return i18n.t('swap.order-list.receive');
+    }
+    return i18n.t('swap.order-table.min-receive');
+  }, [order.type, order.stage.status]);
+
   return (
     <List.Item>
       <ItemContainer>
         <TableRow label={i18n.t('swap.order-list.time')} value={timestamp} />
         <TableRow label={i18n.t('swap.order-list.route')} value={route} />
         <TableRow label={i18n.t('swap.order-list.pay')} value={pay} />
-        <TableRow label={i18n.t('swap.order-list.receive')} value={receive} />
+        <TableRow label={receiveLabel} value={receive} />
         <TableRow label="" value={action} />
       </ItemContainer>
     </List.Item>
