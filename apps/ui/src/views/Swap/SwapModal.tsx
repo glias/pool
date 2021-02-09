@@ -254,11 +254,7 @@ export const SwapModal = () => {
             </Form.Item>
           )}
           {currentCkbTx && isSendCkbTransaction ? (
-            <TableRow
-              label={i18n.t('swap.cancel-modal.tx-fee')}
-              labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
-              value={txFee}
-            />
+            <TableRow label={i18n.t('swap.cancel-modal.tx-fee')} value={txFee} />
           ) : null}
           <Form.Item className="submit">
             <ConfirmButton

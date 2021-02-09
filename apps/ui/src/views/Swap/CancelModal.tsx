@@ -241,11 +241,7 @@ export const CancelModal = () => {
               </MetaContainer>
             </Form.Item>
           ) : null}
-          <TableRow
-            label={i18n.t('swap.cancel-modal.tx-fee')}
-            labelTooltip={i18n.t('swap.cancel-modal.tx-fee-desc')}
-            value={txFee}
-          />
+          <TableRow label={i18n.t('swap.cancel-modal.tx-fee')} value={txFee} />
           <Form.Item className="submit">
             <ConfirmButton
               loading={isSending || isFetching}
