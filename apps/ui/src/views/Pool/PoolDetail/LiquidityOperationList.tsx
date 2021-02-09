@@ -17,6 +17,7 @@ import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
+import { LiquidityPoolTokenTooltip } from './LiquidityOperation/components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
 import { LiquidityOperationDetail } from './LiquidityOperationSteps';
@@ -194,7 +195,13 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       >
         {readyToCancelOperation && (
           <>
-            <div className="label">{i18n.t(upperFirst(readyToCancelOperation.type))}</div>
+            <div className="label">
+              {readyToCancelOperation.type === 'add' ? (
+                i18n.t(upperFirst(readyToCancelOperation.type))
+              ) : (
+                <LiquidityPoolTokenTooltip>{i18n.t(upperFirst(readyToCancelOperation.type))}</LiquidityPoolTokenTooltip>
+              )}
+            </div>
 
             {readyToCancelOperation.type === 'add' ? operationAssetsEl : lpTokenInfoEl}
 
@@ -202,7 +209,13 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
               <DownArrowSvg />
             </div>
 
-            <div className="label">{i18n.t('Receive(EST)')}</div>
+            <div className="label">
+              {readyToCancelOperation.type === 'add' ? (
+                <LiquidityPoolTokenTooltip>{i18n.t('Receive(EST.)')}</LiquidityPoolTokenTooltip>
+              ) : (
+                i18n.t('Receive(EST.)')
+              )}
+            </div>
             {readyToCancelOperation.type === 'add' ? lpTokenInfoEl : operationAssetsEl}
 
             <SpaceBetweenRow>
