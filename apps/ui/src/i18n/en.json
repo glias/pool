@@ -51,8 +51,8 @@
       "progress": {
         "title": "Progress",
         "submit": "Request Submitted",
-        "confirm-eth": "Confirmed on Ethereum",
-        "confirm-ckb": "Confirmed on CKB",
+        "confirm-eth": "Confirming on Ethereum",
+        "confirm-ckb": "Confirming on Nervos",
         "sucess": "Swap Successfully",
         "lock": "Lock",
         "burn": "Burn",
