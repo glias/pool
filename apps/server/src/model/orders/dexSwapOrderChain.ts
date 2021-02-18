@@ -1,5 +1,5 @@
 import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
-import { CKB_TOKEN_TYPE_HASH } from '../../config';
+import { CKB_TOKEN_TYPE_HASH, FORCE_BRIDGE_LOCK_HASH_CODE } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
@@ -126,7 +126,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     }
 
     const orders = this.getOrders();
-    if (this._isOrder || !this._bridgeInfo) {
+    if (this.getType() === SWAP_ORDER_TYPE.Order) {
       if (orders.length === 1) {
         if (this.tx.txStatus.status === 'pending') {
           return ORDER_STATUS.PENDING;
@@ -210,12 +210,21 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
+    if (this.getType() === SWAP_ORDER_TYPE.Order || this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
+      if (
+        FORCE_BRIDGE_LOCK_HASH_CODE === this.tx.transaction.inputs[0].cellOutput.lock.codeHash &&
+        this.getLastOrder().tx.txStatus.status === 'pending'
+      ) {
+        return false;
+      }
+    }
+
     if (SWAP_ORDER_TYPE.Order === this.getType()) {
       return true;
     }
 
     if (SWAP_ORDER_TYPE.CrossChainOrder === this.getType()) {
-      if (this.getStatus() === ORDER_STATUS.PENDING) {
+      if (this.getLastOrder().tx.txStatus.status === 'pending') {
         return false;
       }
 
