@@ -10,9 +10,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation } from 'react-query';
 import styled from 'styled-components';
 import { BN } from 'suite';
-import { TransactionFeeLabel } from 'views/Pool/PoolDetail/LiquidityOperation/components/TransactionFeeLabel';
-import { OperationConfirmModal } from 'views/Pool/PoolDetail/LiquidityOperation/OperationConfirmModal';
+import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
 import { RequestFeeLabel } from './components/RequestFeeLabel';
+import { TransactionFeeLabel } from './components/TransactionFeeLabel';
+import { OperationConfirmModal } from './OperationConfirmModal';
 
 const { Text } = Typography;
 
@@ -129,7 +130,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
           <RequestFeeLabel />
         </div>
         <div>
-          <b>{i18n.t('Free now')}</b>
+          <b>{i18n.t('Free Now')}</b>
         </div>
       </SpaceBetweenRow>
       <Button
@@ -151,7 +152,9 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
       >
         {readyToSendTransactionWithFee && (
           <>
-            <div className="label">{i18n.t('Remove')}</div>
+            <div className="label">
+              <LiquidityPoolTokenTooltip>{i18n.t('Remove')}</LiquidityPoolTokenTooltip>
+            </div>
             <SpaceBetweenRow style={{ fontWeight: 'bold', fontSize: '14px' }}>
               <div>
                 <HumanizeBalance asset={readyToRemoveLpToken} />
@@ -163,7 +166,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
             <DownArrowSvg />
 
-            <div className="label">{i18n.t('Receive(EST)')}</div>
+            <div className="label">{i18n.t('Receive(EST.)')}</div>
             <AssetBalanceList assets={readyToReceiveAssets} style={{ fontWeight: 'bold' }} />
 
             <SpaceBetweenRow>

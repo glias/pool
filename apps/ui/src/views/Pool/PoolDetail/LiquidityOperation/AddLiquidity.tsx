@@ -13,6 +13,7 @@ import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Amount, createAssetWithBalance } from 'suite';
+import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
 import { RequestFeeLabel } from './components/RequestFeeLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
 import { OperationConfirmModal } from './OperationConfirmModal';
@@ -250,7 +251,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
                 <RequestFeeLabel />
               </div>
               <div>
-                <b>Free now</b>
+                <b>{i18n.t('Free Now')}</b>
               </div>
             </SpaceBetweenRow>
 
@@ -285,7 +286,9 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             <div style={{ padding: '8px 0' }}>
               <DownArrowSvg />
             </div>
-            <div className="label">{i18n.t('Receive(EST)')}</div>
+            <div className="label">
+              <LiquidityPoolTokenTooltip>{i18n.t('Receive(EST.)')}</LiquidityPoolTokenTooltip>
+            </div>
             <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
               <div>
                 <HumanizeBalance asset={poolLiquidity.lpToken} value={readyToReceiveLPAmount} />
