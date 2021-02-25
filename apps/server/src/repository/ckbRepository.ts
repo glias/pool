@@ -19,10 +19,12 @@ import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 import { BizException } from '../bizException';
 import { StopWatch } from '../model/time/stopWatch';
 import { Logger } from '../logger';
+import { dexCache, DexCache } from '../cache';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
   private readonly ckbNode: CKB;
+  private readonly dexCache: DexCache = dexCache;
 
   constructor() {
     this.lumosRepository = lumosRepository;
@@ -90,7 +92,6 @@ export class CkbRepository implements DexRepository {
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
 
     Logger.info('query txs:', sw.split());
-
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
@@ -119,7 +120,6 @@ export class CkbRepository implements DexRepository {
     }
 
     Logger.info('includePool:', sw.split());
-
     if (includeInputCells) {
       const hashes: Set<string> = new Set();
       result.forEach((x) => {
@@ -180,7 +180,15 @@ export class CkbRepository implements DexRepository {
   }
 
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
-    const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+    const txJson = await this.dexCache.get(hash);
+    let ckbTx;
+    if (!txJson) {
+      ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+      this.dexCache.set(hash, JSON.stringify(ckbTx));
+    } else {
+      ckbTx = JSON.parse(txJson);
+    }
+
     const tx = transactionConver.conver(ckbTx);
     if (tx.txStatus.blockHash) {
       const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);

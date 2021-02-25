@@ -1,4 +1,4 @@
-import { QueryOptions } from '@ckb-lumos/base';
+import { QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { Reader, RPC } from 'ckb-js-toolkit';
 import knex from 'knex';
 import { QueryOptionsWrapper } from './queryOptionsWrapper';
@@ -10,27 +10,37 @@ export class TransactionCollector2 {
   private queryOptions: QueryOptionsWrapper;
   private rpc: RPC;
   private dexCache: DexCache = dexCache;
+  private cache: Map<string, unknown> = new Map<string, unknown>();
   constructor(db: knex, queryOptions: QueryOptions, rpc: RPC) {
     this.db = db;
     this.queryOptions = new QueryOptionsWrapper(queryOptions);
     this.rpc = rpc;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async *collect(): AsyncGenerator<any, void, unknown> {
+  async collect(): Promise<Array<TransactionWithStatus>> {
+    const begin2 = new Date().getTime();
     const hashes = await this.getTxHashes();
+    const end2 = new Date().getTime();
+    console.log('sql：', end2 - begin2);
 
+    const result = [];
+    const begin = new Date().getTime();
     for (const hash of hashes) {
       let tx;
+
       const txJson = await this.dexCache.get(hash);
       if (!txJson) {
         tx = await this.rpc.get_transaction(hash);
         this.dexCache.set(hash, JSON.stringify(tx));
+      } else {
+        tx = JSON.parse(txJson);
       }
-      tx = JSON.parse(txJson);
-
-      yield tx;
+      result.push(tx);
     }
+    const end = new Date().getTime();
+    console.log('redis: ', end - begin);
+
+    return result;
   }
 
   // 'select * from `transaction_digests`
@@ -38,16 +48,26 @@ export class TransactionCollector2 {
   // where (`script_id` in (?)) and (`transaction_digests`.`id` in (?, ?.....))'
   private async getTxHashes(): Promise<string[]> {
     const lockIds = await this.getScriptIds(this.queryOptions.getLockScript());
-    const ids = await this.getTxIdsByTypeScriptIds(this.queryOptions.getTypeScript());
-
+    // lockIds.forEach((x) => console.log(x));
     let query = this.db('transaction_digests')
       .leftJoin('transactions_scripts', 'transaction_digests.id', 'transactions_scripts.transaction_digest_id')
       .andWhere(function () {
         return this.whereIn('script_id', lockIds);
       });
-    if (ids.length !== 0) {
+
+    if (this.queryOptions.getTypeScript()) {
+      const ids = await this.getScriptIds(this.queryOptions.getTypeScript());
+      // console.log('type id:', ids);
+      // 'select distinct `transaction_digests`.`id` from `transaction_digests`
+      // left join `transactions_scripts` on `transaction_digests`.`id` = `transactions_scripts`.`transaction_digest_id` where (`script_id` in (?))'
+      const subQuery = this.db('transaction_digests')
+        .leftJoin('transactions_scripts', 'transaction_digests.id', 'transactions_scripts.transaction_digest_id')
+        .andWhere(function () {
+          return this.whereIn('script_id', ids);
+        })
+        .distinct('transaction_digests.id');
       query = query.andWhere(function () {
-        return this.whereIn('transaction_digests.id', ids);
+        return this.whereIn('transaction_digests.id', subQuery);
       });
     }
 
@@ -57,6 +77,7 @@ export class TransactionCollector2 {
     ]);
 
     const items = await query.distinct('transaction_digests.*');
+    // console.log(query.toSQL());
     const result: string[] = [];
     for (let i = 0; i < items.length; i++) {
       result.push(this.nodeBufferToHex(items[i].tx_hash));
@@ -65,33 +86,13 @@ export class TransactionCollector2 {
     return result;
   }
 
-  // 'select distinct `transaction_digests`.`id` from `transaction_digests`
-  // left join `transactions_scripts` on `transaction_digests`.`id` = `transactions_scripts`.`transaction_digest_id` where (`script_id` in (?))'
-  private async getTxIdsByTypeScriptIds(script: Script): Promise<number[]> {
-    if (!script) {
-      return [];
-    }
-    const ids = await this.getScriptIds(script);
-    const query = this.db('transaction_digests')
-      .leftJoin('transactions_scripts', 'transaction_digests.id', 'transactions_scripts.transaction_digest_id')
-      .andWhere(function () {
-        return this.whereIn('script_id', ids);
-      });
-
-    const items = await query.distinct('transaction_digests.id');
-    const result: number[] = [];
-    for (let i = 0; i < items.length; i++) {
-      result.push(items[i].id);
-    }
-
-    return result;
-  }
-
   // 'select * from `scripts` where `code_hash` = ? and substring(args, 1, ?) = ?'
   private async getScriptIds(script: Script) {
+    const begin = new Date().getTime();
     if (!script) {
       return [];
     }
+
     const argsBuffer = this.hexToNodeBuffer(script.args);
     let query = this.db('scripts');
     query = query.where({
@@ -107,6 +108,8 @@ export class TransactionCollector2 {
     // }
 
     const items = await query.select('id');
+    const end = new Date().getTime();
+    console.log('script sql: ', end - begin);
     const result = [];
     for (let i = 0; i < items.length; i++) {
       result.push(items[i].id);

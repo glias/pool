@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionWithStatus } from '../model';
+import { BridgeInfo, BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionWithStatus } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
 import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
@@ -49,17 +49,15 @@ export class DexSwapService {
       },
       order: 'desc',
     };
+
     const sw = new StopWatch();
     sw.start();
 
     const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
+    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    const bridgeInfoMatch = BridgeInfoMatchChainFactory.getInstance(pureCrossTxs);
+    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch, pureCrossTxs);
 
-    Logger.info('query txs:', sw.split());
-
-    const bridgeInfoMatch = await this.getBridgeInfoMatch(lock, ethAddress);
-    Logger.info('bridgeInfoMatch:', sw.split());
-
-    const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch);
     crossOrders.forEach((x) => orders.push(x));
     Logger.info('crossOrders:', sw.split());
 
@@ -85,8 +83,9 @@ export class DexSwapService {
     lock: Script,
     ethAddress: string,
     bridgeInfoMatch: BridgeInfoMatchChain,
+    pureCrossTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
   ): Promise<DexOrderChain[]> {
-    const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
+    // const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
     const txs: TransactionWithStatus[] = [];
     for (const tx of pureCrossTxs.ckb_to_eth) {
       if (tx.status !== 'success') {
@@ -123,7 +122,6 @@ export class DexSwapService {
 
   private async getBridgeInfoMatch(lock: Script, ethAddress: string): Promise<BridgeInfoMatchChain> {
     const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
-    // const crossChainOrderTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
     return BridgeInfoMatchChainFactory.getInstance(pureCrossTxs);
   }
 }
