@@ -18,6 +18,7 @@
     "ckb-js-toolkit": "^0.9.3",
     "dotenv": "^8.2.0",
     "easy-byte": "^0.1.0",
+    "gliaswap-token-list": "https://github.com/glias/token-list",
     "knex": "^0.21.15",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
