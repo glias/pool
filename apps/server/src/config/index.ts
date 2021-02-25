@@ -10,6 +10,12 @@ export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
 };
 
+export const redisConfiguration = {
+  address: process.env.REDIS_ADDRESS || '127.0.0.1',
+  port: process.env.REDIS_PORT || 6379,
+  auth: process.env.REDIS_AUTH || '123456',
+};
+
 export const mysqlInfo: MySqlConnectionConfig = {
   host: process.env.MYSQL_HOST || '127.0.0.1',
   port: parseInt(process.env.MYSQL_PORT) || 3306,

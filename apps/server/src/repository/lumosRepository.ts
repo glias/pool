@@ -3,6 +3,7 @@ import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
 import { ckbConfig, env, mysqlInfo } from '../config';
 import { TransactionCollector } from './transactionCollector';
+import { TransactionCollector2 } from './tx/transactionCollector2';
 
 export class SqlIndexerWrapper {
   private indexer: Indexer;
@@ -43,11 +44,20 @@ export class SqlIndexerWrapper {
   }
 
   async collectTransactions(queryOptions: QueryOptions): Promise<Array<TransactionWithStatus>> {
-    const transactionCollector = new TransactionCollector(this.knex, queryOptions, this.indexer['rpc']);
     const txs = [];
+    const start = new Date().getTime();
+    // const transactionCollector = new TransactionCollector(this.knex, queryOptions, this.indexer['rpc']);
+    const transactionCollector = new TransactionCollector2(this.knex, queryOptions, this.indexer['rpc']);
+    const sqlTime = new Date().getTime();
     for await (const tx of transactionCollector.collect()) {
       txs.push(tx);
     }
+
+    const rpcTime = new Date().getTime();
+    console.log('record: ', txs.length);
+    console.log('sql time: ', sqlTime - start);
+    console.log('rpc time: ', rpcTime - sqlTime);
+    console.log('total time: ', rpcTime - start);
 
     return txs;
   }
