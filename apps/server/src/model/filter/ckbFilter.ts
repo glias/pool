@@ -18,11 +18,11 @@ export interface TransactionFilter {
 
 export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter {
   private alreadyHash: Set<string> = new Set();
-  private poolTxs: TransactionWithStatus[];
-  private poolInputTxs?: TransactionWithStatus[];
+  private readonly poolTxs: TransactionWithStatus[];
+  private readonly poolInputTxs?: TransactionWithStatus[];
 
   constructor(poolTxs: TransactionWithStatus[], poolInputTxs?: TransactionWithStatus[], txs?: TransactionWithStatus[]) {
-    txs.forEach(x => this.alreadyHash.add(x.transaction.hash))
+    txs.forEach((x) => this.alreadyHash.add(x.transaction.hash));
     this.poolTxs = poolTxs;
     this.poolInputTxs = poolInputTxs;
   }
