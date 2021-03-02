@@ -216,12 +216,14 @@ export class DexSwapOrderChain extends DexOrderChain {
         // && this.getLastOrder().tx.txStatus.status === 'pending'
       ) {
         return false;
+      } else {
+        return true;
       }
     }
 
-    if (SWAP_ORDER_TYPE.Order === this.getType()) {
-      return true;
-    }
+    // if (SWAP_ORDER_TYPE.Order === this.getType()) {
+    //   return true;
+    // }
 
     if (SWAP_ORDER_TYPE.CrossChainOrder === this.getType()) {
       if (this.getLastOrder().tx.txStatus.status === 'pending') {
