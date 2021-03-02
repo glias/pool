@@ -18,3 +18,4 @@ export * from './bridge';
 export * from './pool';
 export * from './scriptBuilder';
 export * from './filter';
+export * from './time';

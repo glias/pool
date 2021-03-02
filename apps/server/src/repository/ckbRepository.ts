@@ -17,6 +17,8 @@ import {
 } from '../model';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 import { BizException } from '../bizException';
+import { StopWatch } from "../model/time/stopWatch";
+import { logger } from "../../../../.history/apps/server/src/logger_20210206223222";
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
@@ -83,7 +85,13 @@ export class CkbRepository implements DexRepository {
     includePool?: boolean,
     includeInputCells?: boolean,
   ): Promise<TransactionWithStatus[]> {
+
+    const sw = new StopWatch()
+    sw.start();
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
+
+    console.log("query txs:", sw.split());
+
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
@@ -92,6 +100,8 @@ export class CkbRepository implements DexRepository {
         return tx;
       }),
     );
+
+    console.log("query txs timestamp:", sw.split());
 
     if (includePool) {
       const pendingTxs = await this.getPoolTxs();
@@ -108,6 +118,8 @@ export class CkbRepository implements DexRepository {
         .matchTransactions(queryOptions)
         .forEach((x) => result.push(x));
     }
+
+    console.log("includePool:", sw.split());
 
     if (includeInputCells) {
       const hashes: Set<string> = new Set();
@@ -136,6 +148,8 @@ export class CkbRepository implements DexRepository {
         });
       });
     }
+
+    console.log("includeInputCells:", sw.split());
     return result;
   }
 
