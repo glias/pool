@@ -9109,6 +9109,10 @@ github-slugger@^1.0.0:
   dependencies:
     emoji-regex ">=6.0.0 <=6.1.1"
 
+"gliaswap-token-list@https://github.com/glias/token-list":
+  version "0.0.1"
+  resolved "https://github.com/glias/token-list#31f0067d00d735aa2882fe3e677034719f3362cd"
+
 glob-base@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/glob-base/-/glob-base-0.3.0.tgz#dbb164f6221b1c0b1ccf82aea328b497df0ea3c4"
