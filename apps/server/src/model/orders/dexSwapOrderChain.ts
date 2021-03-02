@@ -212,7 +212,7 @@ export class DexSwapOrderChain extends DexOrderChain {
   filterOrderHistory(): boolean {
     if (this.getType() === SWAP_ORDER_TYPE.Order || this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
       if (
-        FORCE_BRIDGE_LOCK_HASH_CODE === this.tx.transaction.inputs[0].cellOutput.lock.codeHash
+        FORCE_BRIDGE_LOCK_HASH_CODE === this.getLastOrder().tx.transaction.inputs[0].cellOutput.lock.codeHash
         // && this.getLastOrder().tx.txStatus.status === 'pending'
       ) {
         return false;
