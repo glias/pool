@@ -1,4 +1,3 @@
-
 export class StopWatch {
   private begin: number;
   private point: number;
@@ -25,5 +24,4 @@ export class StopWatch {
     this.end = Date.now();
     return this.end - this.begin;
   }
-
 }
