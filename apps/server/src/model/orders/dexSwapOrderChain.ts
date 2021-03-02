@@ -213,15 +213,17 @@ export class DexSwapOrderChain extends DexOrderChain {
     if (this.getType() === SWAP_ORDER_TYPE.Order || this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
       if (
         FORCE_BRIDGE_LOCK_HASH_CODE === this.tx.transaction.inputs[0].cellOutput.lock.codeHash
-        && this.getLastOrder().tx.txStatus.status === 'pending'
+        // && this.getLastOrder().tx.txStatus.status === 'pending'
       ) {
+        return false;
+      } else {
         return true;
       }
     }
 
-    if (SWAP_ORDER_TYPE.Order === this.getType()) {
-      return true;
-    }
+    // if (SWAP_ORDER_TYPE.Order === this.getType()) {
+    //   return true;
+    // }
 
     if (SWAP_ORDER_TYPE.CrossChainOrder === this.getType()) {
       if (this.getLastOrder().tx.txStatus.status === 'pending') {
