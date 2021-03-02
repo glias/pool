@@ -86,7 +86,7 @@ export class TokenInfo {
     this.symbol = symbol;
     this.decimals = decimals;
     this.logoURI = logoURI;
-    this.address = address ?? '';
+    this.address = address || '';
     this.chainType = chainType;
   }
 
