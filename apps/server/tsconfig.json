@@ -6,6 +6,8 @@
     "emitDeclarationOnly": false,
     "experimentalDecorators": true,
     "rootDir": "src",
+    "resolveJsonModule": true,
+    "allowJs": true,
     "outDir": "lib",
     "declarationDir": "output-types"
   },
