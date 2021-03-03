@@ -3,6 +3,7 @@ import {
   CkbSudtAssetWithBalance,
   EthErc20AssetWithBalance,
   GliaswapAssetWithBalance,
+  isCkbAsset,
   isCkbNativeAsset,
   isCkbSudtAsset,
   isEthAsset,
@@ -216,7 +217,7 @@ export const useSwapTable = ({
   );
 
   const receiveSelectorDisabledKeys = useMemo(() => {
-    return assets.value.filter((e) => !receiveAssetFilter(e)).map((a) => a.symbol);
+    return assets.value.filter((e) => !receiveAssetFilter(e)).map((a) => (isCkbAsset(a) ? a.typeHash : a.address));
   }, [assets.value, receiveAssetFilter]);
 
   const isPairTogglable = useMemo(() => {

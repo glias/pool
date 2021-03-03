@@ -42,7 +42,7 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelectorProps<A, K>) {
-  const { selectedKey, onSelected, assets, renderKey, group, disabledKeys, ...otherProps } = props;
+  const { selectedKey, onSelected, assets, renderKey, group, disabledKeys, enableSearch, ...otherProps } = props;
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectable = !!onSelected;
@@ -87,11 +87,23 @@ export function AssetSelector<A extends Asset, K extends Key>(props: TokenSelect
         assets={assets}
         onSelected={onSelect}
         renderKey={renderKey}
+        enableSearch={enableSearch}
         group={group}
         disabledKeys={disabledKeys ? disabledKeys : selectedAsset ? ([selectedKey] as K[]) : undefined}
       />
     );
-  }, [selectable, assets, modalVisible, onSelect, renderKey, group, selectedAsset, selectedKey, disabledKeys]);
+  }, [
+    selectable,
+    assets,
+    modalVisible,
+    onSelect,
+    renderKey,
+    group,
+    selectedAsset,
+    selectedKey,
+    disabledKeys,
+    enableSearch,
+  ]);
 
   const onClick = useCallback(
     (e: React.MouseEvent<any, MouseEvent>) => {

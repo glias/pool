@@ -12,6 +12,7 @@ import { SwapMode, useSwapContainer } from '../context';
 import {
   EthErc20AssetWithBalance,
   GliaswapAssetWithBalance,
+  isCkbAsset,
   isCkbNativeAsset,
   ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
@@ -50,6 +51,13 @@ const FormContainer = styled(Form)`
     margin-bottom: 16px;
   }
 `;
+
+const renderTokenSelectorKey = (asset: GliaswapAssetWithBalance) => {
+  if (isCkbAsset(asset)) {
+    return asset.typeHash;
+  }
+  return asset.address;
+};
 
 export const SwapTable: React.FC = () => {
   const {
@@ -354,7 +362,7 @@ export const SwapTable: React.FC = () => {
           max={payMax}
           assets={assets.value}
           setMax={(max) => fillReceiveWithPay(max, true)}
-          renderKeys={(a) => a.symbol}
+          renderKeys={renderTokenSelectorKey}
           inputProps={{
             onChange: payOnChange,
           }}
@@ -366,10 +374,11 @@ export const SwapTable: React.FC = () => {
             ],
           }}
           selectorProps={{
-            selectedKey: tokenA?.symbol,
+            selectedKey: isCkbAsset(tokenA) ? tokenA.typeHash : tokenA.address,
             onSelected: onPaySelectAsset,
             group: (a) => a.chainType,
             bold: true,
+            enableSearch: true,
           }}
         />
         <div className={`swap ${isPairToggleable ? 'clickable' : 'unclickable'}`} onClick={changePair}>
@@ -389,13 +398,14 @@ export const SwapTable: React.FC = () => {
               },
             ],
           }}
-          renderKeys={(a) => a.symbol}
+          renderKeys={renderTokenSelectorKey}
           selectorProps={{
-            selectedKey: tokenB?.symbol,
+            selectedKey: isCkbAsset(tokenB) ? tokenB.typeHash : tokenB.address,
             onSelected: onReceiveSelect,
             disabledKeys: receiveSelectorDisabledKeys,
             group: (a) => a.chainType,
             bold: true,
+            enableSearch: true,
           }}
         />
         {disabled ? null : (

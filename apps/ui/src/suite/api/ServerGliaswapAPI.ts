@@ -41,12 +41,14 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import { Modal } from 'antd';
 import Axios, { AxiosError, AxiosInstance } from 'axios';
 import BigNumber from 'bignumber.js';
-import { merge } from 'lodash';
+import { isEmpty, merge } from 'lodash';
 import * as ServerTypes from 'suite/api/server-patch';
 import { Amount, BN, createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
+import axios from 'axios';
 import { LiquidityResponse } from './patch/liquidity-pools';
+import { INFO_ABI } from './abi';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;
@@ -381,6 +383,49 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return {
       tx,
     };
+  }
+
+  async searchSUDT(typeHash: string): Promise<CkbSudtAssetWithBalance | undefined> {
+    const params = {
+      typeHashOrAddress: typeHash,
+    };
+
+    // @FIXME: replace to swap backend when it's ready
+    const res = await axios.get(`https://api-gliaswap.ckbapp.dev/tokens/search`, {
+      params,
+    });
+
+    if (isEmpty(res.data)) {
+      return undefined;
+    }
+
+    const [asset] = res.data;
+
+    return {
+      ...asset,
+      decimals: parseInt(asset.decimal, 10),
+      balance: asset.amount,
+      chainType: 'Nervos',
+    };
+  }
+
+  async searchERC20(address: string, web3: Web3): Promise<EthErc20AssetWithBalance | undefined> {
+    try {
+      const contract = new web3.eth.Contract(INFO_ABI, address);
+      const name = await contract.methods.name().call();
+      const symbol = await contract.methods.symbol().call();
+      const decimals = await contract.methods.decimals().call();
+      return {
+        name,
+        address,
+        symbol,
+        balance: '0',
+        chainType: 'Ethereum',
+        decimals: parseInt(decimals, 10),
+      };
+    } catch (error) {
+      return undefined;
+    }
   }
 
   generateCreateLiquidityPoolTransaction(

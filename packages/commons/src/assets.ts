@@ -57,7 +57,7 @@ export type GliaswapAssetWithBalance =
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
-export function isCkbChainSpec<T extends ChainSpec>(spec: T): spec is T & CkbChainSpec {
+export function isCkbChainSpec<T = ChainSpec>(spec: T): spec is T & CkbChainSpec {
   return propEq(spec, 'chainType', 'Nervos') && has(spec, 'typeHash');
 }
 
@@ -65,7 +65,7 @@ export function getCkbChainSpec<T extends CkbChainSpec>(spec: T): CkbChainSpec {
   return { typeHash: spec.typeHash, chainType: spec.chainType };
 }
 
-export function isEthereumChainSpec<T extends ChainSpec>(spec: T): spec is T & EthChainSpec {
+export function isEthereumChainSpec<T = ChainSpec>(spec: T): spec is T & EthChainSpec {
   return propEq(spec, 'chainType', 'Ethereum') && has(spec, 'address');
 }
 
@@ -73,11 +73,11 @@ export function getEthChainSpec<T extends EthChainSpec>(spec: T): EthChainSpec {
   return { address: spec.address, chainType: spec.chainType };
 }
 
-export function isCkbAsset<T extends Asset>(asset: T): asset is T & CkbAsset {
+export function isCkbAsset<T = Asset>(asset: T): asset is T & CkbAsset {
   return isCkbChainSpec(asset);
 }
 
-export function isEthAsset<T extends Asset>(asset: T): asset is T & EthAsset {
+export function isEthAsset<T = Asset>(asset: T): asset is T & EthAsset {
   return isEthereumChainSpec(asset);
 }
 
@@ -87,7 +87,7 @@ export function isCkbNativeAsset<T extends Asset>(asset: Asset): asset is T & Ck
   );
 }
 
-export function isCkbSudtAsset<T extends Asset>(asset: T): asset is T & CkbSudtAsset {
+export function isCkbSudtAsset<T = Asset>(asset: T): asset is T & CkbSudtAsset {
   return isCkbAsset(asset) && !isCkbNativeAsset(asset);
 }
 

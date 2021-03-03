@@ -33,6 +33,7 @@ export interface AssetListProps<A extends Asset, K extends Key> {
   assets: A[];
   disabledKeys?: K[];
   onSelected?: (key: K, asset: A) => void;
+  enableSearch?: boolean;
 }
 
 export function AssetList<A extends Asset, K extends Key>(

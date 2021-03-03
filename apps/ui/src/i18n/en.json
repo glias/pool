@@ -67,7 +67,9 @@
     "common": {
       "max": "Max",
       "pending-requests": "My Pending Requests",
-      "history-orders": "My History Orders"
+      "history-orders": "My History Orders",
+      "search-by-type-hash": "Search token by name or type hash",
+      "search-by-address": "Search token by name or address"
     },
     "validation": {
       "lte-zero": "The value must be bigger than 0",
@@ -77,7 +79,9 @@
       "liquid": "Insufficient liquidity for this trade",
       "ckb": "Insufficient CKB balance. Please keep at least {{amount}} CKB in your wallet.",
       "confirming": "Please confirm or cancel the transaction in your wallet.",
-      "minimum-pay": "The minimum pay amount should bigger than 4 CKB"
+      "minimum-pay": "The minimum pay amount should bigger than 4 CKB",
+      "type-hash": "Please try to use a valid token type hash to find token.",
+      "address": "Please try to use a valid token address to find token."
     }
   }
 }
