@@ -3,3 +3,4 @@ export { dexLiquidityPoolService, DexLiquidityPoolService } from './dexLiquidity
 export { dexSwapService, DexSwapService } from './dexSwapService';
 export { TokenCellCollectorService, DefaultTokenCellCollectorService } from './tokenCellCollectorService';
 export { SendTransactionService, sendTransactionService } from './sendTransactionService';
+export * from './tokenService';
