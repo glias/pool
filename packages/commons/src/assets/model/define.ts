@@ -1,11 +1,15 @@
 import { Asset, ChainSpec } from '..';
 
+function notImplemented(): never {
+  throw new Error('The method is not implemented');
+}
+
 export type DerivedFromChainPredicate<T extends Asset> = <I extends Asset>(x: I) => x is I & T;
 
 /**
  * utility for TypeScript
  */
-export function predicate<T extends Asset>(pred: (x: Asset) => boolean): DerivedFromChainPredicate<T> {
+export function predicate<T extends Asset>(pred: <I extends Asset>(x: I) => boolean): DerivedFromChainPredicate<T> {
   return pred as DerivedFromChainPredicate<T>;
 }
 
@@ -37,9 +41,23 @@ export interface AssetModel<A extends Asset, S extends ChainSpec> {
 export type Extendable<T> = T & { extend: <E>(extension: E) => Extendable<T & E> };
 export type ExtendableAssetModel<A extends Asset, S extends ChainSpec> = Extendable<AssetModel<A, S>>;
 
-export function extendable<T>(raw: T): Extendable<T> {
+/**
+ * Turning a plain object into an extensible object
+ * @example
+ * ```ts
+ * const raw = { sayHello: () => console.log('hello') }
+ * const extendableRaw = extendable(raw)
+ *
+ * const extended = extendableRaw.extend({ sayHi: () => console.log('hi') })
+ *   .extend({ sayHey: () => console.log('hey') })
+ *
+ *  extended.sayHey();
+ *  extended.sayHi();
+ *  ```
+ */
+export function extendable<Raw>(raw: Raw): Extendable<Raw> {
   const extend = <E>(extension: E) => extendable(Object.assign({}, raw, extension));
-  return Object.assign({}, raw, { extend }) as Extendable<T>;
+  return Object.assign({}, raw, { extend }) as Extendable<Raw>;
 }
 
 export interface DefineAssetModelOptions<A extends Asset, S extends ChainSpec> {
@@ -78,24 +96,25 @@ export function defineAssetModel<A extends Asset, S extends ChainSpec>(
   if (!identity) throw new Error('identity is required in options');
   if (!chainType) throw new Error('chainType is required in options');
 
-  const isCurrentChainAsset = (() => {
-    if (options.isCurrentChainAsset) return options.isCurrentChainAsset;
-    return predicate<A>((asset) => asset.chainType === chainType);
-  })();
+  const isCurrentChainAsset = predicate<A>(options.isCurrentChainAsset ?? ((asset) => asset.chainType === chainType));
+
+  const isNativeAsset = predicate<A>(options.isNativeAsset ?? notImplemented);
 
   const getChainSpec: DefineAssetModelOptions<A, S>['getChainSpec'] =
     options.getChainSpec ?? ((asset) => ({ chainType: asset.chainType } as S));
 
+  const equals = options.equals ?? ((a: A, b: A) => identity(a) === identity(b));
+
   if (!identity) throw new Error('The identity is required when define an AssetModel');
 
-  const model = {
+  const model: AssetModel<A, S> = {
     chainType,
     identity,
     getChainSpec,
-    isCurrentChainAsset: isCurrentChainAsset,
-    isNativeAsset: options.isNativeAsset,
-    equals: (a: A, b: A) => identity(a) === identity(b),
-  } as AssetModel<A, S>;
+    equals,
+    isCurrentChainAsset,
+    isNativeAsset,
+  };
 
-  return extendable(model) as ExtendableAssetModel<A, S>;
+  return extendable(model);
 }
