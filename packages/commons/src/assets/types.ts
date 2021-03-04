@@ -1,5 +1,4 @@
-import { CommonsEnv } from './env';
-import { has, propEq } from './utils';
+import { has, propEq } from '../utils';
 
 export type ChainType = 'Nervos' | 'Ethereum';
 export type Script = CKBComponents.Script;
@@ -57,63 +56,83 @@ export type GliaswapAssetWithBalance =
   | EthNativeAssetWithBalance
   | EthErc20AssetWithBalance;
 
+/**
+ * @deprecated migrate to {@link CkbModel.isCurrentChainAsset}
+ */
 export function isCkbChainSpec<T extends ChainSpec>(spec: T): spec is T & CkbChainSpec {
   return propEq(spec, 'chainType', 'Nervos') && has(spec, 'typeHash');
 }
 
+/**
+ * @deprecated migrate to {@link CkbModel.getChainSpec}
+ * @param spec
+ */
 export function getCkbChainSpec<T extends CkbChainSpec>(spec: T): CkbChainSpec {
   return { typeHash: spec.typeHash, chainType: spec.chainType };
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.isCurrentChainAsset}
+ */
 export function isEthereumChainSpec<T extends ChainSpec>(spec: T): spec is T & EthChainSpec {
   return propEq(spec, 'chainType', 'Ethereum') && has(spec, 'address');
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.getChainSpec}
+ * @param spec
+ */
 export function getEthChainSpec<T extends EthChainSpec>(spec: T): EthChainSpec {
   return { address: spec.address, chainType: spec.chainType };
 }
 
+/**
+ * @deprecated migrate to {@link CkbModel.isCurrentChainAsset}
+ */
 export function isCkbAsset<T extends Asset>(asset: T): asset is T & CkbAsset {
   return isCkbChainSpec(asset);
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.isCurrentChainAsset}
+ */
 export function isEthAsset<T extends Asset>(asset: T): asset is T & EthAsset {
   return isEthereumChainSpec(asset);
 }
 
+/**
+ * @deprecated migrate to {@link CkbModel.isCurrentChainAsset}
+ */
 export function isCkbNativeAsset<T extends Asset>(asset: Asset): asset is T & CkbNativeAsset {
   return (
     isCkbAsset(asset) && propEq(asset, 'typeHash', '0x0000000000000000000000000000000000000000000000000000000000000000')
   );
 }
 
+/**
+ * @deprecated migrate to {@link CkbModel.isCurrentChainAsset}
+ */
 export function isCkbSudtAsset<T extends Asset>(asset: T): asset is T & CkbSudtAsset {
   return isCkbAsset(asset) && !isCkbNativeAsset(asset);
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.isShadowEthAsset}
+ */
 export function isShadowEthAsset<T extends Asset>(asset: T): asset is T & ShadowFromEthAsset {
   return isCkbSudtAsset(asset) && has(asset, 'shadowFrom');
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.isNativeAsset}
+ */
 export function isEthNativeAsset<T extends Asset>(asset: T): asset is T & EthNativeAsset {
   return isEthAsset(asset) && asset.address === '0x0000000000000000000000000000000000000000';
 }
 
+/**
+ * @deprecated migrate to {@link EthModel.isCurrentChainAsset}
+ */
 export function isEthErc20Asset<T extends Asset>(asset: T): asset is T & EthErc20Asset {
   return isEthAsset(asset) && !isEthNativeAsset(asset);
-}
-
-export function isEthErc20Usdt(asset: Asset): asset is EthErc20Asset {
-  // TODO
-  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_USDT_ADDRESS');
-}
-
-export function isEthErc20Usdc(asset: Asset): asset is EthErc20Asset {
-  // TODO
-  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_USDC_ADDRESS');
-}
-
-export function isEthErc20Dai(asset: Asset): asset is EthErc20Asset {
-  // TODO
-  return isEthErc20Asset(asset) && asset.address === CommonsEnv.get('ERC20_DAI_ADDRESS');
 }
