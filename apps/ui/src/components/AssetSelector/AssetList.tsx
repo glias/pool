@@ -34,32 +34,36 @@ export interface AssetListProps<A extends Asset, K extends Key> {
   disabledKeys?: K[];
   onSelected?: (key: K, asset: A) => void;
   enableSearch?: boolean;
+  filterValue?: string;
+  groupFilter?: (key: K) => boolean;
 }
 
 export function AssetList<A extends Asset, K extends Key>(
   props: React.PropsWithChildren<AssetListProps<A, K>> & React.HTMLAttributes<HTMLUListElement>,
 ) {
-  const { assets, onSelected, disabledKeys, ...wrapperProps } = props;
-  const listNode = assets.map((asset, i) => {
-    const assetNode = (
-      <>
-        <AssetSymbol asset={asset} />
-        <HumanizeBalance asset={asset} value={calcTotalBalance(asset)} />
-      </>
-    );
-    const key = props.renderKey(asset, i, assets);
-    const itemDisabled = disabledKeys?.includes(key);
+  const { assets, onSelected, disabledKeys, filterValue, ...wrapperProps } = props;
+  const listNode = assets
+    .filter(filterValue ? (a) => a.name.toLowerCase().includes(filterValue.toLowerCase()) : Boolean)
+    .map((asset, i) => {
+      const assetNode = (
+        <>
+          <AssetSymbol asset={asset} />
+          <HumanizeBalance asset={asset} value={calcTotalBalance(asset)} />
+        </>
+      );
+      const key = props.renderKey(asset, i, assets);
+      const itemDisabled = disabledKeys?.includes(key);
 
-    return (
-      <li
-        key={key}
-        className={itemDisabled ? 'disabled' : ''}
-        onClick={() => !itemDisabled && onSelected?.(key, asset)}
-      >
-        {assetNode}
-      </li>
-    );
-  });
+      return (
+        <li
+          key={key}
+          className={itemDisabled ? 'disabled' : ''}
+          onClick={() => !itemDisabled && onSelected?.(key, asset)}
+        >
+          {assetNode}
+        </li>
+      );
+    });
 
   return <AssetListWrapper {...wrapperProps}>{listNode}</AssetListWrapper>;
 }

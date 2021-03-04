@@ -121,9 +121,6 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       } else if (val === '') {
         setSearchResult(undefined);
         setSearchStatus(SearchStatus.None);
-      } else {
-        setSearchResult(undefined);
-        setSearchStatus(SearchStatus.Invalid);
       }
     },
     [handleSearchResult],
@@ -164,6 +161,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
                   assets={assetList}
                   onSelected={onSelected}
                   disabledKeys={disabledKeys}
+                  filterValue={searchValue}
                   renderKey={(asset) => props.renderKey(asset, assets.indexOf(asset), groupedAssets)}
                 />
               )}
