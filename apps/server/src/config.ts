@@ -18,6 +18,20 @@ export const mysqlInfo: MySqlConnectionConfig = {
 
 export const env = process.env.NODE_ENV || 'development';
 
+interface ExplorerConfig {
+  explorerTokensUrl: string;
+  explorerCorsReferrer: string;
+}
+
+export const explorerConfig: ExplorerConfig = {
+  explorerTokensUrl: process.env.EXPLORER_TOKENS_URL
+    ? process.env.EXPLORER_TOKENS_URL
+    : 'https://api.explorer.nervos.org/testnet/api/v1/udts',
+  explorerCorsReferrer: process.env.EXPLORER_CORS_REFERRER
+    ? process.env.EXPLORER_CORS_REFERRER
+    : 'https://explorer.nervos.org/',
+};
+
 // INFO CELL
 export const INFO_TYPE_CODE_HASH =
   process.env.INFO_TYPE_CODE_HASH || '0x2e44a62e4e447a2ae5acd0ca186a95f25f86d13571f6a177c5658ab0e63591e9';

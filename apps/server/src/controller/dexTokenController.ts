@@ -3,17 +3,56 @@ import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, summary, tags } from 'koa-swagger-decorator';
 import { Token, TokenHolderFactory, cellConver, CellInfoSerializationHolderFactory } from '../model';
 import { ckbRepository, DexRepository } from '../repository';
-import { TokenCellCollectorService, DefaultTokenCellCollectorService } from '../service';
+import { TokenCellCollectorService, DefaultTokenCellCollectorService, tokenService, TokenService } from '../service';
+import { Logger } from '../logger';
+import { BizException } from '../bizException';
 
 const tokenTag = tags(['Token']);
 
 export default class DexTokenController {
   private readonly service: TokenCellCollectorService;
   private readonly dexRepository: DexRepository;
+  private readonly tokenService: TokenService;
 
   constructor() {
     this.service = new DefaultTokenCellCollectorService();
     this.dexRepository = ckbRepository;
+    this.tokenService = tokenService;
+  }
+
+  @request('post', '/v1/tokens/search')
+  @summary('Search by typeHash or address')
+  @description('Search by typeHash or address')
+  @tokenTag
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    typeHashOrAddress: { type: 'string', required: true },
+  })
+  async typeHash(ctx: Context): Promise<void> {
+    const typeHashOrAddress = ctx.request.body.typeHashOrAddress;
+    try {
+      const tokenInfo = await this.tokenService.getTokesByTypeHashOrAddress(typeHashOrAddress);
+      ctx.body = tokenInfo;
+    } catch (error) {
+      Logger.error(error);
+    }
+  }
+
+  @request('post', '/v1/tokens/cell-info')
+  @summary('Query cell info')
+  @description('Query cell info')
+  @tokenTag
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    typeHash: { type: 'string', required: true },
+  })
+  async cellInfo(ctx: Context): Promise<void> {
+    const typeHash = ctx.request.body.typeHash;
+    const cellInfo = await this.tokenService.getCellInfoByTypeHash(typeHash);
+    if (!cellInfo) {
+      throw new BizException('cell info does not exist');
+    }
+    ctx.body = cellInfo;
   }
 
   @request('post', '/v1/get-default-asset-list')
