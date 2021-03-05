@@ -239,9 +239,8 @@ export class DexLiquidityPoolService {
     return await txBuilder.buildRemoveLiquidity(ctx, req);
   }
 
-  public async buildCancelOrderTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
-    // FIXME: generic cancel logic
-    return await this.txBuilderServiceFactory.ckbToken().buildCancelReq(ctx, req);
+  public async buildCancelRequestTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
+    return await this.txBuilderServiceFactory.cancelRequest(ctx, req);
   }
 }
 

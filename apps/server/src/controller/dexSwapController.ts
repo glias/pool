@@ -244,7 +244,7 @@ export default class DexSwapController {
       userLock: Script.deserialize(lock),
       requestType: txBuilder.CancelRequestType.Swap,
     };
-    const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
+    const txWithFee = await this.service.buildCancelRequestTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();
