@@ -642,14 +642,23 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
   }
 
   public async buildCancelReq(ctx: Context, req: rr.CancelRequest, txFee = 0n): Promise<rr.TransactionWithFee> {
-    const requestCells = await extractRequest(ctx, this.dexRepository, req.txHash, [
-      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
-      tokenTokenConfig.SWAP_LOCK_CODE_HASH,
-    ]);
+    const lockMap = new Map();
+    lockMap.set(tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH, tokenTokenConfig.LIQUIDITY_LOCK_DEP);
+    lockMap.set(tokenTokenConfig.SWAP_LOCK_CODE_HASH, tokenTokenConfig.SWAP_LOCK_DEP);
+
+    const requestCells = await extractRequest(ctx, this.dexRepository, req.txHash, Array.from(lockMap.keys()));
 
     const requestCapacity = requestCells
       .map((cell: Cell) => BigInt(cell.cellOutput.capacity))
       .reduce((accuCap, curCap) => accuCap + curCap);
+    const requestDeps = (() => {
+      const codeHashes = requestCells.map((cell: Cell) => {
+        cell.cellOutput.lock.codeHash;
+      });
+      const uniqCodeHashes = [...new Set(codeHashes)];
+      return uniqCodeHashes.map((codeHash) => lockMap.get(codeHash));
+    })();
+
     const tokenCells = requestCells.filter((cell: Cell) => {
       return !cell.cellOutput.type && cell.cellOutput.type.codeHash == config.SUDT_TYPE_CODE_HASH;
     });
@@ -690,7 +699,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCells);
 
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [tokenTokenConfig.SWAP_LOCK_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
+    const cellDeps = [config.SUDT_TYPE_DEP, ...requestDeps].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
