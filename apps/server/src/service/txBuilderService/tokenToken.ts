@@ -5,6 +5,7 @@ import { ckbRepository, DexRepository } from '../../repository';
 import * as utils from '../../utils';
 import { Cell, Script, Token, RawTransaction, cellConver, Output, TransactionToSign, PoolInfo } from '../../model';
 import * as config from '../../config';
+import { tokenTokenConfig } from '../../config';
 
 import * as serde from './serialization';
 import { CellCollector, TxBuilderCellCollector } from './collector';
@@ -43,7 +44,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
     // Generate info type script
     const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
-    const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
+    const infoType = new Script(tokenTokenConfig.INFO_TYPE_CODE_HASH, tokenTokenConfig.INFO_TYPE_HASH_TYPE, id);
 
     // Generate info lock script
     const typeHash = infoType.toHash();
@@ -103,7 +104,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
+    const cellDeps = [tokenTokenConfig.INFO_TYPE_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -168,14 +169,22 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
       const version = constants.REQUEST_VERSION;
       return encoder(req.poolId, req.userLock.toHash(), version, 0n, 0n, tips, tipsTokenX, tipsTokenY);
     })();
-    const reqTokenXLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, tokenXLockArgs);
+    const reqTokenXLock = new Script(
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.LIQUIDITY_LOCK_HASH_TYPE,
+      tokenXLockArgs,
+    );
 
     const tokenYLockArgs = (() => {
       const encoder = this.codec.getLiquidityCellSerialization().encodeFellowArgs;
       const version = constants.REQUEST_VERSION;
       return encoder(req.poolId, req.userLock.toHash(), version, reqTokenXLock.toHash());
     })();
-    const reqTokenYLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, tokenYLockArgs);
+    const reqTokenYLock = new Script(
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.LIQUIDITY_LOCK_HASH_TYPE,
+      tokenYLockArgs,
+    );
 
     // Generate add liquidity request output cells
     const reqTokenXOutput = {
@@ -318,14 +327,22 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
       const version = constants.REQUEST_VERSION;
       return encoder(req.poolId, req.userLock.toHash(), version, tokenXMin, tokenYMin, tips, tipsTokenX, tipsTokenY);
     })();
-    const reqTokenXLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, tokenXLockArgs);
+    const reqTokenXLock = new Script(
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.LIQUIDITY_LOCK_HASH_TYPE,
+      tokenXLockArgs,
+    );
 
     const tokenYLockArgs = (() => {
       const encoder = this.codec.getLiquidityCellSerialization().encodeFellowArgs;
       const version = constants.REQUEST_VERSION;
       return encoder(req.poolId, req.userLock.toHash(), version, reqTokenXLock.toHash());
     })();
-    const reqTokenYLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, tokenYLockArgs);
+    const reqTokenYLock = new Script(
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.LIQUIDITY_LOCK_HASH_TYPE,
+      tokenYLockArgs,
+    );
 
     // Generate add liquidity request output cells
     const reqTokenXOutput = {
@@ -453,7 +470,11 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
       return encoder(req.poolId, req.userLock.toHash(), version, tokenXAmountMin, tokenYAmountMin, tips, tipsSudt, 0n);
     })();
-    const reqLock = new Script(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.LIQUIDITY_LOCK_HASH_TYPE,
+      lockArgs,
+    );
 
     // Generate add liquidity request output cell
     const reqOutput = {
@@ -546,7 +567,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
       return encoder(req.tokenOutMinAmount.typeHash, req.userLock.toHash(), version, minAmountOut, tips, tipsSudt);
     })();
-    const reqLock = new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, lockArgs);
+    const reqLock = new Script(tokenTokenConfig.SWAP_LOCK_CODE_HASH, tokenTokenConfig.SWAP_LOCK_HASH_TYPE, lockArgs);
 
     // Generate swap request output cell
     const reqOutput = {
@@ -620,7 +641,9 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
   public async buildCancelReq(ctx: Context, req: rr.CancelRequest): Promise<rr.TransactionWithFee> {
     const requestLockCodeHash =
-      req.requestType == rr.CancelRequestType.Liquidity ? config.LIQUIDITY_LOCK_CODE_HASH : config.SWAP_LOCK_CODE_HASH;
+      req.requestType == rr.CancelRequestType.Liquidity
+        ? tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH
+        : tokenTokenConfig.SWAP_LOCK_CODE_HASH;
 
     const requestCells = await txBuilderUtils.extractRequest(ctx, this.dexRepository, req.txHash, requestLockCodeHash);
     if (req.requestType == rr.CancelRequestType.Swap) {
@@ -696,7 +719,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(reqCells);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, config.LIQUIDITY_LOCK_DEP].concat(userLockDeps);
+    const cellDeps = [config.SUDT_TYPE_DEP, tokenTokenConfig.LIQUIDITY_LOCK_DEP].concat(userLockDeps);
     const witnessArgs =
       userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
@@ -771,7 +794,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     const inputCells = collectedCells.inputCells.concat(requestCell);
 
     const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SWAP_LOCK_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
+    const cellDeps = [tokenTokenConfig.SWAP_LOCK_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
       userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]

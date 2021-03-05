@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { MySqlConnectionConfig } from 'knex';
 
+export * as tokenTokenConfig from './tokenToken';
+
 export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',
 };
@@ -41,18 +43,19 @@ export const INFO_LOCK_CODE_HASH =
   process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';
 export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
 
-export const PW_LOCK_CODE_HASH =
-  process.env.PW_LOCK_CODE_HASH || '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63';
-export const PW_LOCK_HASH_TYPE = process.env.PW_LOCK_HASH_TYPE || 'type';
-export const SECP256K1_LOCK_CODE_HASH =
-  process.env.SECP256K1_LOCK_CODE_HASH || '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8';
-export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE || 'type';
 export const LIQUIDITY_LOCK_CODE_HASH =
   process.env.LIQUIDITY_LOCK_CODE_HASH || '0x74bfec21398da1990285d70df943b01e84399be1b6cf19e916f72f4e44bdb225';
 export const LIQUIDITY_LOCK_HASH_TYPE = process.env.LIQUIDITY_LOCK_HASH_TYPE || 'type';
 export const SWAP_LOCK_CODE_HASH =
   process.env.SWAP_LOCK_CODE_HASH || '0x9a81903addf2e696bf24ccbf7a28fec191249ae8f678c65fe813c1cea8a331b9';
 export const SWAP_LOCK_HASH_TYPE = process.env.SWAP_LOCK_HASH_TYPE || 'type';
+
+export const PW_LOCK_CODE_HASH =
+  process.env.PW_LOCK_CODE_HASH || '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63';
+export const PW_LOCK_HASH_TYPE = process.env.PW_LOCK_HASH_TYPE || 'type';
+export const SECP256K1_LOCK_CODE_HASH =
+  process.env.SECP256K1_LOCK_CODE_HASH || '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8';
+export const SECP256K1_LOCK_HASH_TYPE = process.env.SECP256K1_LOCK_HASH_TYPE || 'type';
 
 export const SUDT_TYPE_CODE_HASH =
   process.env.SUDT_TYPE_CODE_HASH || '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4';
