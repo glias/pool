@@ -1,7 +1,20 @@
-import { Asset } from '@gliaswap/commons';
-import { Tabs } from 'antd';
-import React, { Key, useMemo } from 'react';
+import { SearchOutlined } from '@ant-design/icons';
+import { Asset, ChainType, isCkbSudtAsset, isEthAsset } from '@gliaswap/commons';
+import { Input, Tabs } from 'antd';
+import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { MetaContainer } from 'components/MetaContainer';
+import { useGliaswap } from 'hooks';
+import i18n from 'i18n';
+import React, { Key, useMemo, useCallback, useState } from 'react';
+import { Trans } from 'react-i18next';
+import styled from 'styled-components';
 import { AssetList, AssetListProps } from './AssetList';
+
+const Container = styled.main`
+  .search-token {
+    margin-top: 8px;
+  }
+`;
 
 type Group<T> = (asset: T) => string;
 
@@ -19,25 +32,144 @@ function groupBy<A>(group: Group<A>, assets: A[]): GroupedAsset<A> {
   }, {});
 }
 
+enum SearchStatus {
+  None,
+  Invalid,
+  Unregistered,
+}
+
+const SearchMeta = ({ status, chainType }: { status: SearchStatus; chainType: ChainType }) => {
+  switch (status) {
+    case SearchStatus.None:
+      return null;
+    case SearchStatus.Invalid:
+      return (
+        <MetaContainer>{i18n.t(`validation.${chainType === 'Ethereum' ? 'address' : 'type-hash'}`)}</MetaContainer>
+      );
+    case SearchStatus.Unregistered:
+      return (
+        <MetaContainer>
+          <Trans
+            defaults="Token info is needed before swapping this token. Please go to <a>Token Registry Center</a> to submit token info first."
+            components={{
+              // eslint-disable-next-line jsx-a11y/anchor-has-content
+              a: <a href="https://github.com/glias/token-list" target="_blank" rel="noreferrer noopener" />,
+            }}
+          />
+        </MetaContainer>
+      );
+    default:
+      return null;
+  }
+};
+
 export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedAssetListProps<A, K>) {
-  const { group, assets, onSelected } = props;
+  const { group, assets, onSelected, enableSearch } = props;
 
   const grouped = useMemo(() => groupBy(group, assets), [assets, group]);
+  const [searchValue, setSearchValue] = useState('');
+  const [searchResult, setSearchResult] = useState<A | undefined>();
+  const [searchStatus, setSearchStatus] = useState(SearchStatus.None);
+  const [currentTab, setCurrentTab] = useState<ChainType>('Nervos');
+  const { api } = useGliaswap();
+  const {
+    raw: { web3 },
+  } = useWalletAdapter<Web3ModalAdapter>();
+
+  const sudtAssets = useMemo(() => {
+    return assets.filter(isCkbSudtAsset);
+  }, [assets]);
+
+  const erc20Assets = useMemo(() => {
+    return assets.filter(isEthAsset);
+  }, [assets]);
+
+  const handleSearchResult = useCallback(
+    async (val: string, tab?: string) => {
+      const latestTab = tab ?? currentTab;
+      if (val === '') {
+        return;
+      }
+      const asset =
+        latestTab === 'Nervos'
+          ? sudtAssets.find((a) => a.typeHash === val)
+          : erc20Assets.find((e) => e.address === val);
+      const search = latestTab === 'Nervos' ? api.searchSUDT : api.searchERC20;
+      if (asset) {
+        setSearchResult(asset);
+        setSearchStatus(SearchStatus.None);
+      } else {
+        const res = await search(val, web3!);
+        if (res) {
+          setSearchResult(res as any);
+          setSearchStatus(SearchStatus.Unregistered);
+        } else {
+          setSearchResult(undefined);
+          setSearchStatus(SearchStatus.Invalid);
+        }
+      }
+    },
+    [currentTab, erc20Assets, sudtAssets, web3, api],
+  );
+
+  const searchOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      setSearchValue(val);
+      if (val.startsWith('0x')) {
+        handleSearchResult(val);
+      } else if (val === '') {
+        setSearchResult(undefined);
+        setSearchStatus(SearchStatus.None);
+      }
+    },
+    [handleSearchResult],
+  );
+
+  const searchToken = useMemo(() => {
+    if (enableSearch) {
+      return (
+        <Input
+          prefix={<SearchOutlined />}
+          placeholder={i18n.t(`common.search-by-${currentTab === 'Nervos' ? 'type-hash' : 'address'}`)}
+          onChange={searchOnChange}
+          value={searchValue}
+          className="search-token"
+        />
+      );
+    }
+
+    return null;
+  }, [enableSearch, searchOnChange, searchValue, currentTab]);
 
   return (
-    <Tabs>
-      {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
-        return (
-          <Tabs.TabPane key={groupKey} tab={groupKey}>
-            <AssetList
-              assets={groupedAssets}
-              onSelected={onSelected}
-              disabledKeys={props.disabledKeys}
-              renderKey={(asset) => props.renderKey(asset, assets.indexOf(asset), groupedAssets)}
-            />
-          </Tabs.TabPane>
-        );
-      })}
-    </Tabs>
+    <Container>
+      {searchToken}
+      <Tabs
+        onChange={(e) => {
+          setCurrentTab(e as ChainType);
+          handleSearchResult(searchValue, e);
+        }}
+      >
+        {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
+          const assetList = searchResult ? [searchResult] : groupedAssets;
+          const disabledKeys = searchResult ? [props.renderKey(searchResult, 0, assetList)] : props.disabledKeys;
+          return (
+            <Tabs.TabPane key={groupKey} tab={groupKey}>
+              {searchStatus === SearchStatus.Invalid ? null : (
+                <AssetList
+                  assets={assetList}
+                  onSelected={onSelected}
+                  disabledKeys={disabledKeys}
+                  filterValue={searchValue}
+                  renderKey={(asset) => props.renderKey(asset, assets.indexOf(asset), groupedAssets)}
+                />
+              )}
+              <SearchMeta status={searchStatus} chainType={currentTab} />
+            </Tabs.TabPane>
+          );
+        })}
+      </Tabs>
+    </Container>
   );
 }

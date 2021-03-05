@@ -21,12 +21,12 @@ interface AssetSelectorModalProps<A extends Asset, K extends Key> extends AssetL
 }
 
 export function AssetSelectorModal<A extends Asset, K extends Key>(props: AssetSelectorModalProps<A, K>) {
-  const { assets, group, onSelected, disabledKeys, renderKey, ...modalProps } = props;
+  const { assets, group, onSelected, disabledKeys, renderKey, enableSearch, ...modalProps } = props;
   const listElem = useMemo(() => {
-    const assetListProps = { assets, onSelected, disabledKeys, renderKey };
+    const assetListProps = { assets, onSelected, disabledKeys, renderKey, enableSearch };
     if (group) return <GroupedAssetList {...assetListProps} group={group} />;
     return <AssetList {...assetListProps} />;
-  }, [assets, disabledKeys, group, onSelected, renderKey]);
+  }, [assets, disabledKeys, group, onSelected, renderKey, enableSearch]);
 
   return (
     <Modal bodyStyle={{ padding: '16px' }} width={360} maskClosable footer={false} {...modalProps}>
