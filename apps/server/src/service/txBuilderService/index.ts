@@ -1,7 +1,8 @@
 import { Context } from 'koa';
 
 import * as config from '../../config';
-import { Script } from '../../model';
+import * as utils from '../../utils';
+import { Script, PoolInfo } from '../../model';
 import { ckbRepository, DexRepository } from '../../repository';
 
 import * as rr from './requestResponse';
@@ -30,6 +31,22 @@ export interface TxBuilderService {
   buildSwapLock(req: rr.SwapRequest): Script;
 }
 
+export class TokenLPTypeScriptBuilder {
+  public build(infoTypeScriptArgs: string, tokenTypeHashes: string[]): Script {
+    const id = infoTypeScriptArgs;
+    const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
+
+    // Generate info lock script
+    const infoTypeHash = infoType.toHash();
+    const pairHash = utils.blake2b(tokenTypeHashes);
+    const infoLockArgs = `0x${utils.trim0x(pairHash)}${utils.trim0x(infoTypeHash)}`;
+    const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);
+
+    // Generate liquidity provider token type script
+    return new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
+  }
+}
+
 export class TxBuilderServiceFactory {
   private readonly tokenTokenTxBuilder: TokenTokenTxBuilderService;
   private readonly ckbTokenTxBuilder: CkbTokenTxBuilderService;
@@ -50,6 +67,10 @@ export class TxBuilderServiceFactory {
 
   public ckbToken(): CkbTokenTxBuilderService {
     return this.ckbTokenTxBuilder;
+  }
+
+  public tokenLPTypeScript(): TokenLPTypeScriptBuilder {
+    return new TokenLPTypeScriptBuilder();
   }
 
   cancelRequest = async (ctx: Context, req: rr.CancelRequest): Promise<rr.TransactionWithFee> => {

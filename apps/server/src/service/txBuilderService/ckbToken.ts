@@ -438,22 +438,16 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
     }
   }
 
-  public lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
-    return CkbTokenTxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, tokenTypeHash);
-  }
+  public buildSwapLock(req: rr.SwapRequest): Script {
+    const encoder = this.codec.getSwapCellSerialization().encodeArgs;
 
-  public static lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
-    const id = infoTypeScriptArgs;
-    const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
+    const version = constants.REQUEST_VERSION;
+    const minAmountOut = req.tokenOutMinAmount.getBalance();
+    const tokenTypeHash = req.tokenOutMinAmount.typeHash;
+    const { tips, tipsSudt } = txBuilderUtils.tips(req.tips);
 
-    // Generate info lock script
-    const infoTypeHash = infoType.toHash();
-    const pairHash = utils.blake2b(['ckb', tokenTypeHash]);
-    const infoLockArgs = `0x${pairHash.slice(2)}${infoTypeHash.slice(2)}`;
-    const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);
-
-    // Generate liquidity provider token type script
-    return new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
+    const args = encoder(req.userLock.toHash(), version, minAmountOut, tokenTypeHash, tips, tipsSudt);
+    return new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, args);
   }
 
   // Sudt => CKB
@@ -625,17 +619,5 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
     txToSign.raw.outputs.push(ckbChangeOutput);
 
     return new rr.TransactionWithFee(txToSign, estimatedTxFee);
-  }
-
-  public buildSwapLock(req: rr.SwapRequest): Script {
-    const encoder = this.codec.getSwapCellSerialization().encodeArgs;
-
-    const version = constants.REQUEST_VERSION;
-    const minAmountOut = req.tokenOutMinAmount.getBalance();
-    const tokenTypeHash = req.tokenOutMinAmount.typeHash;
-    const { tips, tipsSudt } = txBuilderUtils.tips(req.tips);
-
-    const args = encoder(req.userLock.toHash(), version, minAmountOut, tokenTypeHash, tips, tipsSudt);
-    return new Script(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_HASH_TYPE, args);
   }
 }

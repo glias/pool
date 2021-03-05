@@ -53,10 +53,9 @@ const generateLPToken = (amount: bigint, tokenSymbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(tokenSymbol);
   const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[tokenSymbol];
 
-  // FIXME:
   const lpTokenTypeScript = new txBuilder.TxBuilderServiceFactory()
-    .ckbToken()
-    .lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
+    .tokenLPTypeScript()
+    .build(infoTypeScriptArgs, ['ckb', token.typeHash]);
 
   return {
     balance: amount.toString(),
