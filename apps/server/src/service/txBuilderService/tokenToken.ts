@@ -11,6 +11,7 @@ import * as serde from './serialization';
 import { CellCollector, TxBuilderCellCollector } from './collector';
 import * as rr from './requestResponse';
 import * as txBuilderUtils from './utils';
+import { extractRequest } from './cancel';
 import { TxBuilderService } from '.';
 
 const LIQUIDITY_REQ_TOKEN_X_CAPACITY = 259n;
@@ -639,167 +640,61 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     return new rr.TransactionWithFee(txToSign, estimatedTxFee);
   }
 
-  public async buildCancelReq(ctx: Context, req: rr.CancelRequest): Promise<rr.TransactionWithFee> {
-    const requestLockCodeHash =
-      req.requestType == rr.CancelRequestType.Liquidity
-        ? tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH
-        : tokenTokenConfig.SWAP_LOCK_CODE_HASH;
+  public async buildCancelReq(ctx: Context, req: rr.CancelRequest, txFee = 0n): Promise<rr.TransactionWithFee> {
+    const requestCells = await extractRequest(ctx, this.dexRepository, req.txHash, [
+      tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH,
+      tokenTokenConfig.SWAP_LOCK_CODE_HASH,
+    ]);
 
-    const requestCells = await txBuilderUtils.extractRequest(ctx, this.dexRepository, req.txHash, requestLockCodeHash);
-    if (req.requestType == rr.CancelRequestType.Swap) {
-      if (requestCells.length != 1) {
-        ctx.throw(500, `more than one swap requests found in tx ${req.txHash}`);
-      }
+    const requestCapacity = requestCells
+      .map((cell: Cell) => BigInt(cell.cellOutput.capacity))
+      .reduce((accuCap, curCap) => accuCap + curCap);
+    const tokenCells = requestCells.filter((cell: Cell) => {
+      return !cell.cellOutput.type && cell.cellOutput.type.codeHash == config.SUDT_TYPE_CODE_HASH;
+    });
 
-      return await this.buildCancelSwapRequest(ctx, requestCells[0], req.userLock);
-    } else {
-      if (requestCells.length > 2) {
-        ctx.throw(500, `more than two liquidity request cells found in tx ${req.txHash}`);
-      }
-
-      return await this.buildCancelLiquidityRequest(ctx, requestCells, req.userLock);
-    }
-  }
-
-  // Liquidity reqest has two request cells. Assume user lock args is 20 bytes, then
-  // they are both bigger than token cells. So we will have 3 outputs cells, 2 token
-  // cells, and one free ckb cell.
-  private async buildCancelLiquidityRequest(
-    ctx: Context,
-    reqCells: Cell[],
-    userLock: Script,
-    txFee: bigint = 61n * constants.CKB_DECIMAL,
-  ): Promise<rr.TransactionWithFee> {
-    const mainReqCell = reqCells[0];
-
-    const liquidityArgs = (() => {
-      const decoder = this.codec.getLiquidityCellSerialization().decodeMainArgs;
-      return decoder(mainReqCell.cellOutput.lock.args);
-    })();
-    if (liquidityArgs.userLockHash != userLock.toHash()) {
-      ctx.throw(400, 'user lock hash not match');
-    }
-
-    const minCKBChangeCapacity = txBuilderUtils.minCKBChangeCapacity(userLock);
-    const minTokenChangeCapacity = txBuilderUtils.minTokenChangeCapacity(userLock, mainReqCell.cellOutput.type);
+    const minCKBChangeCapacity = txBuilderUtils.minCKBChangeCapacity(req.userLock);
+    const minTokenChangeCapacity = txBuilderUtils.minTokenChangeCapacity(req.userLock, tokenCells[0].cellOutput.type);
     const minCapacity = minCKBChangeCapacity + txFee;
 
-    const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    const reqCapacity = reqCells.map((cell) => BigInt(cell.cellOutput.capacity)).reduce((accu, cur) => accu + cur);
-    const inputCapacity = BigInt(reqCapacity) + collectedCells.inputCapacity;
+    const collectedCells = await this.cellCollector.collect(ctx, minCapacity, req.userLock);
+    const inputCapacity = requestCapacity + collectedCells.inputCapacity;
 
     const outputs: Output[] = [];
     const outputsData: string[] = [];
 
-    let ckbChangeCapacity = inputCapacity;
-    for (const cell of reqCells) {
-      const tokenChangeData = cell.data;
+    for (const cell of tokenCells) {
       const tokenChangeOutput = {
         capacity: txBuilderUtils.hexBigint(minTokenChangeCapacity),
-        lock: userLock,
+        lock: req.userLock,
         type: cell.cellOutput.type,
       };
 
       outputs.push(tokenChangeOutput);
-      outputsData.push(tokenChangeData);
-
-      ckbChangeCapacity = ckbChangeCapacity - minTokenChangeCapacity;
+      outputsData.push(cell.data);
     }
 
+    const ckbChangeCapacity = inputCapacity - minTokenChangeCapacity * BigInt(tokenCells.length);
     let ckbChangeOutput = {
       capacity: txBuilderUtils.hexBigint(ckbChangeCapacity),
-      lock: userLock,
+      lock: req.userLock,
     };
+
     outputs.push(ckbChangeOutput);
     outputsData.push('0x');
 
-    const inputs = collectedCells.inputCells.concat(reqCells).map((cell) => {
+    const inputs = collectedCells.inputCells.concat(requestCells).map((cell) => {
       return cellConver.converToInput(cell);
     });
-    const inputCells = collectedCells.inputCells.concat(reqCells);
+    const inputCells = collectedCells.inputCells.concat(requestCells);
 
-    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
-    const cellDeps = [config.SUDT_TYPE_DEP, tokenTokenConfig.LIQUIDITY_LOCK_DEP].concat(userLockDeps);
-    const witnessArgs =
-      userLock.codeHash == config.PW_LOCK_CODE_HASH
-        ? [config.PW_WITNESS_ARGS.Secp256k1]
-        : [config.SECP256K1_WITNESS_ARGS];
-    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
-    const raw: RawTransaction = {
-      cellDeps,
-      headerDeps: [],
-      inputs,
-      outputs,
-      outputsData,
-      version: '0x0',
-    };
-    const txToSign = new TransactionToSign(raw, inputCells, witnessArgs, witnessLengths);
-
-    const estimatedTxFee = txToSign.calcFee();
-    if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
-      return await this.buildCancelLiquidityRequest(ctx, reqCells, userLock, estimatedTxFee);
-    }
-
-    ckbChangeOutput = txToSign.raw.outputs.pop();
-    ckbChangeOutput.capacity = txBuilderUtils.hexBigint(BigInt(ckbChangeOutput.capacity) - estimatedTxFee);
-    txToSign.raw.outputs.push(ckbChangeOutput);
-
-    return new rr.TransactionWithFee(txToSign, estimatedTxFee);
-  }
-
-  private async buildCancelSwapRequest(
-    ctx: Context,
-    requestCell: Cell,
-    userLock: Script,
-    txFee: bigint = 61n * constants.CKB_DECIMAL,
-  ): Promise<rr.TransactionWithFee> {
-    const swapArgs = (() => {
-      const decoder = this.codec.getSwapCellSerialization().decodeArgs;
-      return decoder(requestCell.cellOutput.lock.args);
-    })();
-    if (swapArgs.userLockHash != userLock.toHash()) {
-      ctx.throw(400, 'user lock hash not match');
-    }
-
-    const minCKBChangeCapacity = txBuilderUtils.minCKBChangeCapacity(userLock);
-    const minTokenChangeCapacity = txBuilderUtils.minTokenChangeCapacity(userLock, requestCell.cellOutput.type);
-    const minCapacity = minCKBChangeCapacity + txFee;
-
-    const collectedCells = await this.cellCollector.collect(ctx, minCapacity, userLock);
-    const inputCapacity = BigInt(requestCell.cellOutput.capacity) + collectedCells.inputCapacity;
-
-    const outputs: Output[] = [];
-    const outputsData: string[] = [];
-
-    const tokenChangeOutput = {
-      capacity: txBuilderUtils.hexBigint(minTokenChangeCapacity),
-      lock: userLock,
-      type: requestCell.cellOutput.type,
-    };
-    const tokenChangeData = requestCell.data;
-    outputs.push(tokenChangeOutput);
-    outputsData.push(tokenChangeData);
-
-    const ckbChangeCapacity = inputCapacity - minTokenChangeCapacity;
-    let ckbChangeOutput = {
-      capacity: txBuilderUtils.hexBigint(ckbChangeCapacity),
-      lock: userLock,
-    };
-    outputs.push(ckbChangeOutput);
-    outputsData.push('0x');
-
-    const inputs = collectedCells.inputCells.concat(requestCell).map((cell) => {
-      return cellConver.converToInput(cell);
-    });
-    const inputCells = collectedCells.inputCells.concat(requestCell);
-
-    const userLockDeps = config.LOCK_DEPS[userLock.codeHash];
+    const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
     const cellDeps = [tokenTokenConfig.SWAP_LOCK_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
     const witnessArgs =
-      userLock.codeHash == config.PW_LOCK_CODE_HASH
+      req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]
         : [config.SECP256K1_WITNESS_ARGS];
-    const witnessLengths = userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
+    const witnessLengths = req.userLock.codeHash == config.PW_LOCK_CODE_HASH ? [config.PW_ECDSA_WITNESS_LEN] : [];
 
     const raw: RawTransaction = {
       version: '0x0',
@@ -813,7 +708,7 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
     const estimatedTxFee = txToSign.calcFee();
     if (ckbChangeCapacity - estimatedTxFee < minCKBChangeCapacity) {
-      return await this.buildCancelSwapRequest(ctx, requestCell, userLock, estimatedTxFee);
+      return await this.buildCancelReq(ctx, req, estimatedTxFee);
     }
 
     ckbChangeOutput = txToSign.raw.outputs.pop();
