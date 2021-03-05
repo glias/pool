@@ -2,7 +2,6 @@ import * as commons from '@gliaswap/commons';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 
 import * as config from '../config';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
 import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../service';
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
@@ -176,15 +175,8 @@ export default class DexLiquidityPoolController {
         return token;
       },
     );
-    if (tokenA.typeHash != CKB_TYPE_HASH && tokenB.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'pool without ckb isnt support yet');
-    }
 
-    const req = {
-      tokenA,
-      tokenB,
-      userLock: Script.deserialize(lock),
-    };
+    const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
     const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
 
     ctx.status = 200;
@@ -311,18 +303,15 @@ export default class DexLiquidityPoolController {
         return token;
       },
     );
-    if (tokenAAmount.typeHash != CKB_TYPE_HASH && tokenBAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'pool without ckb isnt support yet');
-    }
 
-    const req = {
+    const req = new txBuilder.GenesisLiquidityRequest(
       tokenAAmount,
       tokenBAmount,
-      poolId: poolId,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const txWithFee = await this.service.buildGenesisLiquidityOrderTx(ctx, req);
+      poolId,
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const txWithFee = await this.service.buildGenesisLiquidityRequestTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();
@@ -398,20 +387,17 @@ export default class DexLiquidityPoolController {
 
     const [tokenADesiredAmount, tokenAMinAmount] = tokenA;
     const [tokenBDesiredAmount, tokenBMinAmount] = tokenB;
-    if (tokenADesiredAmount.typeHash != CKB_TYPE_HASH && tokenBDesiredAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'pool without ckb isnt support yet');
-    }
 
-    const req = {
+    const req = new txBuilder.AddLiquidityRequest(
       tokenADesiredAmount,
       tokenAMinAmount,
       tokenBDesiredAmount,
       tokenBMinAmount,
       poolId,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const txWithFee = await this.service.buildAddLiquidityOrderTx(ctx, req);
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const txWithFee = await this.service.buildAddLiquidityRequestTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();
@@ -478,34 +464,32 @@ export default class DexLiquidityPoolController {
         return token;
       },
     );
-    if (tokenAMinAmount.typeHash != CKB_TYPE_HASH && tokenBMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'pool without ckb isnt support yet');
-    }
 
     const lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
-    if (!lpTokenAmount.typeScript) {
-      const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
-      if (!token.info.symbol) {
-        ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
-      }
-      if (!PoolInfo.TYPE_ARGS[token.info.symbol]) {
-        ctx.throw(400, `token ${token.info.symbol} type args not in config`);
-      }
+    // FIXME: Restore token lp type script
+    // if (!lpTokenAmount.typeScript) {
+    //   const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
+    //   if (!token.info.symbol) {
+    //     ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
+    //   }
+    //   if (!PoolInfo.TYPE_ARGS[token.info.symbol]) {
+    //     ctx.throw(400, `token ${token.info.symbol} type args not in config`);
+    //   }
+    //
+    //   const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[token.info.symbol];
+    //   const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
+    //   lpTokenAmount.typeScript = lpTokenTypeScript;
+    // }
 
-      const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[token.info.symbol];
-      const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
-      lpTokenAmount.typeScript = lpTokenTypeScript;
-    }
-
-    const req = {
+    const req = new txBuilder.RemoveLiquidityRequest(
       lpTokenAmount,
       tokenAMinAmount,
       tokenBMinAmount,
-      poolId: poolId,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const txWithFee = await this.service.buildRemoveLiquidityOrderTx(ctx, req);
+      poolId,
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const txWithFee = await this.service.buildRemoveLiquidityRequestTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();

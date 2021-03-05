@@ -134,13 +134,13 @@ export default class DexSwapController {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
     }
 
-    const req = {
+    const req = new txBuilder.SwapRequest(
       tokenInAmount,
       tokenOutMinAmount,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const txWithFee = await this.service.buildSwapOrderTx(ctx, req);
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const txWithFee = await this.service.buildSwapTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();
@@ -198,13 +198,13 @@ export default class DexSwapController {
       ctx.throw(400, 'sudt/sudt pool isnt support yet');
     }
 
-    const req = {
+    const req = new txBuilder.SwapRequest(
       tokenInAmount,
       tokenOutMinAmount,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const swapOrderLock = this.service.buildSwapOrderLock(req);
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const swapOrderLock = this.service.buildSwapLock(req);
 
     ctx.status = 200;
     ctx.body = { lock: swapOrderLock };
