@@ -1,5 +1,4 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
 import * as config from '../config';
 import { Script } from '../model';
@@ -130,9 +129,6 @@ export default class DexSwapController {
 
       return token;
     });
-    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'sudt/sudt pool isnt support yet');
-    }
 
     const req = new txBuilder.SwapRequest(
       tokenInAmount,
@@ -194,9 +190,6 @@ export default class DexSwapController {
 
       return token;
     });
-    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'sudt/sudt pool isnt support yet');
-    }
 
     const req = new txBuilder.SwapRequest(
       tokenInAmount,
