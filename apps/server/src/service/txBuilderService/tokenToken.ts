@@ -72,22 +72,23 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     };
 
     // Generate pool output cells
-    const tokens = [req.tokenA.typeHash, req.tokenB.typeHash].sort();
+    const [tokenXTypeScript, tokenYTypeScript] =
+      req.tokenA.typeHash < req.tokenB.typeHash
+        ? [req.tokenA.typeScript, req.tokenB.typeScript]
+        : [req.tokenB.typeScript, req.tokenA.typeScript];
 
-    const tokenXType = tokens[0];
     const poolXData = this.codec.getSudtCellSerialization().encodeData(0n);
     const poolXOutput = {
       capacity: txBuilderUtils.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
-      type: tokenXType,
+      type: tokenXTypeScript,
     };
 
-    const tokenYType = tokens[1];
     const poolYData = this.codec.getSudtCellSerialization().encodeData(0n);
     const poolYOutput = {
       capacity: txBuilderUtils.hexBigint(constants.MIN_POOL_CAPACITY),
       lock: infoLock,
-      type: tokenYType,
+      type: tokenYTypeScript,
     };
 
     // Generate change output cell
