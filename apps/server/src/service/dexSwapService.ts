@@ -30,8 +30,11 @@ export class DexSwapService {
   }
 
   public buildSwapLock(req: txBuilder.SwapRequest): Script {
-    // FIXME: generic util code
-    return this.txBuilderServiceFactory.ckbToken().buildSwapLock(req);
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return txBuilder.buildSwapLock(req);
   }
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {

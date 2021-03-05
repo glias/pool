@@ -1,6 +1,7 @@
 import { Context } from 'koa';
 
 import * as config from '../../config';
+import { Script } from '../../model';
 import { ckbRepository, DexRepository } from '../../repository';
 
 import * as rr from './requestResponse';
@@ -25,6 +26,8 @@ export interface TxBuilderService {
   buildRemoveLiquidity(ctx: Context, req: rr.RemoveLiquidityRequest, txFee: bigint): Promise<rr.TransactionWithFee>;
 
   buildSwap(ctx: Context, req: rr.SwapRequest, txFee: bigint): Promise<rr.TransactionWithFee>;
+
+  buildSwapLock(req: rr.SwapRequest): Script;
 }
 
 export class TxBuilderServiceFactory {

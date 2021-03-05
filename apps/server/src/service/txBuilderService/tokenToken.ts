@@ -636,4 +636,14 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
 
     return new rr.TransactionWithFee(txToSign, estimatedTxFee);
   }
+
+  public buildSwapLock(req: rr.SwapRequest): Script {
+    const encoder = this.codec.getSwapCellSerialization().encodeArgs;
+    const minAmountOut = req.tokenOutMinAmount.getBalance();
+    const version = constants.REQUEST_VERSION;
+    const { tips, tipsSudt } = txBuilderUtils.tips(req.tips);
+
+    const args = encoder(req.tokenOutMinAmount.typeHash, req.userLock.toHash(), version, minAmountOut, tips, tipsSudt);
+    return new Script(tokenTokenConfig.SWAP_LOCK_CODE_HASH, tokenTokenConfig.SWAP_LOCK_HASH_TYPE, args);
+  }
 }
