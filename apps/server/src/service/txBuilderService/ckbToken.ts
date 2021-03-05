@@ -450,6 +450,10 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
     }
   }
 
+  public lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
+    return CkbTokenTxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, tokenTypeHash);
+  }
+
   public static lpTokenTypeScript(infoTypeScriptArgs: string, tokenTypeHash: string): Script {
     const id = infoTypeScriptArgs;
     const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
