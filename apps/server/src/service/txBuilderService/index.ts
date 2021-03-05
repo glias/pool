@@ -31,6 +31,26 @@ export interface TxBuilderService {
   buildSwapLock(req: rr.SwapRequest): Script;
 }
 
+export class CancelRequestTxBuilder {
+  private readonly cellCollector: CellCollector;
+  private readonly dexRepository: DexRepository;
+
+  constructor(cellCollector: CellCollector, dexRepository: DexRepository) {
+    this.cellCollector = cellCollector;
+    this.dexRepository = dexRepository;
+  }
+
+  build = async (ctx: Context, req: rr.CancelRequest): Promise<rr.TransactionWithFee> => {
+    const lockMap = new Map();
+    lockMap.set(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_DEP);
+    lockMap.set(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_DEP);
+    lockMap.set(config.tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH, config.tokenTokenConfig.LIQUIDITY_LOCK_DEP);
+    lockMap.set(config.tokenTokenConfig.SWAP_LOCK_CODE_HASH, config.tokenTokenConfig.SWAP_LOCK_DEP);
+
+    return await buildCancelReq(ctx, req, lockMap, this.dexRepository, this.cellCollector);
+  };
+}
+
 export class TokenLPTypeScriptBuilder {
   public build(infoTypeScriptArgs: string, tokenTypeHashes: string[]): Script {
     const id = infoTypeScriptArgs;
@@ -50,6 +70,7 @@ export class TokenLPTypeScriptBuilder {
 export class TxBuilderServiceFactory {
   private readonly tokenTokenTxBuilder: TokenTokenTxBuilderService;
   private readonly ckbTokenTxBuilder: CkbTokenTxBuilderService;
+  private readonly cancelTxBuilder: CancelRequestTxBuilder;
   private readonly cellCollector: CellCollector;
   private readonly dexRepository: DexRepository;
 
@@ -59,6 +80,7 @@ export class TxBuilderServiceFactory {
 
     this.tokenTokenTxBuilder = new TokenTokenTxBuilderService(this.cellCollector);
     this.ckbTokenTxBuilder = new CkbTokenTxBuilderService(this.cellCollector);
+    this.cancelTxBuilder = new CancelRequestTxBuilder(this.cellCollector, this.dexRepository);
   }
 
   public tokenToken(): TokenTokenTxBuilderService {
@@ -69,17 +91,11 @@ export class TxBuilderServiceFactory {
     return this.ckbTokenTxBuilder;
   }
 
+  public cancel(): CancelRequestTxBuilder {
+    return this.cancelTxBuilder;
+  }
+
   public tokenLPTypeScript(): TokenLPTypeScriptBuilder {
     return new TokenLPTypeScriptBuilder();
   }
-
-  cancelRequest = async (ctx: Context, req: rr.CancelRequest): Promise<rr.TransactionWithFee> => {
-    const lockMap = new Map();
-    lockMap.set(config.LIQUIDITY_LOCK_CODE_HASH, config.LIQUIDITY_LOCK_DEP);
-    lockMap.set(config.SWAP_LOCK_CODE_HASH, config.SWAP_LOCK_DEP);
-    lockMap.set(config.tokenTokenConfig.LIQUIDITY_LOCK_CODE_HASH, config.tokenTokenConfig.LIQUIDITY_LOCK_DEP);
-    lockMap.set(config.tokenTokenConfig.SWAP_LOCK_CODE_HASH, config.tokenTokenConfig.SWAP_LOCK_DEP);
-
-    return await buildCancelReq(ctx, req, lockMap, this.dexRepository, this.cellCollector);
-  };
 }

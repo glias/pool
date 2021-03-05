@@ -240,7 +240,7 @@ export class DexLiquidityPoolService {
   }
 
   public async buildCancelRequestTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderServiceFactory.cancelRequest(ctx, req);
+    return await this.txBuilderServiceFactory.cancel().build(ctx, req);
   }
 }
 
