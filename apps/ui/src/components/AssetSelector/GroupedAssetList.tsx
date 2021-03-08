@@ -113,11 +113,10 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
   );
 
   const searchOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+    (val: string, tab?: string) => () => {
       setSearchValue(val);
       if (val.startsWith('0x')) {
-        handleSearchResult(val);
+        handleSearchResult(val, tab);
       } else if (val === '') {
         setSearchResult(undefined);
         setSearchStatus(SearchStatus.None);
@@ -132,7 +131,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
         <Input
           prefix={<SearchOutlined />}
           placeholder={i18n.t(`common.search-by-${currentTab === 'Nervos' ? 'type-hash' : 'address'}`)}
-          onChange={searchOnChange}
+          onChange={(e) => searchOnChange(e.target.value)()}
           value={searchValue}
           className="search-token"
         />
@@ -148,7 +147,8 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       <Tabs
         onChange={(e) => {
           setCurrentTab(e as ChainType);
-          handleSearchResult(searchValue, e);
+          const tabOnChange = searchOnChange(searchValue, e);
+          tabOnChange();
         }}
       >
         {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
