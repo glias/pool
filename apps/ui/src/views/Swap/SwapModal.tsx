@@ -143,7 +143,9 @@ export const SwapModal = () => {
         setSwapTxhash(txhash);
       }
       try {
-        await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+        if (swapMode === SwapMode.NormalOrder) {
+          await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+        }
       } catch (error) {
         //
       }
