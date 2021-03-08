@@ -53,7 +53,9 @@ const generateLPToken = (amount: bigint, tokenSymbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(tokenSymbol);
   const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[tokenSymbol];
 
-  const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
+  const lpTokenTypeScript = new txBuilder.TxBuilderServiceFactory()
+    .tokenLPTypeScript()
+    .build(infoTypeScriptArgs, ['ckb', token.typeHash]);
 
   return {
     balance: amount.toString(),
@@ -250,6 +252,22 @@ async function createCancelSwapTx(txHash: string) {
   await postRequest(CANCEL_SWAP_REQUEST_URL, req);
 }
 
+async function createTestTokenTokenPool(tokenSymbolX: string, tokenSymbolY: string) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolX]) {
+    throw new BizException(`unknown token symbol: ${tokenSymbolX}`);
+  }
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolY]) {
+    throw new BizException(`unknown token symbol: ${tokenSymbolY}`);
+  }
+
+  const req = {
+    assets: [generateToken(0n, tokenSymbolX), generateToken(0n, tokenSymbolY)],
+    lock: USER_LOCK,
+  };
+
+  await postRequest(CREATE_POOL_URL, req);
+}
+
 const ckb = new CKB(config.ckbConfig.nodeUrl);
 console.log(`use address: ${USER_ADDRESS}`);
 // const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
@@ -257,7 +275,11 @@ const token = 'ckUSDC';
 const lpReqTxHash = undefined;
 const swapReqTxHash = undefined;
 
+const tokenX = 'GLIA';
+const tokenY = 'ckUSDT';
+
 async function main() {
+  await createTestTokenTokenPool(tokenX, tokenY);
   await createTestPool(token);
   await createGenesisTx(token);
   await createAddLiquidityTx(token);

@@ -1,21 +1,22 @@
 import { Context } from 'koa';
-import { txBuilder } from './';
 import { QueryOptions } from '@ckb-lumos/base';
+
 import { Cell, PoolInfoHolder, ScriptBuilder, Token } from '../model';
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 
+import { txBuilder } from '.';
 import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
 import { CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
 import { ckbRepository, DexRepository } from '../repository';
 
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
-  private readonly txBuilderService: txBuilder.TxBuilderService;
+  private readonly txBuilderServiceFactory: txBuilder.TxBuilderServiceFactory;
 
   constructor(dexRepository?: DexRepository) {
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
-    this.txBuilderService = new txBuilder.TxBuilderService();
+    this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
   }
 
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
@@ -198,35 +199,48 @@ export class DexLiquidityPoolService {
     ctx: Context,
     req: txBuilder.CreateLiquidityPoolRequest,
   ): Promise<txBuilder.CreateLiquidityPoolResponse> {
-    return await this.txBuilderService.buildCreateLiquidityPool(ctx, req);
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return await txBuilder.buildCreateLiquidityPool(ctx, req);
   }
 
-  public async buildGenesisLiquidityOrderTx(
+  public async buildGenesisLiquidityRequestTx(
     ctx: Context,
     req: txBuilder.GenesisLiquidityRequest,
   ): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildGenesisLiquidity(ctx, req);
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return await txBuilder.buildGenesisLiquidity(ctx, req);
   }
 
-  public async buildAddLiquidityOrderTx(
+  public async buildAddLiquidityRequestTx(
     ctx: Context,
     req: txBuilder.AddLiquidityRequest,
   ): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildAddLiquidity(ctx, req);
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return await txBuilder.buildAddLiquidity(ctx, req);
   }
 
-  public async buildRemoveLiquidityOrderTx(
+  public async buildRemoveLiquidityRequestTx(
     ctx: Context,
     req: txBuilder.RemoveLiquidityRequest,
   ): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildRemoveLiquidity(ctx, req);
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return await txBuilder.buildRemoveLiquidity(ctx, req);
   }
 
-  public async buildCancelOrderTx(
-    ctx: Context,
-    req: txBuilder.CancelOrderRequest,
-  ): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req);
+  public async buildCancelRequestTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
+    return await this.txBuilderServiceFactory.cancel().build(ctx, req);
   }
 }
 

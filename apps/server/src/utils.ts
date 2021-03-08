@@ -12,3 +12,10 @@ export function blake2b(hexData: string[]): string {
 
   return `0x${hasher.digest('hex')}`;
 }
+
+export function trim0x(hexStr: string): string {
+  if (hexStr.startsWith('0x') || hexStr.startsWith('0X')) {
+    return hexStr.slice(2);
+  }
+  return hexStr;
+}

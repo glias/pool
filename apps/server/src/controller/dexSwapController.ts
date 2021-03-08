@@ -1,5 +1,4 @@
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
 import * as config from '../config';
 import { Script } from '../model';
@@ -130,17 +129,14 @@ export default class DexSwapController {
 
       return token;
     });
-    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'sudt/sudt pool isnt support yet');
-    }
 
-    const req = {
+    const req = new txBuilder.SwapRequest(
       tokenInAmount,
       tokenOutMinAmount,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const txWithFee = await this.service.buildSwapOrderTx(ctx, req);
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const txWithFee = await this.service.buildSwapTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();
@@ -194,17 +190,14 @@ export default class DexSwapController {
 
       return token;
     });
-    if (tokenInAmount.typeHash != CKB_TYPE_HASH && tokenOutMinAmount.typeHash != CKB_TYPE_HASH) {
-      ctx.throw(400, 'sudt/sudt pool isnt support yet');
-    }
 
-    const req = {
+    const req = new txBuilder.SwapRequest(
       tokenInAmount,
       tokenOutMinAmount,
-      userLock: Script.deserialize(lock),
-      tips: Token.fromAsset(tips as AssetSchema),
-    };
-    const swapOrderLock = this.service.buildSwapOrderLock(req);
+      Script.deserialize(lock),
+      Token.fromAsset(tips as AssetSchema),
+    );
+    const swapOrderLock = this.service.buildSwapLock(req);
 
     ctx.status = 200;
     ctx.body = { lock: swapOrderLock };
@@ -244,7 +237,7 @@ export default class DexSwapController {
       userLock: Script.deserialize(lock),
       requestType: txBuilder.CancelRequestType.Swap,
     };
-    const txWithFee = await this.service.buildCancelOrderTx(ctx, req);
+    const txWithFee = await this.service.buildCancelRequestTx(ctx, req);
 
     ctx.status = 200;
     ctx.body = txWithFee.serialize();

@@ -5,32 +5,38 @@ import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
+
 import { txBuilder } from '.';
 import { StopWatch } from '../model';
 import { Logger } from '../logger';
 
 export class DexSwapService {
-  private readonly txBuilderService: txBuilder.TxBuilderService;
   private readonly dexRepository: DexRepository;
+  private readonly txBuilderServiceFactory: txBuilder.TxBuilderServiceFactory;
 
   constructor() {
-    this.txBuilderService = new txBuilder.TxBuilderService();
     this.dexRepository = ckbRepository;
+    this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
   }
 
-  public async buildSwapOrderTx(ctx: Context, req: txBuilder.SwapOrderRequest): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildSwap(ctx, req);
+  public async buildSwapTx(ctx: Context, req: txBuilder.SwapRequest): Promise<txBuilder.TransactionWithFee> {
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return await txBuilder.buildSwap(ctx, req);
   }
 
-  public async buildCancelOrderTx(
-    ctx: Context,
-    req: txBuilder.CancelOrderRequest,
-  ): Promise<txBuilder.TransactionWithFee> {
-    return await this.txBuilderService.buildCancelOrder(ctx, req);
+  public async buildCancelRequestTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
+    return await this.txBuilderServiceFactory.cancel().build(ctx, req);
   }
 
-  public buildSwapOrderLock(req: txBuilder.SwapOrderRequest): Script {
-    return this.txBuilderService.buildSwapLock(req);
+  public buildSwapLock(req: txBuilder.SwapRequest): Script {
+    const txBuilder = req.isCkbTokenRequest()
+      ? this.txBuilderServiceFactory.ckbToken()
+      : this.txBuilderServiceFactory.tokenToken();
+
+    return txBuilder.buildSwapLock(req);
   }
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
