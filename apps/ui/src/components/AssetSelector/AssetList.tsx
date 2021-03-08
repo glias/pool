@@ -43,7 +43,11 @@ export function AssetList<A extends Asset, K extends Key>(
 ) {
   const { assets, onSelected, disabledKeys, filterValue, ...wrapperProps } = props;
   const listNode = assets
-    .filter(filterValue ? (a) => a.name.toLowerCase().includes(filterValue.toLowerCase()) : Boolean)
+    .filter(
+      filterValue && !filterValue.startsWith('0x')
+        ? (a) => a.name.toLowerCase().includes(filterValue.toLowerCase())
+        : Boolean,
+    )
     .map((asset, i) => {
       const assetNode = (
         <>

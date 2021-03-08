@@ -113,10 +113,10 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
   );
 
   const searchOnChange = useCallback(
-    (val: string) => () => {
+    (val: string, tab?: string) => () => {
       setSearchValue(val);
       if (val.startsWith('0x')) {
-        handleSearchResult(val);
+        handleSearchResult(val, tab);
       } else if (val === '') {
         setSearchResult(undefined);
         setSearchStatus(SearchStatus.None);
@@ -147,7 +147,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       <Tabs
         onChange={(e) => {
           setCurrentTab(e as ChainType);
-          const tabOnChange = searchOnChange(searchValue);
+          const tabOnChange = searchOnChange(searchValue, e);
           tabOnChange();
         }}
       >
