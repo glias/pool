@@ -66,8 +66,8 @@
     },
     "common": {
       "max": "Max",
-      "pending-requests": "My Pending Requests",
-      "history-orders": "My History Orders",
+      "pending-requests": "My Pending Swaps",
+      "history-orders": "My History Swaps",
       "search-by-type-hash": "Search token by name or type hash",
       "search-by-address": "Search token by name or address"
     },

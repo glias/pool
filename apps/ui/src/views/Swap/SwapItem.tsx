@@ -53,6 +53,15 @@ export const ItemContainer = styled.div`
       }
     }
   }
+
+  .info {
+    &:last-child {
+      display: flex;
+      top: 0;
+      justify-content: center;
+      align-items: center;
+    }
+  }
 `;
 
 export const Route = ({
@@ -144,7 +153,7 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     return (
       <>
         {order.stage.status === 'completed' || order.stage.status === 'canceled' ? null : cancelBtn}
-        <Button type="default" icon={<InfoSvg />} onClick={openStepModal} />
+        <Button type="default" icon={<InfoSvg />} onClick={openStepModal} className="info" />
       </>
     );
   }, [status, type, openCancelModal, openStepModal, order.stage.status]);

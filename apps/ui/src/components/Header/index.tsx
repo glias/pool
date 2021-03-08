@@ -74,7 +74,7 @@ export const AppHeader: React.FC = () => {
     <HeaderWrapper>
       <Row wrap={false} className="header" justify="center">
         <Col md={4} className="header-logo">
-          Pool
+          GLIASWAP
         </Col>
         <Col flex="auto" className="header-nav">
           <NavMenu />
