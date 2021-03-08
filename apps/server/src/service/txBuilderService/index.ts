@@ -52,12 +52,9 @@ export class CancelRequestTxBuilder {
 }
 
 export class TokenLPTypeScriptBuilder {
-  public build(infoTypeScriptArgs: string, tokenTypeHashes: string[]): Script {
-    const id = infoTypeScriptArgs;
-    const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
-
+  public build(poolId: string, tokenTypeHashes: string[]): Script {
     // Generate info lock script
-    const infoTypeHash = infoType.toHash();
+    const infoTypeHash = poolId;
     const pairHash = utils.blake2b(tokenTypeHashes);
     const infoLockArgs = `0x${utils.trim0x(pairHash)}${utils.trim0x(infoTypeHash)}`;
     const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);

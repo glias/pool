@@ -6,7 +6,7 @@ import * as commons from '@gliaswap/commons';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { PoolInfo, TokenHolderFactory } from '../../src/model';
+import { PoolInfo, TokenHolderFactory, Script } from '../../src/model';
 import { txBuilder } from '../../src/service';
 import * as config from '../../src/config';
 import { BizException } from '../bizException';
@@ -52,10 +52,11 @@ const generateToken = (amount: bigint, symbol: string) => {
 const generateLPToken = (amount: bigint, tokenSymbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(tokenSymbol);
   const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[tokenSymbol];
+  const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, infoTypeScriptArgs);
 
   const lpTokenTypeScript = new txBuilder.TxBuilderServiceFactory()
     .tokenLPTypeScript()
-    .build(infoTypeScriptArgs, ['ckb', token.typeHash]);
+    .build(infoType.toHash(), ['ckb', token.typeHash]);
 
   return {
     balance: amount.toString(),

@@ -1,4 +1,5 @@
 import * as commons from '@gliaswap/commons';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
 
 import * as config from '../config';
@@ -466,20 +467,18 @@ export default class DexLiquidityPoolController {
     );
 
     const lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
-    // FIXME: Restore token lp type script
-    // if (!lpTokenAmount.typeScript) {
-    //   const token = tokenAMinAmount.typeHash != CKB_TYPE_HASH ? tokenAMinAmount : tokenBMinAmount;
-    //   if (!token.info.symbol) {
-    //     ctx.throw(400, `token type hash ${token.typeHash} without symbol`);
-    //   }
-    //   if (!PoolInfo.TYPE_ARGS[token.info.symbol]) {
-    //     ctx.throw(400, `token ${token.info.symbol} type args not in config`);
-    //   }
-    //
-    //   const infoTypeScriptArgs = PoolInfo.TYPE_ARGS[token.info.symbol];
-    //   const lpTokenTypeScript = txBuilder.TxBuilderService.lpTokenTypeScript(infoTypeScriptArgs, token.typeHash);
-    //   lpTokenAmount.typeScript = lpTokenTypeScript;
-    // }
+    if (!lpTokenAmount.typeScript) {
+      const tokenLPTypeScriptBuilder = new txBuilder.TxBuilderServiceFactory().tokenLPTypeScript();
+      let hashes = [tokenAMinAmount.typeHash, tokenBMinAmount.typeHash].map((hash) => {
+        return hash == CKB_TYPE_HASH ? 'ckb' : hash;
+      });
+      if (hashes[1] == 'ckb') {
+        hashes = [hashes[1], hashes[0]];
+      }
+
+      const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
+      lpTokenAmount.typeScript = lpTokenTypeScript;
+    }
 
     const req = new txBuilder.RemoveLiquidityRequest(
       lpTokenAmount,
