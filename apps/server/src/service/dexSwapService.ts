@@ -57,7 +57,7 @@ export class DexSwapService {
     crossOrders.forEach((x) => orders.push(x));
     Logger.info('crossOrders:', sw.split());
 
-    const factory = new DexOrderChainFactory(ORDER_TYPE.SWAP, null);
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
@@ -103,7 +103,7 @@ export class DexSwapService {
     }
 
     const orders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(ORDER_TYPE.CROSS_CHAIN, null);
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.CROSS_CHAIN, null);
 
     txs.forEach((x) => {
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);

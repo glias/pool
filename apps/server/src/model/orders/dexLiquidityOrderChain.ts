@@ -4,6 +4,7 @@ import {
   CellInfoSerializationHolderFactory,
   LiquidityOrderCellArgs,
   PoolInfo,
+  Script,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { TokenHolderFactory } from '../tokens';
@@ -18,6 +19,7 @@ export enum LIQUIDITY_ORDER_TYPE {
 export class DexLiquidityChain extends DexOrderChain {
   private poolInfo: PoolInfo;
   constructor(
+    userLock: Script,
     cell: Output,
     data: string,
     tx: TransactionWithStatus,
@@ -26,7 +28,7 @@ export class DexLiquidityChain extends DexOrderChain {
     nextOrderCell: DexOrderChain,
     poolInfo: PoolInfo,
   ) {
-    super(cell, data, tx, index, nextOrderCell, live);
+    super(userLock, cell, data, tx, index, nextOrderCell, live);
     this.poolInfo = poolInfo;
   }
 

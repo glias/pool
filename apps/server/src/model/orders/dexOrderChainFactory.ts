@@ -50,8 +50,9 @@ export class DexOrderChainFactory {
   private readonly isSwapOrder: boolean;
   private orderMatcher: SwapOrderMatcher;
   private poolInfo: PoolInfo;
+  private userLock: Script;
 
-  constructor(orderType: string, poolInfo: PoolInfo) {
+  constructor(userLock: Script, orderType: string, poolInfo: PoolInfo) {
     this.isSwapOrder = orderType === ORDER_TYPE.LIQUIDITY ? false : true;
     this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
     if (orderType === ORDER_TYPE.CROSS_CHAIN) {
@@ -59,6 +60,7 @@ export class DexOrderChainFactory {
     }
     this.markTheCellThatHasBeenTracked = new Set();
     this.poolInfo = poolInfo;
+    this.userLock = userLock;
   }
 
   getOrderChains(
@@ -120,8 +122,8 @@ export class DexOrderChainFactory {
         : nextTx.transaction.outputsData[index];
 
     return this.isSwapOrder
-      ? new DexSwapOrderChain(output, data, nextTx, index, false, null)
-      : new DexLiquidityChain(output, data, nextTx, index, false, null, this.poolInfo);
+      ? new DexSwapOrderChain(this.userLock, output, data, nextTx, index, false, null)
+      : new DexLiquidityChain(this.userLock, output, data, nextTx, index, false, null, this.poolInfo);
   }
 
   private matchIndexOfInputInArray(inputs: Input[], targetInputOutPoint: string): number {
@@ -167,8 +169,8 @@ export class DexOrderChainFactory {
         const isOrder = bridgeInfoResult ? bridgeInfoResult.isOrder : null;
         const bridgeInfo = bridgeInfoResult ? bridgeInfoResult.bridgeInfo : null;
         const order = this.isSwapOrder
-          ? new DexSwapOrderChain(output, data, x, index, false, null, isIn, isOrder, bridgeInfo)
-          : new DexLiquidityChain(output, data, x, index, false, null, this.poolInfo);
+          ? new DexSwapOrderChain(this.userLock, output, data, x, index, false, null, isIn, isOrder, bridgeInfo)
+          : new DexLiquidityChain(this.userLock, output, data, x, index, false, null, this.poolInfo);
 
         orderCells.push(order);
       });
