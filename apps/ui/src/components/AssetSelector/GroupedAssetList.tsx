@@ -153,7 +153,10 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       >
         {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
           const assetList = searchResult ? [searchResult] : groupedAssets;
-          const disabledKeys = searchResult ? [props.renderKey(searchResult, 0, assetList)] : props.disabledKeys;
+          const disabledKeys =
+            searchResult && searchStatus !== SearchStatus.None
+              ? [props.renderKey(searchResult, 0, assetList)]
+              : props.disabledKeys;
           return (
             <Tabs.TabPane key={groupKey} tab={groupKey}>
               {searchStatus === SearchStatus.Invalid ? null : (
