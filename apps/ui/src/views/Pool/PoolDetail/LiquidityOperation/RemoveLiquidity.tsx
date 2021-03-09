@@ -1,9 +1,11 @@
 import { LiquidityInfo } from '@gliaswap/commons';
 import { Button, Col, Row, Slider, Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
-import { AssetBalanceList, AssetBaseQuotePrices, PoolAssetSymbol } from 'components/Asset';
+import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
+import { PriceUnit } from 'components/PriceUnit';
+import { TableRow } from 'components/TableRow';
 import { useRemoveLiquidity } from 'hooks/useRemoveLiquidity';
 import i18n from 'i18n';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -11,7 +13,6 @@ import { useMutation } from 'react-query';
 import styled from 'styled-components';
 import { BN } from 'suite';
 import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
-import { RequestFeeLabel } from './components/RequestFeeLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
 import { OperationConfirmModal } from './OperationConfirmModal';
 
@@ -90,6 +91,16 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
     );
   };
 
+  const [tokenA, tokenB] = props.poolLiquidity.assets;
+
+  const price = useMemo(() => {
+    return BN(tokenA.balance)
+      .div(tokenB.balance)
+      .times(10 ** tokenB.decimals)
+      .div(10 ** tokenA.decimals)
+      .toString();
+  }, [tokenA, tokenB]);
+
   return (
     <RemoveLiquidityWrapper>
       <Section bordered compact>
@@ -110,7 +121,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
 
       <DownArrowSvg className="arrow-icon" />
 
-      <Section bordered compact>
+      <Section bordered>
         <SpaceBetweenRow style={{ padding: '0 0 8px' }}>
           <div className="label" style={{ lineHeight: '1.57' }}>
             {i18n.t('Receive(EST)')}
@@ -119,22 +130,12 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
         <ReceiveAssets assets={readyToReceiveAssets} />
       </Section>
 
-      <SpaceBetweenRow>
-        <div className="label">Price</div>
-        <div>
-          <AssetBaseQuotePrices assets={props.poolLiquidity.assets} />
-        </div>
-      </SpaceBetweenRow>
-      <SpaceBetweenRow>
-        <div className="label">
-          <RequestFeeLabel />
-        </div>
-        <div>
-          <b>{i18n.t('Free Now')}</b>
-        </div>
-      </SpaceBetweenRow>
+      <PriceUnit tokenA={tokenA} tokenB={tokenB} price={price} />
+      <TableRow label={i18n.t('Request fee')} labelTooltip={i18n.t('This fee goes to deal-miners as the incentives.')}>
+        {<b>{i18n.t('Free Now')}</b>}
+      </TableRow>
       <Button
-        style={{ marginTop: '32px' }}
+        style={{ marginTop: '24px' }}
         block
         type="primary"
         disabled={!readyToRemoveShare}

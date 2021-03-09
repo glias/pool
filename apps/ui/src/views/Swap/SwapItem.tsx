@@ -1,7 +1,13 @@
 import React from 'react';
 import { Button, List } from 'antd';
 import i18n from 'i18n';
-import { SwapOrder, GliaswapAssetWithBalance, SwapOrderType, isShadowEthAsset } from '@gliaswap/commons';
+import {
+  SwapOrder,
+  GliaswapAssetWithBalance,
+  SwapOrderType,
+  isShadowEthAsset,
+  CkbAssetWithBalance,
+} from '@gliaswap/commons';
 import styled from 'styled-components';
 import { TableRow } from 'components/TableRow';
 import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
@@ -85,7 +91,7 @@ export const Route = ({
   );
 };
 
-export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
+export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance | CkbAssetWithBalance }) => {
   const balance = displayBalance(asset);
   return (
     <span className="balance">
