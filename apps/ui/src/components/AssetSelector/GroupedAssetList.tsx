@@ -93,7 +93,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       const asset =
         latestTab === 'Nervos'
           ? sudtAssets.find((a) => a.typeHash === val)
-          : erc20Assets.find((e) => e.address === val);
+          : erc20Assets.find((e) => e.address.toLowerCase() === val.toLowerCase());
       const search = latestTab === 'Nervos' ? api.searchSUDT : api.searchERC20;
       if (asset) {
         setSearchResult(asset);
@@ -153,7 +153,10 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       >
         {Object.entries<A[]>(grouped).map(([groupKey, groupedAssets]) => {
           const assetList = searchResult ? [searchResult] : groupedAssets;
-          const disabledKeys = searchResult ? [props.renderKey(searchResult, 0, assetList)] : props.disabledKeys;
+          const disabledKeys =
+            searchResult && searchStatus !== SearchStatus.None
+              ? [props.renderKey(searchResult, 0, assetList)]
+              : props.disabledKeys;
           return (
             <Tabs.TabPane key={groupKey} tab={groupKey}>
               {searchStatus === SearchStatus.Invalid ? null : (

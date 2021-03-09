@@ -2,9 +2,11 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Asset, AssetWithBalance, isCkbNativeAsset, LiquidityInfo } from '@gliaswap/commons';
 import { Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
-import { AssetBalanceList, AssetBaseQuotePrices, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
+import { AssetBalanceList, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { SpaceBetweenRow } from 'components/Layout';
+import { PriceUnit } from 'components/PriceUnit';
+import { TableRow } from 'components/TableRow';
 import { Formik, FormikConfig, FormikProps } from 'formik';
 import { Form, Input, SubmitButton } from 'formik-antd';
 import { useAddLiquidity } from 'hooks/useAddLiquidity';
@@ -12,9 +14,8 @@ import i18n from 'i18n';
 import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { Amount, createAssetWithBalance } from 'suite';
+import { Amount, BN, createAssetWithBalance } from 'suite';
 import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
-import { RequestFeeLabel } from './components/RequestFeeLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
 import { OperationConfirmModal } from './OperationConfirmModal';
 
@@ -36,6 +37,7 @@ const AddLiquidityWrapper = styled.div`
     padding: 12px;
     border: 1px solid #e1e1e1;
     border-radius: 16px;
+    margin-bottom: 16px;
   }
 
   .plus-icon {
@@ -180,6 +182,16 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     return (readyToAddShare * 100).toFixed(2) + ' %';
   }, [readyToAddShare]);
 
+  const [tokenA, tokenB] = poolAssets;
+
+  const price = useMemo(() => {
+    return BN(tokenA.balance)
+      .div(tokenB.balance)
+      .times(10 ** tokenB.decimals)
+      .div(10 ** tokenA.decimals)
+      .toString();
+  }, [tokenA, tokenB]);
+
   return (
     <AddLiquidityWrapper>
       <Formik<InputFields> onSubmit={onSubmit} initialValues={{ amount1: '', amount2: '' }} validate={validate}>
@@ -236,27 +248,16 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
               />
             </Form.Item>
 
-            <SpaceBetweenRow>
-              <div className="label">{i18n.t('Price')}</div>
-              <div>
-                <AssetBaseQuotePrices assets={poolAssets} />
-              </div>
-            </SpaceBetweenRow>
-            <SpaceBetweenRow>
-              <div className="label">{i18n.t('Add Pool Share')}</div>
-              <div>{readyToAddShareEl}</div>
-            </SpaceBetweenRow>
-            <SpaceBetweenRow>
-              <div className="label">
-                <RequestFeeLabel />
-              </div>
-              <div>
-                <b>{i18n.t('Free Now')}</b>
-              </div>
-            </SpaceBetweenRow>
-
+            <PriceUnit tokenA={tokenA} tokenB={tokenB} price={price} />
+            <TableRow label={i18n.t('Add Pool Share')}>{readyToAddShareEl}</TableRow>
+            <TableRow
+              label={i18n.t('Request fee')}
+              labelTooltip={i18n.t('This fee goes to deal-miners as the incentives.')}
+            >
+              {<b>{i18n.t('Free Now')}</b>}
+            </TableRow>
             <SubmitButton
-              style={{ marginTop: '32px' }}
+              style={{ marginTop: '24px' }}
               block
               type="primary"
               disabled={!form.isValid || !form.values.amount1 || !form.values.amount2}

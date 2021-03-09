@@ -1,7 +1,13 @@
 import React from 'react';
 import { Button, List } from 'antd';
 import i18n from 'i18n';
-import { SwapOrder, GliaswapAssetWithBalance, SwapOrderType, isShadowEthAsset } from '@gliaswap/commons';
+import {
+  SwapOrder,
+  GliaswapAssetWithBalance,
+  SwapOrderType,
+  isShadowEthAsset,
+  CkbAssetWithBalance,
+} from '@gliaswap/commons';
 import styled from 'styled-components';
 import { TableRow } from 'components/TableRow';
 import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
@@ -53,6 +59,15 @@ export const ItemContainer = styled.div`
       }
     }
   }
+
+  .info {
+    &:last-child {
+      display: flex;
+      top: 0;
+      justify-content: center;
+      align-items: center;
+    }
+  }
 `;
 
 export const Route = ({
@@ -85,7 +100,7 @@ export const Route = ({
   );
 };
 
-export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance }) => {
+export const Balanced = ({ asset }: { asset: GliaswapAssetWithBalance | CkbAssetWithBalance }) => {
   const balance = displayBalance(asset);
   return (
     <span className="balance">
@@ -144,7 +159,7 @@ export const SwapItem = ({ order }: { order: SwapOrder }) => {
     return (
       <>
         {order.stage.status === 'completed' || order.stage.status === 'canceled' ? null : cancelBtn}
-        <Button type="default" icon={<InfoSvg />} onClick={openStepModal} />
+        <Button type="default" icon={<InfoSvg />} onClick={openStepModal} className="info" />
       </>
     );
   }, [status, type, openCancelModal, openStepModal, order.stage.status]);

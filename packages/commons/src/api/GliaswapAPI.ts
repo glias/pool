@@ -15,9 +15,8 @@ import {
   Script,
   SerializedTransactionToSignWithFee,
   SerializedTransactonToSign,
-  EthErc20AssetWithBalance,
-  CkbSudtAssetWithBalance,
 } from '../';
+import { EthAsset } from '../assets';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
@@ -149,7 +148,7 @@ export interface GliaswapAPI {
     payload: GenerateCancelRequestTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
-  searchSUDT: (typeHash: string) => Promise<CkbSudtAssetWithBalance | undefined>;
+  searchSUDT: (typeHash: string) => Promise<CkbAsset | undefined>;
 
-  searchERC20: (address: string, web3: Web3) => Promise<EthErc20AssetWithBalance | undefined>;
+  searchERC20: (address: string, web3: Web3) => Promise<EthAsset | undefined>;
 }

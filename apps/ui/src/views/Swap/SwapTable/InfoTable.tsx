@@ -1,10 +1,9 @@
-import { GliaswapAssetWithBalance, isCkbNativeAsset } from '@gliaswap/commons';
+import { GliaswapAssetWithBalance } from '@gliaswap/commons';
 import { Form } from 'antd';
 import { TableRow } from 'components/TableRow';
 import i18n from 'i18n';
 import React from 'react';
 import styled from 'styled-components';
-import { ReactComponent as EqualSvg } from 'assets/svg/equal.svg';
 import BigNumber from 'bignumber.js';
 import { CROSS_CHAIN_FEE, SWAP_FEE } from 'suite/constants';
 import { useMemo } from 'react';
@@ -12,6 +11,7 @@ import { Balanced } from '../SwapItem';
 import { SwapMode } from '../context';
 import { displayPercent } from './fee';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
+import { PriceUnit } from 'components/PriceUnit';
 
 const Container = styled(Form.Item)``;
 
@@ -24,8 +24,6 @@ export interface InfoTableProps {
 }
 
 export const InfoTable = ({ tokenA, tokenB, price, priceImpact, swapMode }: InfoTableProps) => {
-  const ckb = isCkbNativeAsset(tokenA) ? tokenA : tokenB;
-  const sudt = isCkbNativeAsset(tokenA) ? tokenB : tokenA;
   const [{ slippage }] = useGlobalSetting();
 
   const isCrossOut = useMemo(() => {
@@ -46,11 +44,7 @@ export const InfoTable = ({ tokenA, tokenB, price, priceImpact, swapMode }: Info
     <Container>
       {isCrossOut ? null : (
         <>
-          <TableRow label={i18n.t('swap.order-table.price')}>
-            <Balanced asset={{ ...sudt, balance: new BigNumber(10).pow(sudt.decimals).toString() }} />
-            <EqualSvg className="equal" />
-            <Balanced asset={{ ...ckb, balance: new BigNumber(10).pow(8).times(price).toString() }} />
-          </TableRow>
+          <PriceUnit tokenA={tokenA} tokenB={tokenB} price={price} />
           <TableRow
             label={i18n.t('swap.order-table.min-receive')}
             labelTooltip={i18n.t('swap.order-table.min-receive-desc')}

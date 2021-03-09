@@ -90,7 +90,6 @@ export class CkbRepository implements DexRepository {
     const sw = new StopWatch();
     sw.start();
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
-
     Logger.info('query txs:', sw.split());
     const result = await Promise.all(
       lumosTxs.map(async (x) => {

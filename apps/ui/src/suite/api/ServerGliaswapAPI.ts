@@ -4,6 +4,7 @@ import {
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
   EthAsset,
+  CkbAsset,
   EthErc20Asset,
   EthErc20AssetWithBalance,
   EthNativeAssetWithBalance,
@@ -46,7 +47,6 @@ import * as ServerTypes from 'suite/api/server-patch';
 import { Amount, BN, createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
-import axios from 'axios';
 import { LiquidityResponse } from './patch/liquidity-pools';
 import { INFO_ABI } from './abi';
 
@@ -385,31 +385,29 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     };
   }
 
-  async searchSUDT(typeHash: string): Promise<CkbSudtAssetWithBalance | undefined> {
+  searchSUDT = async (typeHash: string): Promise<CkbAsset | undefined> => {
     const params = {
       typeHashOrAddress: typeHash,
     };
 
-    // @FIXME: replace to swap backend when it's ready
-    const res = await axios.get(`https://api-gliaswap.ckbapp.dev/tokens/search`, {
-      params,
-    });
+    const res = await this.axios.post(`/tokens/search`, params);
 
     if (isEmpty(res.data)) {
       return undefined;
     }
 
-    const [asset] = res.data;
+    const [{ info: asset }] = res.data;
 
     return {
       ...asset,
-      decimals: parseInt(asset.decimal, 10),
-      balance: asset.amount,
+      decimals: asset.decimal ? parseInt(asset.decimal, 10) : 8,
+      symbol: asset.symbol || 'Unknown Token',
+      name: asset.name || 'Unknown Token',
       chainType: 'Nervos',
     };
-  }
+  };
 
-  async searchERC20(address: string, web3: Web3): Promise<EthErc20AssetWithBalance | undefined> {
+  async searchERC20(address: string, web3: Web3): Promise<EthAsset | undefined> {
     try {
       const contract = new web3.eth.Contract(INFO_ABI, address);
       const name = await contract.methods.name().call();
@@ -419,7 +417,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         name,
         address,
         symbol,
-        balance: '0',
         chainType: 'Ethereum',
         decimals: parseInt(decimals, 10),
       };
