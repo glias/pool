@@ -19,10 +19,12 @@ import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
 import { BizException } from '../bizException';
 import { StopWatch } from '../model/time/stopWatch';
 import { Logger } from '../logger';
+import { dexCache, DexCache } from '../cache';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
   private readonly ckbNode: CKB;
+  private readonly dexCache: DexCache = dexCache;
 
   constructor() {
     this.lumosRepository = lumosRepository;
@@ -89,7 +91,6 @@ export class CkbRepository implements DexRepository {
     sw.start();
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
     Logger.info('query txs:', sw.split());
-
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
@@ -118,7 +119,6 @@ export class CkbRepository implements DexRepository {
     }
 
     Logger.info('includePool:', sw.split());
-
     if (includeInputCells) {
       const hashes: Set<string> = new Set();
       result.forEach((x) => {
@@ -128,7 +128,9 @@ export class CkbRepository implements DexRepository {
       });
 
       const inputCellsGroup: Map<string, CellOutput> = new Map();
+
       const inputTxs = await this.getTransactions(Array.from(hashes));
+      Logger.info('get tx input cell: ', sw.split());
       inputTxs.forEach((x) => {
         x.transaction.outputs.forEach((value, index) => {
           const cell = {
@@ -156,6 +158,30 @@ export class CkbRepository implements DexRepository {
       return [];
     }
 
+    // const result = [];
+    // for (const hash of hashes) {
+    //   const txJson = await this.dexCache.get(hash);
+    //   if (!txJson) {
+    //     const tx = await this.getTransaction(hash);
+    //     this.dexCache.set(hash, JSON.stringify(tx));
+    //     result.push(tx);
+    //   } else {
+    //     result.push(JSON.parse(txJson));
+    //   }
+    // }
+    //
+    // for (const x of result) {
+    //   const tx = transactionConver.conver(x);
+    //   if (tx.txStatus.blockHash) {
+    //     const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+    //     tx.txStatus.timestamp = timestamp;
+    //   } else {
+    //     tx.txStatus.timestamp = `0x${new Date().getTime().toString(16)}`;
+    //   }
+    // }
+    //
+    // return result;
+
     const ckbReqParams = [];
     hashes.forEach((x) => ckbReqParams.push(['getTransaction', x]));
 
@@ -179,7 +205,15 @@ export class CkbRepository implements DexRepository {
   }
 
   async getTransaction(hash: string): Promise<TransactionWithStatus> {
-    const ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+    const txJson = await this.dexCache.get(hash);
+    let ckbTx;
+    if (!txJson) {
+      ckbTx = await this.ckbNode.rpc.getTransaction(hash);
+      this.dexCache.set(hash, JSON.stringify(ckbTx));
+    } else {
+      ckbTx = JSON.parse(txJson);
+    }
+
     const tx = transactionConver.conver(ckbTx);
     if (tx.txStatus.blockHash) {
       const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
@@ -192,10 +226,16 @@ export class CkbRepository implements DexRepository {
   }
 
   async getBlockTimestampByHash(blockHash: string): Promise<string> {
-    const req = [];
-    req.push(['getBlock', blockHash]);
-    const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
-    return block[0].header.timestamp;
+    const timestamp = await this.dexCache.get(`timestamp:${blockHash}`);
+    if (!timestamp) {
+      const req = [];
+      req.push(['getBlock', blockHash]);
+      const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
+      this.dexCache.set(`timestamp:${blockHash}`, block[0].header.timestamp);
+      return block[0].header.timestamp;
+    } else {
+      return timestamp;
+    }
   }
 
   async getForceBridgeHistory(

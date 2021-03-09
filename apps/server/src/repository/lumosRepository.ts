@@ -2,7 +2,7 @@ import { Cell, QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
 import { ckbConfig, env, mysqlInfo } from '../config';
-import { TransactionCollector } from './transactionCollector';
+import { TransactionCollector2 } from './tx/transactionCollector2';
 
 export class SqlIndexerWrapper {
   private indexer: Indexer;
@@ -43,13 +43,8 @@ export class SqlIndexerWrapper {
   }
 
   async collectTransactions(queryOptions: QueryOptions): Promise<Array<TransactionWithStatus>> {
-    const transactionCollector = new TransactionCollector(this.knex, queryOptions, this.indexer['rpc']);
-    const txs = [];
-    for await (const tx of transactionCollector.collect()) {
-      txs.push(tx);
-    }
-
-    return txs;
+    const transactionCollector = new TransactionCollector2(this.knex, queryOptions, this.indexer['rpc']);
+    return transactionCollector.collect();
   }
 }
 

@@ -8,7 +8,7 @@ services:
       CKB_CHAIN: testnet
     ports:
       - "8116:8114"
-      - "8115:8115" 
+      - "8115:8115"
     volumes:
       - ./ckb-testnet:/var/lib/ckb
     command: run
@@ -29,3 +29,11 @@ services:
     volumes:
       - ./opt/docker/mysql:/var/lib/mysql
     command: mysqld --character-set-server=utf8 --collation-server=utf8_bin --init-connect='SET NAMES utf8;' --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED
+  redis:
+    image: redis
+    container_name: redis
+    command: redis-server --requirepass 123456
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
