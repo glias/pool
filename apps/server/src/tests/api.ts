@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import axios, { AxiosResponse } from 'axios';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import { AddressPrefix, privateKeyToAddress, addressToScript } from '@nervosnetwork/ckb-sdk-utils';
@@ -98,23 +100,33 @@ const deserializeTransactionToSign = (serialized: commons.SerializedTransactonTo
   return txToSign;
 };
 
+const extractPoolId = (createPoolTxToSign: CKBComponents.RawTransactionToSign): string => {
+  return `0x${createPoolTxToSign.outputs[0].lock.args.slice(66)}`;
+};
+
 type postCallback = (resp: AxiosResponse) => void;
 
-const postRequest = async (url: string, req: Record<string, unknown>, callback?: postCallback) => {
+const postRequest = async (
+  url: string,
+  req: Record<string, unknown>,
+  callback?: postCallback,
+): Promise<CKBComponents.RawTransactionToSign> => {
   try {
     let resp = await axios.post(url, req);
-    const tx = deserializeTransactionToSign(resp.data.tx);
+    const txToSign = deserializeTransactionToSign(resp.data.tx);
     // console.log(JSON.stringify(txToSign, null, 2));
 
     if (callback) {
       callback(resp);
     }
 
-    const signedTx = ckb.signTransaction(USER_PRIV_KEY)(tx);
+    const signedTx = ckb.signTransaction(USER_PRIV_KEY)(txToSign);
     // console.log(JSON.stringify(signedTx, null, 2));
 
     resp = await axios.post('http://127.0.0.1:3000/v1/transaction/send', { signedTx });
     console.log(`tx hash: ${resp.data.txHash}`);
+
+    return txToSign;
   } catch (e) {
     if (axios.isAxiosError(e)) {
       if (e.response) {
@@ -130,7 +142,7 @@ const postRequest = async (url: string, req: Record<string, unknown>, callback?:
   }
 };
 
-async function createTestPool(tokenSymbol: string) {
+async function createTestPool(tokenSymbol: string): Promise<CKBComponents.RawTransactionToSign> {
   if (!PoolInfo.TYPE_SCRIPTS[tokenSymbol]) {
     throw new BizException(`unknown token symbol: ${tokenSymbol}`);
   }
@@ -144,7 +156,7 @@ async function createTestPool(tokenSymbol: string) {
     lock: USER_LOCK,
   };
 
-  await postRequest(CREATE_POOL_URL, req, (resp) => {
+  return await postRequest(CREATE_POOL_URL, req, (resp) => {
     if (resp.data.lpToken.typeHash != lpToken.typeHash) {
       throw new BizException(`lp token type hash ${resp.data.lpToken.typeHash} dont match`);
     }
@@ -253,7 +265,10 @@ async function createCancelSwapTx(txHash: string) {
   await postRequest(CANCEL_SWAP_REQUEST_URL, req);
 }
 
-async function createTestTokenTokenPool(tokenSymbolX: string, tokenSymbolY: string) {
+async function createTestTokenTokenPool(
+  tokenSymbolX: string,
+  tokenSymbolY: string,
+): Promise<CKBComponents.RawTransactionToSign> {
   if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolX]) {
     throw new BizException(`unknown token symbol: ${tokenSymbolX}`);
   }
@@ -266,7 +281,25 @@ async function createTestTokenTokenPool(tokenSymbolX: string, tokenSymbolY: stri
     lock: USER_LOCK,
   };
 
-  await postRequest(CREATE_POOL_URL, req);
+  return await postRequest(CREATE_POOL_URL, req);
+}
+
+async function createTokenTokenGenesisTx(poolId: string, tokenSymbolX: string, tokenSymbolY: string) {
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolX]) {
+    throw new BizException(`unknown token symbol: ${tokenSymbolX}`);
+  }
+  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolY]) {
+    throw new BizException(`unknown token symbol: ${tokenSymbolY}`);
+  }
+
+  const req = {
+    assets: [generateToken(10n * CKB_DECIMAL, tokenSymbolX), generateToken(10n * CKB_DECIMAL, tokenSymbolY)],
+    poolId,
+    lock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  await postRequest(GENESIS_LIQUIDITY_URL, req);
 }
 
 const ckb = new CKB(config.ckbConfig.nodeUrl);
@@ -276,18 +309,37 @@ const token = 'ckUSDC';
 const lpReqTxHash = undefined;
 const swapReqTxHash = undefined;
 
+const poolIds = {
+  GLIAckUSDT: '0xe00e4b40aedc0cd810135339cb7ae4ed22a22c0152edc5cacdaec66a98a7da4b',
+};
+
 const tokenX = 'GLIA';
 const tokenY = 'ckUSDT';
+const poolId = poolIds[`${tokenX}${tokenY}`];
+console.log(`${poolId}`);
+
+// async function main() {
+//   await createTestPool(token);
+//   await createGenesisTx(token);
+//   await createAddLiquidityTx(token);
+//   await createRemoveLiquidityTx(token);
+//   await createCancelLiquidityTx(lpReqTxHash);
+//   await createSwapTx(token);
+//   await createCancelSwapTx(swapReqTxHash);
+// }
 
 async function main() {
-  await createTestTokenTokenPool(tokenX, tokenY);
-  await createTestPool(token);
-  await createGenesisTx(token);
-  await createAddLiquidityTx(token);
-  await createRemoveLiquidityTx(token);
-  await createCancelLiquidityTx(lpReqTxHash);
-  await createSwapTx(token);
-  await createCancelSwapTx(swapReqTxHash);
+  const testPoolId = await (async () => {
+    if (poolId) {
+      return poolId;
+    }
+
+    const tx = await createTestTokenTokenPool(tokenX, tokenY);
+    return extractPoolId(tx);
+  })();
+  console.log(`test pool id: ${testPoolId}`);
+
+  await createTokenTokenGenesisTx(testPoolId, tokenX, tokenY);
 }
 
 main();
