@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { GliaswapAssetWithBalance } from '@gliaswap/commons';
+import { CkbAssetWithBalance, GliaswapAssetWithBalance } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 
@@ -27,7 +27,7 @@ export function removeTrailingZero(str: string) {
   return str.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, '$1');
 }
 
-export function displayBalance(asset: GliaswapAssetWithBalance) {
+export function displayBalance(asset: GliaswapAssetWithBalance | CkbAssetWithBalance) {
   const balance = new BigNumber(asset.balance)
     .div(new BigNumber(10).pow(asset.decimals))
     .toFormat(asset.decimals, BigNumber.ROUND_UP);

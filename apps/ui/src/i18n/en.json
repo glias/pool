@@ -69,7 +69,8 @@
       "pending-requests": "My Pending Swaps",
       "history-orders": "My History Swaps",
       "search-by-type-hash": "Search token by name or type hash",
-      "search-by-address": "Search token by name or address"
+      "search-by-address": "Search token by name or address",
+      "price": "Price"
     },
     "validation": {
       "lte-zero": "The value must be bigger than 0",
