@@ -39,6 +39,7 @@ export interface OrderHistory {
 
 export abstract class DexOrderChain {
   constructor(
+    private _userLock: Script,
     private readonly _cell: Output,
     private readonly _data: string,
     private readonly _tx: TransactionWithStatus,
@@ -169,5 +170,13 @@ export abstract class DexOrderChain {
 
   set live(live: boolean) {
     this._live = live;
+  }
+
+  get userLock(): Script {
+    return this._userLock;
+  }
+
+  set userLock(userLock: Script) {
+    this._userLock = userLock;
   }
 }

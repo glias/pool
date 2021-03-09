@@ -1,4 +1,11 @@
-import { Output, TransactionWithStatus, SwapOrderCellArgs, CellInfoSerializationHolderFactory } from '..';
+import {
+  Output,
+  TransactionWithStatus,
+  SwapOrderCellArgs,
+  CellInfoSerializationHolderFactory,
+  Script,
+  Token,
+} from '..';
 import { CKB_TOKEN_TYPE_HASH, FORCE_BRIDGE_LOCK_HASH_CODE } from '../../config';
 import { BridgeInfo } from '../bridge';
 import { TokenHolderFactory } from '../tokens';
@@ -18,6 +25,7 @@ export enum SWAP_ORDER_TYPE {
 
 export class DexSwapOrderChain extends DexOrderChain {
   constructor(
+    userLock: Script,
     cell: Output,
     data: string,
     tx: TransactionWithStatus,
@@ -28,38 +36,25 @@ export class DexSwapOrderChain extends DexOrderChain {
     private readonly _isOrder?: boolean,
     private readonly _bridgeInfo?: BridgeInfo,
   ) {
-    super(cell, data, tx, index, nextOrderCell, live);
+    super(userLock, cell, data, tx, index, nextOrderCell, live);
   }
 
   getOrderHistory(): OrderHistory {
     const transactionHash = this.getLastOrder().getTxHash();
 
-    let amountIn;
-    let amountOut;
+    const amountIn = this.tokenA();
+    const amountOut = this.tokenB();
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
-      const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
-
       if (this._isIn) {
-        amountIn = token.toERC20Token();
-        amountOut = token;
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       } else {
-        amountIn = token;
-        amountOut = token.toERC20Token();
         amountIn.balance = this._bridgeInfo.amount;
         amountOut.balance = this._bridgeInfo.amount;
       }
     } else {
       const argsData = this.getArgsData();
-      const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
-        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
-      );
-
-      amountIn = argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
-      amountOut = argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
-      if (argsData.sudtTypeHash == CKB_TYPE_HASH) {
+      if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
         // sudt => ckb
         amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
       } else {
@@ -69,7 +64,29 @@ export class DexSwapOrderChain extends DexOrderChain {
             ? this._bridgeInfo.amount
             : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
       }
-      amountOut.balance = argsData.amountOutMin.toString();
+
+      if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+        amountOut.balance = argsData.amountOutMin.toString();
+      } else {
+        if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
+          // sudt => ckb
+          amountOut.balance = (
+            this.getLastOrder()
+              .tx.transaction.outputs.filter((x) => this.equalScript(x.lock, this.userLock))
+              .reduce((total, cell) => total + BigInt(cell.capacity), BigInt(0)) - BigInt(227_0000_0000)
+          ).toString();
+        } else {
+          // ckb => sudt
+          let amount = BigInt(0);
+          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
+            if (this.equalScript(this.getLastOrder().tx.transaction.outputs[i].lock, this.userLock)) {
+              const data = this.getLastOrder().tx.transaction.outputsData[i];
+              amount += CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(data);
+            }
+          }
+          amountOut.balance = amount.toString();
+        }
+      }
     }
 
     const steps = this.buildStep();
@@ -90,6 +107,45 @@ export class DexSwapOrderChain extends DexOrderChain {
     };
 
     return orderHistory;
+  }
+
+  tokenA(): Token {
+    if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
+      const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
+
+      if (this._isIn) {
+        return token.toERC20Token();
+      } else {
+        return token;
+      }
+    } else {
+      const argsData = this.getArgsData();
+      const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
+        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
+      );
+      return argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
+    }
+  }
+
+  tokenB(): Token {
+    if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
+      const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
+
+      if (this._isIn) {
+        return token;
+      } else {
+        return token.toERC20Token();
+      }
+    } else {
+      const argsData = this.getArgsData();
+      const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
+        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
+      );
+
+      return argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
+    }
   }
 
   getArgsData(): SwapOrderCellArgs {

@@ -22,7 +22,7 @@ export class DexLiquidityPoolService {
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
-    const factory = new DexOrderChainFactory(ORDER_TYPE.LIQUIDITY, infoCell);
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell);
     const orderLock = ScriptBuilder.buildLiquidityOrderLockScript();
     const queryOptions: QueryOptions = {
       lock: {
