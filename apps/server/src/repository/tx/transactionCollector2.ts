@@ -10,7 +10,7 @@ export class TransactionCollector2 {
   private queryOptions: QueryOptionsWrapper;
   private rpc: RPC;
   private dexCache: DexCache = dexCache;
-  private cache: Map<string, unknown> = new Map<string, unknown>();
+  // private cache: Map<string, unknown> = new Map<string, unknown>();
   constructor(db: knex, queryOptions: QueryOptions, rpc: RPC) {
     this.db = db;
     this.queryOptions = new QueryOptionsWrapper(queryOptions);
@@ -18,29 +18,38 @@ export class TransactionCollector2 {
   }
 
   async collect(): Promise<Array<TransactionWithStatus>> {
-    const begin2 = new Date().getTime();
     const hashes = await this.getTxHashes();
-    const end2 = new Date().getTime();
-    console.log('sql：', end2 - begin2);
 
     const result = [];
-    const begin = new Date().getTime();
+
     for (const hash of hashes) {
       let tx;
-
       const txJson = await this.dexCache.get(hash);
       if (!txJson) {
         tx = await this.rpc.get_transaction(hash);
+        // const timestamp = await this.getBlockTimestampByHash(tx.tx_status.block_hash);
+        // tx.txStatus.timestamp = timestamp;
         this.dexCache.set(hash, JSON.stringify(tx));
       } else {
         tx = JSON.parse(txJson);
       }
       result.push(tx);
     }
-    const end = new Date().getTime();
-    console.log('redis: ', end - begin);
 
     return result;
+  }
+
+  async getBlockTimestampByHash(blockHash: string): Promise<string> {
+    const timestamp = await this.dexCache.get(`timestamp:${blockHash}`);
+    if (!timestamp) {
+      // const req = [];
+      // req.push(['getBlock', blockHash]);
+      const block = await this.rpc.get_block(blockHash);
+      this.dexCache.set(`timestamp:${blockHash}`, block.header.timestamp);
+      return block.header.timestamp;
+    } else {
+      return timestamp;
+    }
   }
 
   // 'select * from `transaction_digests`

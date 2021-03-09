@@ -40,6 +40,9 @@ export class DexSwapService {
   }
 
   async orders(lock: Script, ethAddress: string, _limit: number, _skip: number): Promise<OrderHistory[]> {
+    const sw = new StopWatch();
+    sw.start();
+
     const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
     const orders: DexOrderChain[] = [];
     const queryOptions: QueryOptions = {
@@ -50,10 +53,9 @@ export class DexSwapService {
       order: 'desc',
     };
 
-    const sw = new StopWatch();
-    sw.start();
-
     const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
+    Logger.info('query txs:', sw.split());
+
     const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
     const bridgeInfoMatch = BridgeInfoMatchChainFactory.getInstance(pureCrossTxs);
     const crossOrders = await this.getCross(lock, ethAddress, bridgeInfoMatch, pureCrossTxs);

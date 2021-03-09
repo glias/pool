@@ -95,8 +95,8 @@ export class CkbRepository implements DexRepository {
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
-        const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-        tx.txStatus.timestamp = timestamp;
+        // const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+        // tx.txStatus.timestamp = timestamp;
         return tx;
       }),
     );
@@ -201,10 +201,16 @@ export class CkbRepository implements DexRepository {
   }
 
   async getBlockTimestampByHash(blockHash: string): Promise<string> {
-    const req = [];
-    req.push(['getBlock', blockHash]);
-    const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
-    return block[0].header.timestamp;
+    const timestamp = await this.dexCache.get(`timestamp:${blockHash}`);
+    if (!timestamp) {
+      const req = [];
+      req.push(['getBlock', blockHash]);
+      const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
+      this.dexCache.set(`timestamp:${blockHash}`, block[0].header.timestamp);
+      return block[0].header.timestamp;
+    } else {
+      return timestamp;
+    }
   }
 
   async getForceBridgeHistory(
