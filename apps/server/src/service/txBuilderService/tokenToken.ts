@@ -2,7 +2,7 @@ import { Context } from 'koa';
 import * as constants from '@gliaswap/constants';
 
 import * as utils from '../../utils';
-import { Script, Token, RawTransaction, cellConver, Output, TransactionToSign, PoolInfo } from '../../model';
+import { Script, Token, RawTransaction, cellConver, Output, TransactionToSign } from '../../model';
 import * as config from '../../config';
 import { tokenTokenConfig } from '../../config';
 
@@ -47,7 +47,11 @@ export class TokenTokenTxBuilderService implements TxBuilderService {
     const typeHash = infoType.toHash();
     const pairHash = utils.blake2b([req.tokenA.typeHash, req.tokenB.typeHash].sort());
     const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
-    const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);
+    const infoLock = new Script(
+      tokenTokenConfig.INFO_LOCK_CODE_HASH,
+      tokenTokenConfig.INFO_LOCK_HASH_TYPE,
+      infoLockArgs,
+    );
 
     // Generate liquidity provider token type script
     const lpTokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
