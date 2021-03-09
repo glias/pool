@@ -93,7 +93,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
       const asset =
         latestTab === 'Nervos'
           ? sudtAssets.find((a) => a.typeHash === val)
-          : erc20Assets.find((e) => e.address === val);
+          : erc20Assets.find((e) => e.address.toLowerCase() === val.toLowerCase());
       const search = latestTab === 'Nervos' ? api.searchSUDT : api.searchERC20;
       if (asset) {
         setSearchResult(asset);
