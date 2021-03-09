@@ -6,7 +6,9 @@ import { redisConfiguration } from '../config';
 class RedisCache implements DexCache {
   private readonly client: redis.RedisClient;
   constructor() {
-    this.client = redis.createClient(<number>redisConfiguration.port, redisConfiguration.address);
+    this.client = redis.createClient(<number>redisConfiguration.port, redisConfiguration.address, {
+      db: redisConfiguration.db,
+    });
     this.client.auth(redisConfiguration.auth);
   }
 
@@ -46,7 +48,7 @@ class RedisCache implements DexCache {
   }
 
   async sleep(ms: number): Promise<void> {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       setTimeout(() => {
         resolve();
       }, ms);

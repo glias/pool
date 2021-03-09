@@ -95,8 +95,8 @@ export class CkbRepository implements DexRepository {
     const result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
-        // const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-        // tx.txStatus.timestamp = timestamp;
+        const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+        tx.txStatus.timestamp = timestamp;
         return tx;
       }),
     );
@@ -129,7 +129,9 @@ export class CkbRepository implements DexRepository {
       });
 
       const inputCellsGroup: Map<string, CellOutput> = new Map();
+
       const inputTxs = await this.getTransactions(Array.from(hashes));
+      Logger.info('get tx input cell: ', sw.split());
       inputTxs.forEach((x) => {
         x.transaction.outputs.forEach((value, index) => {
           const cell = {
@@ -156,6 +158,30 @@ export class CkbRepository implements DexRepository {
     if (hashes.length === 0) {
       return [];
     }
+
+    // const result = [];
+    // for (const hash of hashes) {
+    //   const txJson = await this.dexCache.get(hash);
+    //   if (!txJson) {
+    //     const tx = await this.getTransaction(hash);
+    //     this.dexCache.set(hash, JSON.stringify(tx));
+    //     result.push(tx);
+    //   } else {
+    //     result.push(JSON.parse(txJson));
+    //   }
+    // }
+    //
+    // for (const x of result) {
+    //   const tx = transactionConver.conver(x);
+    //   if (tx.txStatus.blockHash) {
+    //     const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
+    //     tx.txStatus.timestamp = timestamp;
+    //   } else {
+    //     tx.txStatus.timestamp = `0x${new Date().getTime().toString(16)}`;
+    //   }
+    // }
+    //
+    // return result;
 
     const ckbReqParams = [];
     hashes.forEach((x) => ckbReqParams.push(['getTransaction', x]));

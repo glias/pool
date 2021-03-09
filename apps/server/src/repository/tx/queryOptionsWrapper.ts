@@ -4,11 +4,11 @@ import { Script } from '../../model';
 
 export class QueryOptionsWrapper {
   constructor(private queryOptions: QueryOptions) {}
-  getLockScript() {
+  getLockScript(): Script {
     return this.converScript(this.queryOptions.lock);
   }
 
-  getTypeScript() {
+  getTypeScript(): Script {
     return this.converScript(this.queryOptions.type);
   }
 
@@ -24,7 +24,7 @@ export class QueryOptionsWrapper {
     return this.queryOptions.argsLen;
   }
 
-  private converScript(script: lumos.Script | lumos.ScriptWrapper | 'empty') {
+  private converScript(script: lumos.Script | lumos.ScriptWrapper | 'empty'): Script {
     if (!script) {
       return null;
     }
