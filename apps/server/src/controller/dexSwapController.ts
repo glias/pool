@@ -120,7 +120,10 @@ export default class DexSwapController {
         ctx.throw(400, `asset type hash ${asset.typeHash}'s balance is zero`);
       }
 
-      let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+      let token = Token.fromAsset(asset as AssetSchema);
+      if (token.typeScript == undefined) {
+        token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+      }
       if (!token) {
         ctx.throw(400, `asset type hash: ${asset.typeHash} not in token list`);
       }
