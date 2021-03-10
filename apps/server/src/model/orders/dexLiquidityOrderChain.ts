@@ -6,6 +6,7 @@ import {
   LiquidityOrderCellArgs,
   PoolInfo,
   Script,
+  PoolInfoFactory,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { TokenHolderFactory } from '../tokens';
@@ -38,7 +39,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const sudtToken =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
-        : TokenHolderFactory.getInstance().getTokenBySymbol(PoolInfo.getSudtSymbol(this.poolInfo.infoCell));
+        : PoolInfoFactory.getQuoteBaseByCell(this.poolInfo.infoCell).baseToken;
     const amountA = ckbToken;
     const amountB = sudtToken;
 

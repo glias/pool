@@ -11,7 +11,9 @@ import {
   PoolInfo,
   Script,
   TokenHolderFactory,
+  PoolInfoFactory,
 } from '../model';
+
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 
@@ -185,9 +187,17 @@ export class DexLiquidityPoolService {
     const argsData = CellInfoSerializationHolderFactory.getInstance()
       .getInfoCellSerialization()
       .decodeData(infoCell.data);
-    const sudtType = PoolInfo.getSudtSymbol(infoCell);
-    const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
+    // const sudtType = PoolInfo.getSudtSymbol(infoCell);
+    // const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
+    const tokenB = PoolInfoFactory.getQuoteBaseByCell(infoCell).baseToken;
     tokenB.balance = argsData.sudtReserve.toString();
+
+    // console.log(
+    //   tokenB.info.name,
+    //   CellInfoSerializationHolderFactory.getInstance()
+    //     .getInfoCellSerialization()
+    //     .decodeArgs(infoCell.cellOutput.lock.args),
+    // );
 
     // Prevent modification to the same tokenA
     const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
