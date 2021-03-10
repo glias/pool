@@ -64,7 +64,7 @@ export class CkbRepository implements DexRepository {
 
     if (filterPool) {
       const pendingTxs = await this.getPoolTxs();
-      const filter: PoolFilter = new PendingFilter(pendingTxs, null, null);
+      const filter: PoolFilter = new PendingFilter(pendingTxs, null, []);
       for (const cell of dexCells) {
         const matchCells = filter.getCellFilter().matchCells(queryOptions, cell);
         if (matchCells.length !== 0) {
