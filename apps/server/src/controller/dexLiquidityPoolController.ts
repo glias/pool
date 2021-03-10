@@ -168,7 +168,10 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, 'create pool dont need asset balance');
         }
 
-        const token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        let token = Token.fromAsset(asset as AssetSchema);
+        if (token.typeScript == undefined) {
+          token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        }
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
@@ -294,7 +297,10 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, 'asset balance is zero');
         }
 
-        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        let token = Token.fromAsset(asset as AssetSchema);
+        if (token.typeScript == undefined) {
+          token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        }
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
@@ -374,7 +380,10 @@ export default class DexLiquidityPoolController {
         ctx.throw(400, 'asset ${idx} min balance is zero');
       }
 
-      const tokenDesiredAmount = this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash);
+      let tokenDesiredAmount = Token.fromAsset(assetDesire as AssetSchema);
+      if (tokenDesiredAmount.typeScript == undefined) {
+        tokenDesiredAmount = this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash);
+      }
       if (!tokenDesiredAmount) {
         ctx.throw(400, `asset ${idx} type hash: ${assetDesire.typeHash} not in token list`);
       }
@@ -455,7 +464,10 @@ export default class DexLiquidityPoolController {
           ctx.throw(400, `asset ${idx} type hash ${asset.typeHash}'s balance is zero`);
         }
 
-        let token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        let token = Token.fromAsset(asset as AssetSchema);
+        if (token.typeScript == undefined) {
+          token = this.tokenHolder.getTokenByTypeHash(asset.typeHash);
+        }
         if (!token) {
           ctx.throw(400, `asset ${idx} type hash: ${asset.typeHash} not in token list`);
         }
