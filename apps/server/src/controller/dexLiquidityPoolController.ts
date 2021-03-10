@@ -381,7 +381,7 @@ export default class DexLiquidityPoolController {
       }
 
       let tokenDesiredAmount = Token.fromAsset(assetDesire as AssetSchema);
-      if (!tokenDesiredAmount.typeScript == undefined) {
+      if (tokenDesiredAmount.typeScript == undefined) {
         tokenDesiredAmount = this.tokenHolder.getTokenByTypeHash(assetDesire.typeHash);
       }
       if (!tokenDesiredAmount) {
