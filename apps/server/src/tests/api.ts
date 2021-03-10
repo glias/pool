@@ -30,6 +30,21 @@ const SWAP_URL = `${ROOT_URL}/swap/orders/swap`;
 const CANCEL_SWAP_REQUEST_URL = `${ROOT_URL}/swap/orders/cancel`;
 
 const TOKEN_HOLDER = TokenHolderFactory.getInstance();
+const CUSTOM_TOKENS = {
+  PenPen: {
+    typeHash: '0x2e5a221c10510c7719de6fb0d11d851f8228f7c21644447814652343a1d1cbee',
+    typeScript: {
+      codeHash: '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+      hashType: 'type',
+      args: '0xab4667fef2ee4b3604bba380418349466792e39b6111b17441f8d04382cb6635',
+    },
+    name: 'PenPen',
+    symbol: 'PenPen',
+    decimals: 8,
+    logoURI: 'PenPen.jpg',
+    chainType: 'Nervos',
+  },
+};
 
 const ckbToken = (amount: bigint) => {
   const token = TOKEN_HOLDER.getTokenBySymbol('CKB');
@@ -44,11 +59,18 @@ const ckbToken = (amount: bigint) => {
 const generateToken = (amount: bigint, symbol: string) => {
   const token = TOKEN_HOLDER.getTokenBySymbol(symbol);
 
-  return {
-    balance: amount.toString(),
-    typeHash: token.typeHash,
-    ...token.info,
-  };
+  if (token != undefined) {
+    return {
+      balance: amount.toString(),
+      typeHash: token.typeHash,
+      ...token.info,
+    };
+  } else {
+    return {
+      balance: amount.toString(),
+      ...CUSTOM_TOKENS[symbol],
+    };
+  }
 };
 
 const generateLPToken = (amount: bigint, tokenSymbol: string) => {
@@ -269,13 +291,6 @@ async function createTestTokenTokenPool(
   tokenSymbolX: string,
   tokenSymbolY: string,
 ): Promise<CKBComponents.RawTransactionToSign> {
-  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolX]) {
-    throw new BizException(`unknown token symbol: ${tokenSymbolX}`);
-  }
-  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolY]) {
-    throw new BizException(`unknown token symbol: ${tokenSymbolY}`);
-  }
-
   const req = {
     assets: [generateToken(0n, tokenSymbolX), generateToken(0n, tokenSymbolY)],
     lock: USER_LOCK,
@@ -285,13 +300,6 @@ async function createTestTokenTokenPool(
 }
 
 async function createTokenTokenGenesisTx(poolId: string, tokenSymbolX: string, tokenSymbolY: string) {
-  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolX]) {
-    throw new BizException(`unknown token symbol: ${tokenSymbolX}`);
-  }
-  if (!PoolInfo.TYPE_SCRIPTS[tokenSymbolY]) {
-    throw new BizException(`unknown token symbol: ${tokenSymbolY}`);
-  }
-
   const req = {
     assets: [generateToken(10n * CKB_DECIMAL, tokenSymbolX), generateToken(10n * CKB_DECIMAL, tokenSymbolY)],
     poolId,
@@ -310,11 +318,12 @@ const lpReqTxHash = undefined;
 const swapReqTxHash = undefined;
 
 const poolIds = {
-  GLIAckUSDT: '0xe00e4b40aedc0cd810135339cb7ae4ed22a22c0152edc5cacdaec66a98a7da4b',
+  // txHash:  0x69b7f2502ba624e8fcc1d668ea9a025b95679a2b805038ee38ae029391255567
+  GLIAPenPen: '0x96678e22435915ac135d6a5715eb973d6e4a025c4d77036327282e9d019c5eaa',
 };
 
 const tokenX = 'GLIA';
-const tokenY = 'ckUSDT';
+const tokenY = 'PenPen';
 const poolId = poolIds[`${tokenX}${tokenY}`];
 console.log(`${poolId}`);
 
