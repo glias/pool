@@ -32,7 +32,7 @@ export interface AssetListProps<A extends Asset, K extends Key> {
   renderKey: (asset: A, index: number, data: A[]) => K;
   assets: A[];
   disabledKeys?: K[];
-  onSelected?: (key: K, asset: A) => void;
+  onSelected?: (key: K, asset: A) => void | Promise<void>;
   enableSearch?: boolean;
   filterValue?: string;
   groupFilter?: (key: K) => boolean;

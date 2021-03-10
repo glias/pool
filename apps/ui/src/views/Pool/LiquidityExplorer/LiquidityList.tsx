@@ -22,6 +22,11 @@ const LiquidityListWrapper = styled.div`
     margin-bottom: 16px;
     cursor: pointer;
 
+    .column-numerical,
+    .column-symbol {
+      font-size: 12px;
+    }
+
     .asset-symbol {
       font-weight: bold;
     }
@@ -60,11 +65,11 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
       ) : (
         pools.map(({ assets, poolId }) => (
           <Section key={poolId} className="liquidity-item" onClick={() => history.push(`/pool/${poolId}`)}>
-            <SpaceBetweenRow>
+            <SpaceBetweenRow style={{ padding: 0, fontSize: '14px' }}>
               <div className="asset-symbol">
                 <PoolAssetSymbol assets={assets} />
               </div>
-              <AssetBalanceList assets={assets} />
+              <AssetBalanceList assets={assets} hideSymbolIcon />
             </SpaceBetweenRow>
           </Section>
         ))

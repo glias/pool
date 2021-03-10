@@ -1,11 +1,13 @@
-import { LiquidityPoolFilter } from '@gliaswap/commons';
-import { Radio, Skeleton } from 'antd';
+import { CkbAsset, CkbModel, LiquidityPoolFilter } from '@gliaswap/commons';
+import { Button, Divider, Radio, Row, Skeleton } from 'antd';
 import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
-import React, { useMemo } from 'react';
+import { differenceWith } from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { AssetFilter } from './AssetFilter';
 import { LiquidityList } from './LiquidityList';
 
 const LiquidityExplorerWrapper = styled.div``;
@@ -14,15 +16,20 @@ const LiquidityExplorer = () => {
   const { pathname } = useLocation();
   const { api, currentUserLock } = useGliaswap();
   const history = useHistory();
+  const [specsFilter, setSpecsFilter] = useState<CkbAsset[]>([]);
 
-  const poolFilter = useMemo<LiquidityPoolFilter | undefined>(() => {
-    if (pathname !== '/pool/explorer/mine') return undefined;
-    return { lock: currentUserLock };
-  }, [pathname, currentUserLock]);
+  const currentTab = useMemo<'mine' | 'all'>(() => {
+    return pathname === '/pool/explorer/mine' ? 'mine' : 'all';
+  }, [pathname]);
 
-  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], () => {
-    if (poolFilter && !poolFilter.lock) return [];
-    return api.getLiquidityPools(poolFilter);
+  const poolFilter = useMemo<LiquidityPoolFilter>(() => {
+    const lock = pathname !== '/pool/explorer/mine' ? undefined : currentUserLock;
+    return { lock, assets: specsFilter };
+  }, [pathname, currentUserLock, specsFilter]);
+
+  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], async () => {
+    const pools = await api.getLiquidityPools(poolFilter);
+    return pools.filter((pool) => differenceWith(specsFilter, pool.assets, CkbModel.equals).length === 0);
   });
 
   return (
@@ -31,7 +38,7 @@ const LiquidityExplorer = () => {
         <Radio.Group
           buttonStyle="solid"
           size="large"
-          value={poolFilter ? 'mine' : 'all'}
+          value={currentTab}
           onChange={(e) =>
             e.target.value === 'mine' ? history.push('/pool/explorer/mine') : history.push('/pool/explorer')
           }
@@ -42,6 +49,13 @@ const LiquidityExplorer = () => {
           ]}
         />
       </header>
+      <Row justify="space-between" align="middle" style={{ paddingTop: '32px' }}>
+        <Button type="primary" disabled>
+          {i18n.t('Create Pool')}
+        </Button>
+        <AssetFilter onChange={setSpecsFilter} />
+      </Row>
+      <Divider />
       {status === 'loading' || !data ? <Skeleton /> : <LiquidityList pools={data} />}
     </LiquidityExplorerWrapper>
   );
