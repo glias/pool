@@ -2,7 +2,8 @@
   "extends": "./tsconfig.paths.json",
   "include": ["src"],
   "compilerOptions": {
-    "baseUrl": "src",
+    "composite": false,
+    "rootDir": "src",
     "emitDeclarationOnly": false,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
