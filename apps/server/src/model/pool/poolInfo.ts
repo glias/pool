@@ -58,28 +58,6 @@ export class PoolInfo {
   static getTypeScriptByPoolId(poolId: string): Script {
     return PoolInfo.getTypeScripts().find((x) => x.toHash() === poolId);
   }
-
-  static getSudtSymbol(poolCell: Cell): string {
-    if (PoolInfo.TYPE_ARGS['GLIA'] === poolCell.cellOutput.type.args) {
-      return 'GLIA';
-    }
-
-    if (PoolInfo.TYPE_ARGS['ckETH'] === poolCell.cellOutput.type.args) {
-      return 'ckETH';
-    }
-
-    if (PoolInfo.TYPE_ARGS['ckDAI'] === poolCell.cellOutput.type.args) {
-      return 'ckDAI';
-    }
-
-    if (PoolInfo.TYPE_ARGS['ckUSDC'] === poolCell.cellOutput.type.args) {
-      return 'ckUSDC';
-    }
-
-    if (PoolInfo.TYPE_ARGS['ckUSDT'] === poolCell.cellOutput.type.args) {
-      return 'ckUSDT';
-    }
-  }
 }
 
 export class PoolInfoHolder {
