@@ -34,7 +34,7 @@ export interface LiquidityOperationSummaryFilter {
 
 export interface GenerateCreateLiquidityPoolTransactionPayload {
   lock: Script;
-  assets: CkbAsset[];
+  assets: CkbAssetWithBalance[];
 }
 
 export interface GenerateCreateLiquidityPoolTransactionResponse {
