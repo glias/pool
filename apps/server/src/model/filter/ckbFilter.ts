@@ -18,14 +18,21 @@ export interface TransactionFilter {
 
 export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter {
   private alreadyHash: Set<string> = new Set();
+  private readonly poolTxs: TransactionWithStatus[];
+  private readonly poolInputTxs?: TransactionWithStatus[];
 
-  constructor(private txs: TransactionWithStatus[], private inputTxs?: TransactionWithStatus[]) {}
+  constructor(poolTxs: TransactionWithStatus[], poolInputTxs?: TransactionWithStatus[], txs?: TransactionWithStatus[]) {
+    txs.forEach((x) => this.alreadyHash.add(x.transaction.hash));
+    this.poolTxs = poolTxs;
+    this.poolInputTxs = poolInputTxs;
+  }
+
   matchTransactions(queryOptions: QueryOptions): TransactionWithStatus[] {
-    if (!this.txs) {
+    if (!this.poolTxs) {
       return [];
     }
 
-    if (!this.inputTxs) {
+    if (!this.poolInputTxs) {
       throw new BizException('inputTxs not undefined');
     }
 
@@ -83,7 +90,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
   matchTxsByInput(queryOptions: QueryOptions): TransactionWithStatus[] {
     const result: TransactionWithStatus[] = [];
     const groupByInputOutPoint = this.getInputCells();
-    this.txs.forEach((x) => {
+    this.poolTxs.forEach((x) => {
       if (this.alreadyHash.has(x.transaction.hash)) {
         return;
       }
@@ -113,7 +120,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
 
   matchTxsByOutput(queryOptions: QueryOptions): TransactionWithStatus[] {
     const result: TransactionWithStatus[] = [];
-    this.txs.forEach((x) => {
+    this.poolTxs.forEach((x) => {
       if (this.alreadyHash.has(x.transaction.hash)) {
         return;
       }
@@ -141,7 +148,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
 
   getInputCells(): Map<string, CellOutput> {
     const groupByInputOutPoint: Map<string, CellOutput> = new Map();
-    this.inputTxs.forEach((x) => {
+    this.poolInputTxs.forEach((x) => {
       for (let i = 0; i < x.transaction.outputs.length; i++) {
         const cell = x.transaction.outputs[i];
         const key = this.genKey({
@@ -157,7 +164,7 @@ export class PendingFilter implements PoolFilter, CellFilter, TransactionFilter 
 
   getPoolCells(): Map<string, TransactionWithStatus> {
     const groupByInputOutPoint = new Map<string, TransactionWithStatus>();
-    this.txs.forEach((tx) => {
+    this.poolTxs.forEach((tx) => {
       tx.transaction.inputs.forEach((input) => {
         const key = this.genKey(input.previousOutput);
         groupByInputOutPoint.set(key, tx);

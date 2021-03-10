@@ -64,7 +64,7 @@ export class CkbRepository implements DexRepository {
 
     if (filterPool) {
       const pendingTxs = await this.getPoolTxs();
-      const filter: PoolFilter = new PendingFilter(pendingTxs, null);
+      const filter: PoolFilter = new PendingFilter(pendingTxs, null, null);
       for (const cell of dexCells) {
         const matchCells = filter.getCellFilter().matchCells(queryOptions, cell);
         if (matchCells.length !== 0) {
@@ -111,7 +111,7 @@ export class CkbRepository implements DexRepository {
         });
       }
       const inputTxs = await this.getTransactions(hashes);
-      const filter: PoolFilter = new PendingFilter(pendingTxs, inputTxs);
+      const filter: PoolFilter = new PendingFilter(pendingTxs, inputTxs, result);
       filter
         .getTransactionFilter()
         .matchTransactions(queryOptions)
