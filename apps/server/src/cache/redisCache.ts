@@ -1,10 +1,11 @@
 import redis from 'redis';
 
-import { DexCache } from './dexCache';
 import { redisConfiguration } from '../config';
+import { DexCache } from './dexCache';
 
 class RedisCache implements DexCache {
   private readonly client: redis.RedisClient;
+
   constructor() {
     this.client = redis.createClient(<number>redisConfiguration.port, redisConfiguration.address, {
       db: redisConfiguration.db,

@@ -1,8 +1,8 @@
-import React from 'react';
-import { MetaContainer } from 'components/MetaContainer';
 import Gift from 'assets/img/gift.png';
-import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
+import { MetaContainer } from 'components/MetaContainer';
 import i18n from 'i18n';
+import React from 'react';
+import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { SwapMode } from './context';
 
 export const CrossMeta = ({ swapMode, isBid }: { swapMode: SwapMode; isBid: boolean }) => {

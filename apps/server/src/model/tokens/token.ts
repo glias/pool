@@ -1,5 +1,5 @@
+import { BigNumber } from 'bignumber.js';
 import { Script } from '..';
-import BigNumber from 'bignumber.js';
 import { AssetSchema, TokenInfoSchema } from '../../controller/swaggerSchema';
 
 export class Token {
@@ -81,6 +81,7 @@ export class TokenInfo {
   logoURI: string;
   address: string;
   chainType: string;
+
   constructor(name: string, symbol: string, decimals: number, logoURI: string, address: string, chainType: string) {
     this.name = name;
     this.symbol = symbol;

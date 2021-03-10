@@ -1,14 +1,20 @@
-import { Context } from 'koa';
-import { BridgeInfo, BridgeInfoMatchChain, BridgeInfoMatchChainFactory, Script, TransactionWithStatus } from '../model';
-import { ckbRepository, DexRepository } from '../repository';
-import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
 import { QueryOptions } from '@ckb-lumos/base';
-import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
+import { Context } from 'koa';
+import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
+import { Logger } from '../logger';
+import {
+  BridgeInfo,
+  BridgeInfoMatchChain,
+  BridgeInfoMatchChainFactory,
+  Script,
+  TransactionWithStatus,
+  StopWatch,
+} from '../model';
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
+import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
+import { ckbRepository, DexRepository } from '../repository';
 
 import { txBuilder } from '.';
-import { StopWatch } from '../model';
-import { Logger } from '../logger';
 
 export class DexSwapService {
   private readonly dexRepository: DexRepository;

@@ -1,13 +1,13 @@
 import { Asset, GliaswapAPI } from '@gliaswap/commons';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { message } from 'antd';
-import { useConstant } from 'commons/use-constant';
 import { Provider as AdapterProvider, Web3ModalAdapter } from 'commons/WalletAdapter';
+import { useConstant } from 'commons/use-constant';
 import { Provider as AssetProvider } from 'contexts/GliaswapAssetContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { BridgeAPI } from 'suite/api/bridgeAPI';
 import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
+import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 export const GliaswapProvider: React.FC = (props) => {
   const api: GliaswapAPI = useConstant(() => ServerGliaswapAPI.getInstance());

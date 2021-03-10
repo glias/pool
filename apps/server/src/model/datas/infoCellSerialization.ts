@@ -1,6 +1,6 @@
 import { createFixedStruct, U128LE } from 'easy-byte';
-import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 import * as utils from '../../utils';
+import { InfoCellArgs, InfoCellData, InfoCellSerialization } from '.';
 
 export class DefaultInfoCellSerialization implements InfoCellSerialization {
   encodeArgs = (sudtTypeHash: string, infoTypeHash: string): string => {

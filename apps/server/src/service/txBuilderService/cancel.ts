@@ -1,11 +1,11 @@
 import { Context } from 'koa';
 
+import * as config from '../../config';
 import { Cell, RawTransaction, cellConver, Output, TransactionToSign, CellDep } from '../../model';
 import { DexRepository } from '../../repository';
+import { CellCollector } from './collector';
 import { CancelRequest, TransactionWithFee } from './requestResponse';
 import * as txBuilderUtils from './utils';
-import * as config from '../../config';
-import { CellCollector } from './collector';
 
 export type CodeHash = string;
 

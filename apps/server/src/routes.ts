@@ -1,5 +1,5 @@
-import { SwaggerRouter } from 'koa-swagger-decorator';
 import * as path from 'path';
+import { SwaggerRouter } from 'koa-swagger-decorator';
 
 const router = new SwaggerRouter();
 

@@ -1,5 +1,5 @@
-import { body, Context, request, responses, summary, description } from 'koa-swagger-decorator';
 import * as ckbToolkit from 'ckb-js-toolkit';
+import { body, Context, request, responses, summary, description } from 'koa-swagger-decorator';
 
 import { sendTransactionService, SendTransactionService } from '../service';
 import { SignedTransactionSchema } from './swaggerSchema';

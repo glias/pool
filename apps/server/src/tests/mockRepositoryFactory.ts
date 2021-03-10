@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import sinon from 'sinon';
 import { QueryOptions } from '@ckb-lumos/base';
+import sinon from 'sinon';
+import { BizException } from '../bizException';
 import { BridgeInfo, Cell, Script, TransactionWithStatus } from '../model';
 import { DexRepository } from '../repository';
 import { ckbMethods } from '../repository/dexRepository';
-import { BizException } from '../bizException';
 
 export class MockRepositoryFactory {
   static getDexRepositoryInstance(): MockRepository {

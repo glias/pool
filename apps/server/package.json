@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "main": "./lib/index.js",
   "dependencies": {
+    "@gliaswap/commons": "*",
+    "@gliaswap/constants": "*",
+    "@gliaswap/types": "*",
     "@ckb-lumos/base": "^0.14.2-rc6",
     "@ckb-lumos/sql-indexer": "^0.14.2-rc6",
     "@lay2/pw-core": "^0.3.22",

@@ -17,9 +17,9 @@ import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { truncateMiddle } from 'utils';
+import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './LiquidityOperation/components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
-import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
 import { LiquidityOperationDetail } from './LiquidityOperationSteps';
 
 const { Text } = Typography;

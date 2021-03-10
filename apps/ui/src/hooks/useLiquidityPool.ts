@@ -1,7 +1,7 @@
+import { PoolInfo } from '@gliaswap/commons';
 import { useGliaswap } from 'hooks';
 import { useState, useEffect } from 'react';
 import { useQuery, UseQueryOptions } from 'react-query';
-import { PoolInfo } from '@gliaswap/commons';
 
 export interface PoolInfoWithTimestamp {
   lastUpdated: string;

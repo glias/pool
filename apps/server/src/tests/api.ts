@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import axios, { AxiosResponse } from 'axios';
+import * as commons from '@gliaswap/commons';
+import { CKB_TYPE_HASH, CKB_DECIMAL } from '@gliaswap/constants';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import { AddressPrefix, privateKeyToAddress, addressToScript } from '@nervosnetwork/ckb-sdk-utils';
-import { CKB_TYPE_HASH, CKB_DECIMAL } from '@gliaswap/constants';
-import * as commons from '@gliaswap/commons';
+import axios, { AxiosResponse } from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
+import * as config from '../../src/config';
 import { PoolInfo, TokenHolderFactory, Script } from '../../src/model';
 import { txBuilder } from '../../src/service';
-import * as config from '../../src/config';
 import { BizException } from '../bizException';
 
 const USER_PRIV_KEY = process.env.USER_PRIV_KEY;

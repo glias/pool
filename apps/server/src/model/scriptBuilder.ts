@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { CellInfoSerializationHolderFactory, LiquidityOrderCellArgs, Script } from '.';
 import { LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE } from '../config';
+import { CellInfoSerializationHolderFactory, LiquidityOrderCellArgs, Script } from '.';
 
 export const LIQUIDITY_ORDER_LOCK_SCRIPT = new Script(
   LIQUIDITY_LOCK_CODE_HASH,

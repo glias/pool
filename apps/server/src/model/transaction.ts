@@ -3,8 +3,8 @@
 import * as lumos from '@ckb-lumos/base';
 import * as ckbToolkit from 'ckb-js-toolkit';
 
-import { Cell, cellConver, CellOutput, OutPoint } from '.';
 import * as config from '../config';
+import { Cell, cellConver, CellOutput, OutPoint } from '.';
 
 export interface TransactionWithStatus {
   transaction: Transaction;

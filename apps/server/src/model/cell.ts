@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as lumos from '@ckb-lumos/base';
-import * as ckbToolkit from 'ckb-js-toolkit';
 import * as pw from '@lay2/pw-core';
+import * as ckbToolkit from 'ckb-js-toolkit';
 
 import { Input } from '.';
 

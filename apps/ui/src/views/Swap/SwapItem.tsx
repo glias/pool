@@ -1,6 +1,3 @@
-import React from 'react';
-import { Button, List } from 'antd';
-import i18n from 'i18n';
 import {
   SwapOrder,
   GliaswapAssetWithBalance,
@@ -8,15 +5,18 @@ import {
   isShadowEthAsset,
   CkbAssetWithBalance,
 } from '@gliaswap/commons';
-import styled from 'styled-components';
-import { TableRow } from 'components/TableRow';
-import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
-import { AssetSymbol } from 'components/Asset';
-import { useMemo } from 'react';
+import { Button, List } from 'antd';
 import { ReactComponent as InfoSvg } from 'assets/svg/info.svg';
 import { ReactComponent as ArrowSvg } from 'assets/svg/right-arrow.svg';
-import { useSwapContainer } from './context';
+import { AssetSymbol } from 'components/Asset';
+import { TableRow } from 'components/TableRow';
+import i18n from 'i18n';
+import { useMemo } from 'react';
+import React from 'react';
 import { useCallback } from 'react';
+import styled from 'styled-components';
+import { calcCrossIn, displayBalance, formatTimestamp } from 'utils';
+import { useSwapContainer } from './context';
 
 const RightArrow = styled.span`
   width: 12px;

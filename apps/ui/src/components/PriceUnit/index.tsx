@@ -1,14 +1,14 @@
-import React from 'react';
+import { RetweetOutlined } from '@ant-design/icons';
 import { CkbAssetWithBalance, CkbModel, GliaswapAssetWithBalance } from '@gliaswap/commons';
+import BigNumber from 'bignumber.js';
+import { TableRow } from 'components/TableRow';
+import i18n from 'i18n';
+import React from 'react';
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useMemo } from 'react';
-import { TableRow } from 'components/TableRow';
-import { Balanced } from 'views/Swap/SwapItem';
-import i18n from 'i18n';
-import BigNumber from 'bignumber.js';
 import styled from 'styled-components';
-import { RetweetOutlined } from '@ant-design/icons';
+import { Balanced } from 'views/Swap/SwapItem';
 
 export interface PriceUnitProps {
   tokenA: GliaswapAssetWithBalance | CkbAssetWithBalance;

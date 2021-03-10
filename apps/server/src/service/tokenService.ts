@@ -1,7 +1,7 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import * as ckbCoreUtils from '@nervosnetwork/ckb-sdk-utils';
-import { ckbRepository, DexRepository, tokenRepository, TokenRepository } from '../repository';
 import { Token, TokenInfo } from '../model';
+import { ckbRepository, DexRepository, tokenRepository, TokenRepository } from '../repository';
 
 export interface TokenService {
   getTokesByTypeHashOrAddress(typeHashOrAddress: string): Promise<Token[]>;

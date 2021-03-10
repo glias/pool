@@ -12,9 +12,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation } from 'react-query';
 import styled from 'styled-components';
 import { BN } from 'suite';
+import { OperationConfirmModal } from './OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
-import { OperationConfirmModal } from './OperationConfirmModal';
 
 const { Text } = Typography;
 

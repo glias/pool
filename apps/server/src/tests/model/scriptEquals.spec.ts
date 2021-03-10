@@ -1,5 +1,5 @@
-import { Script, scriptEquals } from '../../model';
 import * as lumos from '@ckb-lumos/base';
+import { Script, scriptEquals } from '../../model';
 
 const script = new Script(
   '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',

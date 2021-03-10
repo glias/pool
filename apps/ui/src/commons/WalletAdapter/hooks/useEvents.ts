@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Web3ModalAdapter } from '../adapters/Web3ModalAdapter';
 import { useWalletAdapter } from '../Provider';
+import { Web3ModalAdapter } from '../adapters/Web3ModalAdapter';
 
 export function useChainId(): { chainId: string | null } {
   const { raw } = useWalletAdapter<Web3ModalAdapter>();
