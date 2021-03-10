@@ -310,6 +310,24 @@ async function createTokenTokenGenesisTx(poolId: string, tokenSymbolX: string, t
   await postRequest(GENESIS_LIQUIDITY_URL, req);
 }
 
+async function createTokenTokenAddLiquidityTx(poolId: string, tokenSymbolX: string, tokenSymbolY: string) {
+  const req = {
+    assetsWithDesiredAmount: [
+      generateToken(100n * CKB_DECIMAL, tokenSymbolX),
+      generateToken(100n * CKB_DECIMAL, tokenSymbolY),
+    ],
+    assetsWithMinAmount: [
+      generateToken(50n * CKB_DECIMAL, tokenSymbolX),
+      generateToken(50n * CKB_DECIMAL, tokenSymbolY),
+    ],
+    poolId,
+    lock: USER_LOCK,
+    tips: ckbToken(0n),
+  };
+
+  await postRequest(ADD_LIQUIDITY_URL, req);
+}
+
 const ckb = new CKB(config.ckbConfig.nodeUrl);
 console.log(`use address: ${USER_ADDRESS}`);
 // const TOKENS = ['GLIA', 'ckETH', 'ckDAI', 'ckUSDC', 'ckUSDT'];
@@ -349,6 +367,7 @@ async function main() {
   console.log(`test pool id: ${testPoolId}`);
 
   await createTokenTokenGenesisTx(testPoolId, tokenX, tokenY);
+  await createTokenTokenAddLiquidityTx(testPoolId, tokenX, tokenY);
 }
 
 main();
