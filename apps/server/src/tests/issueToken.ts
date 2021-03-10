@@ -128,11 +128,11 @@ const collect = async (capacity: bigint, userLock: Script, token?: Token): Promi
 const genIssueTokenTx = async (amount: bigint, txFee = 0n): Promise<TransactionToSign> => {
   const tokenCodec = CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization();
   const userLock = new Script(USER_LOCK.codeHash, USER_LOCK.hashType, USER_LOCK.args);
+  const tokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', userLock.toHash());
+  console.log(`token type hash: ${tokenType.toHash()}`);
 
   const minCKBCapacity = minCKBChangeCapacity(userLock);
   const { inputCells, inputCapacity } = await collectFreeCkb(MIN_SUDT_CAPACITY + txFee, userLock);
-
-  const tokenType = new Script(config.SUDT_TYPE_CODE_HASH, 'type', userLock.toHash());
 
   const tokenOutput = {
     capacity: hexBigint(MIN_SUDT_CAPACITY),
