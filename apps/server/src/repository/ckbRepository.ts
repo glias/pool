@@ -226,6 +226,9 @@ export class CkbRepository implements DexRepository {
   }
 
   async getBlockTimestampByHash(blockHash: string): Promise<string> {
+    if (!blockHash) {
+      return `0x${new Date().getTime().toString(16)}`;
+    }
     const timestamp = await this.dexCache.get(`timestamp:${blockHash}`);
     if (!timestamp) {
       const req = [];
