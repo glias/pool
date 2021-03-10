@@ -12,4 +12,4 @@ jobs:
       - name: Install dependency
         run: yarn install
       - name: Lint
-        run: yarn lint
+        run: yarn build:types && yarn build:lib && yarn lint
