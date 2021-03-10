@@ -1,7 +1,7 @@
-import { SwapOutlined } from '@ant-design/icons';
+import { RetweetOutlined } from '@ant-design/icons';
 import { AssetWithBalance } from '@gliaswap/commons';
 import { HumanizeBalance } from 'components/Balance';
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { BN } from 'suite';
 
@@ -12,30 +12,37 @@ interface AssetPriceProps {
   assets: AssetWithBalance[];
 }
 
-const SwapIcon = styled(SwapOutlined)`
+const SwapIcon = styled(RetweetOutlined)`
   border-radius: 50%;
   background: #5c61da;
   padding: 2px;
   color: #fff;
-  margin: 0 4px;
+  margin-left: 4px;
+  font-size: 0.8em;
+  vertical-align: revert;
+  cursor: pointer;
 `;
 
-export const AssetBaseQuotePrices: React.FC<AssetPriceProps> = (props) => {
-  const [baseAsset, ...otherAssets] = props.assets;
+export const AssetPrice: React.FC<AssetPriceProps> = (props) => {
+  const [baseAssetIndex, setBaseAssetIndex] = useState(0);
+
+  const baseAsset = props.assets[baseAssetIndex];
+  const otherAssets = props.assets.slice(0, baseAssetIndex).concat(props.assets.slice(baseAssetIndex + 1));
 
   return (
     <>
-      {otherAssets.map((otherAsset, i) => (
+      {otherAssets.map((anotherAsset, i) => (
         <span key={i}>
-          <HumanizeBalance showSuffix asset={otherAsset} value={10 ** otherAsset.decimals} />
-          <SwapIcon />
+          <HumanizeBalance showSuffix asset={anotherAsset} value={10 ** anotherAsset.decimals} />
+          &nbsp;=&nbsp;
           <HumanizeBalance
             showSuffix
             asset={baseAsset}
             value={BN(baseAsset.balance)
-              .div(otherAsset.balance)
-              .times(10 ** otherAsset.decimals)}
+              .times(10 ** anotherAsset.decimals)
+              .div(anotherAsset.balance)}
           />
+          <SwapIcon onClick={() => setBaseAssetIndex((index) => (index + 1) % props.assets.length)} />
         </span>
       ))}
     </>
