@@ -15,8 +15,8 @@ import {
 } from '../model';
 
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
-
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
+
 import { ckbRepository, DexRepository } from '../repository';
 import { txBuilder } from '.';
 
