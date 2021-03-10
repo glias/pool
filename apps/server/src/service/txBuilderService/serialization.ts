@@ -140,11 +140,9 @@ export class LiquidityCellSerialization {
     mainCellLockHash: string,
   ): string => {
     const ver = createFixedStruct().field('version', U8);
-    return `0x
-      ${utils.trim0x(infoTypeHash)}
-      ${utils.trim0x(userLockHash)}
-      ${ver.encode({ version }).toString('hex')}
-      ${utils.trim0x(mainCellLockHash)}`;
+    return `0x${utils.trim0x(infoTypeHash)}${utils.trim0x(userLockHash)}${ver
+      .encode({ version })
+      .toString('hex')}${utils.trim0x(mainCellLockHash)}`;
   };
 
   decodeFellowArgs = (argsHex: string): LiquidityFellowCellArgs => {
