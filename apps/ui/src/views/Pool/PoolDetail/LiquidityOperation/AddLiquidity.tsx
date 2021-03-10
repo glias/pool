@@ -2,10 +2,9 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Asset, AssetWithBalance, isCkbNativeAsset, LiquidityInfo } from '@gliaswap/commons';
 import { Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
-import { AssetBalanceList, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
+import { AssetBalanceList, AssetPrice, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { SpaceBetweenRow } from 'components/Layout';
-import { PriceUnit } from 'components/PriceUnit';
 import { TableRow } from 'components/TableRow';
 import { Formik, FormikConfig, FormikProps } from 'formik';
 import { Form, Input, SubmitButton } from 'formik-antd';
@@ -14,7 +13,7 @@ import i18n from 'i18n';
 import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { Amount, BN, createAssetWithBalance } from 'suite';
+import { Amount, createAssetWithBalance } from 'suite';
 import { OperationConfirmModal } from './OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
@@ -182,16 +181,6 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     return (readyToAddShare * 100).toFixed(2) + ' %';
   }, [readyToAddShare]);
 
-  const [tokenA, tokenB] = poolAssets;
-
-  const price = useMemo(() => {
-    return BN(tokenA.balance)
-      .div(tokenB.balance)
-      .times(10 ** tokenB.decimals)
-      .div(10 ** tokenA.decimals)
-      .toString();
-  }, [tokenA, tokenB]);
-
   return (
     <AddLiquidityWrapper>
       <Formik<InputFields> onSubmit={onSubmit} initialValues={{ amount1: '', amount2: '' }} validate={validate}>
@@ -248,7 +237,9 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
               />
             </Form.Item>
 
-            <PriceUnit tokenA={tokenA} tokenB={tokenB} price={price} />
+            <TableRow label={i18n.t('Price')}>
+              <AssetPrice assets={poolAssets} />
+            </TableRow>
             <TableRow label={i18n.t('Add Pool Share')}>{readyToAddShareEl}</TableRow>
             <TableRow
               label={i18n.t('Request fee')}
