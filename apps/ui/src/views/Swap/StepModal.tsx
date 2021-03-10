@@ -1,16 +1,16 @@
+import { isEthAsset, SwapOrderType } from '@gliaswap/commons';
+import { Steps } from 'antd';
+import { MetaContainer } from 'components/MetaContainer';
+import { ModalContainer } from 'components/ModalContainer';
+import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
 import React from 'react';
-import { Steps } from 'antd';
-import { useSwapContainer } from './context';
-import styled from 'styled-components';
-import { ModalContainer } from 'components/ModalContainer';
 import { useMemo } from 'react';
-import { isEthAsset, SwapOrderType } from '@gliaswap/commons';
-import { ETHER_SCAN_URL, EXPLORER_URL } from 'suite/constants';
-import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
 import { useQuery } from 'react-query';
-import { useGliaswap } from 'hooks';
+import styled from 'styled-components';
+import { ETHER_SCAN_URL, EXPLORER_URL } from 'suite/constants';
+import { useSwapContainer } from './context';
 
 const { Step } = Steps;
 

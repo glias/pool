@@ -1,7 +1,6 @@
-import { CKB_STR_TO_HASH, INFO_LOCK_CODE_HASH, SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
-import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory } from '../model';
-import { ScriptBuilder } from '../model';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { CKB_STR_TO_HASH, INFO_LOCK_CODE_HASH, SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
+import { CellInfoSerializationHolderFactory, PoolInfo, Script, TokenHolderFactory, ScriptBuilder } from '../model';
 
 const userLockScript = new Script(
   '0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63',

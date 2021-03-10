@@ -1,11 +1,11 @@
-import React from 'react';
 import { Result } from 'antd';
-import styled from 'styled-components';
-import { ConfirmButton } from 'components/ConfirmButton';
-import i18n from 'i18n';
-import { ReactComponent as SuccessSvg } from 'assets/svg/success.svg';
 import { ReactComponent as DeclineSvg } from 'assets/svg/decline.svg';
+import { ReactComponent as SuccessSvg } from 'assets/svg/success.svg';
+import { ConfirmButton } from 'components/ConfirmButton';
 import { etherscanTransaction, exploreTransaction } from 'envs';
+import i18n from 'i18n';
+import React from 'react';
+import styled from 'styled-components';
 
 export interface ResultProps {
   txHash: string;

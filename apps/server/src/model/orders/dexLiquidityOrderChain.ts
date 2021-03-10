@@ -1,3 +1,4 @@
+import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 import {
   Output,
   TransactionWithStatus,
@@ -9,7 +10,6 @@ import {
 import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
-import { MIN_SUDT_CAPACITY } from '@gliaswap/constants';
 
 export enum LIQUIDITY_ORDER_TYPE {
   ADD = 'add',

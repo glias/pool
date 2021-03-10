@@ -1,7 +1,7 @@
-import { Primitive } from '@gliaswap/types';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
-import { Cell, Script, Amount, OutPoint } from '@lay2/pw-core';
 import * as lumos from '@ckb-lumos/base';
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
+import { Primitive } from '@gliaswap/types';
+import { Amount, Cell, OutPoint, Script } from '@lay2/pw-core';
 
 import * as model from '../model';
 
@@ -9,6 +9,7 @@ import { ckbRepository, DexRepository } from '../repository';
 
 export interface TokenCellCollectorService {
   collect(token: Primitive.Token, userLock: Script): Promise<Array<Cell>>;
+
   collectFreeCkb(userLock: Script): Promise<Array<Cell>>;
 }
 

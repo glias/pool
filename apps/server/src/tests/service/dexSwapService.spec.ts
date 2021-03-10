@@ -1,10 +1,10 @@
 // import 'reflect-metadata';
 import chai from 'chai';
-import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 import sinonStubPromise from 'sinon-stub-promise';
-import { MockRepositoryFactory } from '../mockRepositoryFactory';
 import { Cell } from '../../model';
+import { MockRepositoryFactory } from '../mockRepositoryFactory';
 
 chai.use(sinonChai);
 chai.should();

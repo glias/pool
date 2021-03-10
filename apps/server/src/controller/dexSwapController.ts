@@ -1,11 +1,11 @@
+import * as commons from '@gliaswap/commons';
 import { body, Context, request, responses, summary, tags, description } from 'koa-swagger-decorator';
 
 import * as config from '../config';
-import { Script } from '../model';
-import * as commons from '@gliaswap/commons';
+import { Script, cellConver, Token, TokenHolder, TokenHolderFactory } from '../model';
 import { dexSwapService, DexSwapService, txBuilder } from '../service';
+
 import { AssetSchema, ScriptSchema, StepSchema, TransactionToSignSchema } from './swaggerSchema';
-import { cellConver, Token, TokenHolder, TokenHolderFactory } from '../model';
 
 const swapTag = tags(['Swap']);
 

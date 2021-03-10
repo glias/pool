@@ -1,6 +1,11 @@
 import { createFixedStruct, U8, U128LE, U64LE } from 'easy-byte';
-import { SudtCellSerialization, LiquidityCellSerialization, LiquidityOrderCellArgs, TipsArgsSerialization } from '.';
-import { TipsCellArgs } from '.';
+import {
+  SudtCellSerialization,
+  LiquidityCellSerialization,
+  LiquidityOrderCellArgs,
+  TipsArgsSerialization,
+  TipsCellArgs,
+} from '.';
 
 export class DefaultLiquidityCellSerialization implements LiquidityCellSerialization {
   constructor(private serialization: SudtCellSerialization, private tipsArgsSerialization: TipsArgsSerialization) {

@@ -1,24 +1,24 @@
 import { isEthAsset, buildPendingSwapOrder, SwapOrderType } from '@gliaswap/commons';
 import { Builder } from '@lay2/pw-core';
 import { Form, message } from 'antd';
+import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
+import BigNumber from 'bignumber.js';
 import { ConfirmButton } from 'components/ConfirmButton';
+import { MetaContainer } from 'components/MetaContainer';
 import { TableRow } from 'components/TableRow';
+import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
+import { docsFaq } from 'envs';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import i18n from 'i18n';
 import React from 'react';
 import { useMemo, useState, useCallback } from 'react';
-import { SwapMode, useSwapContainer } from './context';
-import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
-import { MetaContainer } from 'components/MetaContainer';
 import { Trans } from 'react-i18next';
+import { useQueryClient } from 'react-query';
+import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { Container, AssetRow } from './CancelModal';
 import { CrossMeta } from './CrossMeta';
-import { SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
-import { useGliaswap, useGliaswapAssets } from 'hooks';
-import { useQueryClient } from 'react-query';
-import { DeclineResult, SuccessResult, TransactionStatus } from 'components/TransactionResult';
-import { docsFaq } from 'envs';
-import { useGlobalSetting } from 'hooks/useGlobalSetting';
-import BigNumber from 'bignumber.js';
+import { SwapMode, useSwapContainer } from './context';
 
 export const SwapModal = () => {
   const {

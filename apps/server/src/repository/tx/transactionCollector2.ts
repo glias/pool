@@ -1,9 +1,9 @@
 import { QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { Reader, RPC } from 'ckb-js-toolkit';
 import knex from 'knex';
-import { QueryOptionsWrapper } from './queryOptionsWrapper';
-import { Script } from '../../model';
 import { dexCache, DexCache } from '../../cache';
+import { Script } from '../../model';
+import { QueryOptionsWrapper } from './queryOptionsWrapper';
 
 export class TransactionCollector2 {
   private db: knex;

@@ -1,8 +1,8 @@
+import * as lumos from '@ckb-lumos/base';
 import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus, CellOutput, PoolInfo } from '..';
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
-import * as lumos from '@ckb-lumos/base';
 
 interface OrderMatcher {
   match(cell: CellOutput): boolean;

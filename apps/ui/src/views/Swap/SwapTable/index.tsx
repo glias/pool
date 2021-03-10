@@ -1,14 +1,3 @@
-import React from 'react';
-import { Block } from 'components/Block';
-import { ConfirmButton } from 'components/ConfirmButton';
-import { Form, Modal } from 'antd';
-import styled from 'styled-components';
-import i18n from 'i18n';
-import { InputNumber } from 'components/InputNumber';
-import BigNumber from 'bignumber.js';
-import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
-import { useCallback } from 'react';
-import { SwapMode, useSwapContainer } from '../context';
 import {
   EthErc20AssetWithBalance,
   GliaswapAssetWithBalance,
@@ -16,29 +5,40 @@ import {
   isCkbNativeAsset,
   ShadowFromEthWithBalance,
 } from '@gliaswap/commons';
-import { useState } from 'react';
-import { CROSS_CHAIN_FEE } from 'suite/constants';
-import { useGliaswap, useGliaswapAssets } from 'hooks';
-import { useSwapTable } from './hooks';
-import { getValidBalanceString } from 'utils';
-import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
-import { InfoTable } from './InfoTable';
-import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import { HashType, Script } from '@lay2/pw-core';
-import { useMemo } from 'react';
+import { Form, Modal } from 'antd';
+import { ReactComponent as SwapSvg } from 'assets/svg/swap.svg';
+import BigNumber from 'bignumber.js';
+import { Block } from 'components/Block';
+import { ConfirmButton } from 'components/ConfirmButton';
+import { InputNumber } from 'components/InputNumber';
+import { useGliaswap, useGliaswapAssets } from 'hooks';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
+import i18n from 'i18n';
+import React, { useCallback, useMemo, useState } from 'react';
+import styled from 'styled-components';
+import { CROSS_CHAIN_FEE } from 'suite/constants';
+import { getValidBalanceString } from 'utils';
+import { SwapMode, useSwapContainer } from '../context';
+import { InfoTable } from './InfoTable';
+import { calcPayWithReceive, calcReceiveWithPay, getInputFromValue, getValueFromInput } from './fee';
+import { useSwapTable } from './hooks';
 
 const FormContainer = styled(Form)`
   .submit {
     margin-top: 32px;
     margin-bottom: 0;
   }
+
   .swap {
     text-align: center;
     margin-bottom: 16px;
     height: 22px;
+
     &.clickable {
       cursor: pointer;
     }
+
     &.unclickable {
       cursor: not-allowed;
     }

@@ -1,7 +1,7 @@
-import { Cell, Script } from '..';
-import { Token } from '..';
 import { HashType } from '@ckb-lumos/base';
 import dotenv from 'dotenv';
+import { Cell, Script, Token } from '..';
+
 import { INFO_LOCK_CODE_HASH, INFO_LOCK_HASH_TYPE, INFO_TYPE_CODE_HASH, INFO_TYPE_HASH_TYPE } from '../../config';
 dotenv.config();
 

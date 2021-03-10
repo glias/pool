@@ -1,4 +1,4 @@
-import { GliaswapAssetWithBalance } from '@gliaswap/commons';
+import { GliaswapAssetWithBalance } from './';
 
 export enum SwapOrderType {
   CrossChain = 'CrossChain',

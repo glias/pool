@@ -1,10 +1,10 @@
 import React from 'react';
-import { SwapTable } from './SwapTable/index';
-import { SwapList } from './SwapList';
-import { SwapProvider } from './context';
 import { CancelModal } from './CancelModal';
-import { SwapModal } from './SwapModal';
 import { StepModal } from './StepModal';
+import { SwapList } from './SwapList';
+import { SwapModal } from './SwapModal';
+import { SwapTable } from './SwapTable/index';
+import { SwapProvider } from './context';
 
 const SwapView: React.FC = () => {
   return (

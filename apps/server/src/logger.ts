@@ -1,6 +1,6 @@
-import log4js from 'koa-log4';
-import * as Koa from 'koa';
 import path from 'path';
+import * as Koa from 'koa';
+import log4js from 'koa-log4';
 log4js.configure({
   appenders: {
     pool: {

@@ -1,6 +1,6 @@
 import rp from 'request-promise';
-import { Script, Token, TokenInfo } from '../model';
 import { explorerConfig } from '../config';
+import { Script, Token, TokenInfo } from '../model';
 
 export interface TokenRepository {
   getGroupByAddress(): Map<string, Token[]>;

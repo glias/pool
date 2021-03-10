@@ -1,6 +1,11 @@
 import { createFixedStruct, U8, U128LE } from 'easy-byte';
-import { SudtCellSerialization, SwapCellSerialization, SwapOrderCellArgs, TipsArgsSerialization } from '.';
-import { TipsCellArgs } from '.';
+import {
+  SudtCellSerialization,
+  SwapCellSerialization,
+  SwapOrderCellArgs,
+  TipsArgsSerialization,
+  TipsCellArgs,
+} from '.';
 
 export class DefaultSwapCellSerialization implements SwapCellSerialization {
   constructor(private serialization: SudtCellSerialization, private tipsArgsSerialization: TipsArgsSerialization) {

@@ -1,6 +1,6 @@
+import { AssetWithBalance } from '@gliaswap/commons';
 import { Meta } from '@storybook/react/types-6-0';
 import 'antd/dist/antd.css';
-import { AssetWithBalance } from '@gliaswap/commons';
 import { AssetSelector } from 'components/AssetSelector';
 import React, { useState } from 'react';
 import TokenImage from './token.svg';
@@ -15,7 +15,14 @@ export const Basic: React.VFC = () => {
   const assets: AssetWithBalance[] = [
     { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token0', symbol: 'GLIA0', decimals: 8, balance: '0' },
     { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token1', symbol: 'GLIA1', decimals: 8, balance: '0' },
-    { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token2', symbol: 'GLIA2', decimals: 8, balance: '1234567890' },
+    {
+      chainType: 'Nervos',
+      logoURI: TokenImage,
+      name: 'Glia Test Token2',
+      symbol: 'GLIA2',
+      decimals: 8,
+      balance: '1234567890'
+    },
   ];
 
   const [selected, setSelected] = useState<number>(0);
@@ -35,8 +42,22 @@ export const Grouped: React.VFC = () => {
   const assets: AssetWithBalance[] = [
     { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token0', symbol: 'GLIA0', decimals: 8, balance: '0' },
     { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token1', symbol: 'GLIA1', decimals: 8, balance: '0' },
-    { chainType: 'Nervos', logoURI: TokenImage, name: 'Glia Test Token2', symbol: 'GLIA2', decimals: 8, balance: '1234567890' },
-    { chainType: 'Ethereum', logoURI: TokenImage, name: 'ETH Native Token', symbol: 'ETH', decimals: 18, balance: '12345678901234567890' },
+    {
+      chainType: 'Nervos',
+      logoURI: TokenImage,
+      name: 'Glia Test Token2',
+      symbol: 'GLIA2',
+      decimals: 8,
+      balance: '1234567890'
+    },
+    {
+      chainType: 'Ethereum',
+      logoURI: TokenImage,
+      name: 'ETH Native Token',
+      symbol: 'ETH',
+      decimals: 18,
+      balance: '12345678901234567890'
+    },
   ];
 
   const [selected, setSelected] = useState<number>(0);

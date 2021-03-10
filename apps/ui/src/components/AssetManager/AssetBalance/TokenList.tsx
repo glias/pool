@@ -1,8 +1,8 @@
+import { ManagerAsset, useAssetManager } from 'components/AssetManager/hooks';
 import { AssetList as RawAssetList } from 'components/AssetSelector/AssetList';
 import React, { useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { ManagerAsset, useAssetManager } from 'components/AssetManager/hooks';
 
 const AssetListWrapper = styled.div`
   font-size: 16px;

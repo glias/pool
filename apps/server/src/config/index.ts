@@ -1,10 +1,12 @@
 import { HashType } from '@ckb-lumos/base';
 import * as constants from '@gliaswap/constants';
 import dotenv from 'dotenv';
-dotenv.config();
 import { MySqlConnectionConfig } from 'knex';
+import * as tokenTokenConfig from './tokenToken';
 
-export * as tokenTokenConfig from './tokenToken';
+dotenv.config();
+
+export { tokenTokenConfig };
 
 export const ckbConfig = {
   nodeUrl: process.env.CKB_NODE_RPC_URL || 'http://localhost:8114',

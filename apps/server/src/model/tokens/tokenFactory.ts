@@ -1,9 +1,9 @@
-import { cellConver, Token, TokenHolder, TokenInfo } from '..';
+import { scriptToHash } from '@nervosnetwork/ckb-sdk-utils';
 import ethereumTokenList from 'gliaswap-token-list/tokens/ethereum/ropsten.json';
 import nervosTokenList from 'gliaswap-token-list/tokens/nervos/aggron.json';
-import { scriptToHash } from '@nervosnetwork/ckb-sdk-utils';
-import { Script as ScriptBuffer } from '../../generated/blockchain';
+import { cellConver, Token, TokenHolder, TokenInfo } from '..';
 import { FORCE_BRIDGE_SETTINGS, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../../config';
+import { Script as ScriptBuffer } from '../../generated/blockchain';
 import { Script } from '../cell';
 
 export class TokenHolderFactory {

@@ -1,11 +1,11 @@
-import { MockRepositoryFactory } from '../../mockRepositoryFactory';
-import { DexLiquidityPoolService } from '../../../service/dexLiquidityPoolService';
-
-import { mockGliaPoolInfo } from './mockData';
-
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import { PoolInfo } from '../../../model';
+import { DexLiquidityPoolService } from '../../../service/dexLiquidityPoolService';
+import { MockRepositoryFactory } from '../../mockRepositoryFactory';
+
+import { mockGliaPoolInfo } from './mockData';
+
 sinonStubPromise(sinon);
 
 describe('/v1/liquidity-pool', () => {

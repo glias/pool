@@ -1,9 +1,9 @@
+import { Dropdown, Menu } from 'antd';
+import { ReactComponent as TriangleSvg } from 'assets/svg/triangle.svg';
+import { Title } from 'components/Title';
+import i18n from 'i18n';
 import React from 'react';
 import styled from 'styled-components';
-import { Dropdown, Menu } from 'antd';
-import { Title } from 'components/Title';
-import { ReactComponent as TriangleSvg } from 'assets/svg/triangle.svg';
-import i18n from 'i18n';
 
 const MenuContainer = styled(Menu)``;
 

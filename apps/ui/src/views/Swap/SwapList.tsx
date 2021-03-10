@@ -1,17 +1,17 @@
-import React from 'react';
+import { SwapOrder } from '@gliaswap/commons';
 import { List } from 'antd';
 import { Block } from 'components/Block';
-import { SwapOrder } from '@gliaswap/commons';
-import styled from 'styled-components';
-import { useQuery } from 'react-query';
+import { OrderSelectorStatus, OrdersSelector } from 'components/OrdersSelector';
 import { useGliaswap } from 'hooks';
+import { useSwapOrders } from 'hooks/usePendingCancelOrders';
 import { useCallback, useMemo } from 'react';
+import { useState } from 'react';
+import React from 'react';
+import { useEffect } from 'react';
+import { useQuery } from 'react-query';
+import styled from 'styled-components';
 import { SwapItem } from './SwapItem';
 import { useSwapContainer } from './context';
-import { useSwapOrders } from 'hooks/usePendingCancelOrders';
-import { useState } from 'react';
-import { OrderSelectorStatus, OrdersSelector } from 'components/OrdersSelector';
-import { useEffect } from 'react';
 
 const ListContainer = styled.div`
   .ant-list-item {

@@ -1,8 +1,10 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import rp from 'request-promise';
-import { DexRepository, txHash } from '.';
+import { BizException } from '../bizException';
+import { dexCache, DexCache } from '../cache';
 import { ckbConfig, FORCE_BRIDGE_SERVER_URL } from '../config';
+import { Logger } from '../logger';
 import {
   BridgeInfo,
   Cell,
@@ -15,11 +17,9 @@ import {
   transactionConver,
   TransactionWithStatus,
 } from '../model';
-import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
-import { BizException } from '../bizException';
 import { StopWatch } from '../model/time/stopWatch';
-import { Logger } from '../logger';
-import { dexCache, DexCache } from '../cache';
+import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
+import { DexRepository, txHash } from '.';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;

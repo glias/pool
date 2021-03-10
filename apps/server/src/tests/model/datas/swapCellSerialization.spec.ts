@@ -1,6 +1,6 @@
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import * as ckbUtils from '@nervosnetwork/ckb-sdk-utils';
 import { CellInfoSerializationHolderFactory } from '../../../model';
-import { CKB_TYPE_HASH } from '@gliaswap/constants';
 
 test('serialized encoding and decoding args', () => {
   const lockScript: CKBComponents.Script = {

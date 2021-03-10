@@ -15,9 +15,9 @@ import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Amount, BN, createAssetWithBalance } from 'suite';
+import { OperationConfirmModal } from './OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './components/TransactionFeeLabel';
-import { OperationConfirmModal } from './OperationConfirmModal';
 
 const { Text } = Typography;
 

@@ -1,5 +1,5 @@
-import { Script } from '.';
 import * as lumos from '@ckb-lumos/base';
+import { Script } from '.';
 
 export interface ScriptEquals {
   equalsLockScript: (

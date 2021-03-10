@@ -47,8 +47,8 @@ import * as ServerTypes from 'suite/api/server-patch';
 import { Amount, BN, createAssetWithBalance } from 'suite/asset';
 import { CKB_NATIVE_TYPE_HASH, CKB_NODE_URL } from 'suite/constants';
 import Web3 from 'web3';
-import { LiquidityResponse } from './patch/liquidity-pools';
 import { INFO_ABI } from './abi';
+import { LiquidityResponse } from './patch/liquidity-pools';
 
 export class ServerGliaswapAPI implements GliaswapAPI {
   axios: AxiosInstance;

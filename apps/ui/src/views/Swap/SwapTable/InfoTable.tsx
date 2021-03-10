@@ -1,17 +1,17 @@
 import { GliaswapAssetWithBalance } from '@gliaswap/commons';
 import { Form } from 'antd';
+import BigNumber from 'bignumber.js';
+import { PriceUnit } from 'components/PriceUnit';
 import { TableRow } from 'components/TableRow';
+import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import i18n from 'i18n';
 import React from 'react';
-import styled from 'styled-components';
-import BigNumber from 'bignumber.js';
-import { CROSS_CHAIN_FEE, SWAP_FEE } from 'suite/constants';
 import { useMemo } from 'react';
+import styled from 'styled-components';
+import { CROSS_CHAIN_FEE, SWAP_FEE } from 'suite/constants';
 import { Balanced } from '../SwapItem';
 import { SwapMode } from '../context';
 import { displayPercent } from './fee';
-import { useGlobalSetting } from 'hooks/useGlobalSetting';
-import { PriceUnit } from 'components/PriceUnit';
 
 const Container = styled(Form.Item)``;
 

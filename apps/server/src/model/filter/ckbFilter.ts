@@ -1,6 +1,6 @@
 import { QueryOptions } from '@ckb-lumos/base';
-import { TransactionWithStatus, OutPoint, scriptEquals, CellOutput } from '..';
-import { Cell } from '..';
+import { TransactionWithStatus, OutPoint, scriptEquals, CellOutput, Cell } from '..';
+
 import { BizException } from '../../bizException';
 
 export interface PoolFilter {
