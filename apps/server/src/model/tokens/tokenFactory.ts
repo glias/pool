@@ -30,6 +30,8 @@ export class TokenHolderFactory {
         tokens.push(token);
       }
 
+      // tokens.push(TokenHolderFactory.penPenToken());
+
       erc20Index.forEach((erc20) => {
         const typeScript = TokenHolderFactory.buildShadowAssetTypeScript(erc20.address);
         const info = new TokenInfo(
@@ -55,6 +57,18 @@ export class TokenHolderFactory {
     }
     return this.instace;
   }
+
+  // static penPenToken(): Token {
+  //   const typeScript = cellConver.converScript({
+  //     codeHash: '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
+  //     hashType: 'type',
+  //     args: '0xab4667fef2ee4b3604bba380418349466792e39b6111b17441f8d04382cb6635',
+  //   });
+  //   const info = new TokenInfo('PenPen', 'PenPen', 8, 'PenPen.jpg', undefined, 'Nervos');
+  //   const token = new Token(typeScript.toHash(), typeScript, info, undefined, null);
+  //
+  //   return token;
+  // }
 
   static readErc20TokenFile(): Map<string, TokenInfo> {
     const tokenList = ethereumTokenList;

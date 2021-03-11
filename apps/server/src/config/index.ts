@@ -46,7 +46,7 @@ export const explorerConfig: ExplorerConfig = {
 // INFO CELL
 export const INFO_TYPE_CODE_HASH =
   process.env.INFO_TYPE_CODE_HASH || '0x2e44a62e4e447a2ae5acd0ca186a95f25f86d13571f6a177c5658ab0e63591e9';
-export const INFO_TYPE_HASH_TYPE = process.env.INFO_TYPE_HASH_TYPE || 'type';
+export const INFO_TYPE_HASH_TYPE = <HashType>process.env.INFO_TYPE_HASH_TYPE || 'type';
 
 export const INFO_LOCK_CODE_HASH =
   process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';

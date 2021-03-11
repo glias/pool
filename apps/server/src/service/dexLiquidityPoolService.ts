@@ -1,7 +1,14 @@
 import { QueryOptions } from '@ckb-lumos/base';
+import { BigNumber } from 'bignumber.js';
 import { Context } from 'koa';
 
 import { CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
+import {
+  INFO_LOCK_CODE_HASH,
+  INFO_LOCK_HASH_TYPE,
+  INFO_TYPE_CODE_HASH,
+  INFO_TYPE_HASH_TYPE,
+} from '../config/tokenToken';
 import {
   Cell,
   PoolInfoHolder,
@@ -111,22 +118,6 @@ export class DexLiquidityPoolService {
         continue;
       }
 
-      const ckbBalance = userLiquidityCells.reduce(
-        (total, cell) => total + BigInt(cell.cellOutput.capacity),
-        BigInt(0),
-      );
-      poolInfo.tokenA.balance = ckbBalance.toString();
-
-      const sudtBalance = userLiquidityCells
-        .reduce(
-          (total, cell) =>
-            total + CellInfoSerializationHolderFactory.getInstance().getSudtCellSerialization().decodeData(cell.data),
-          BigInt(0),
-        )
-        .toString();
-
-      poolInfo.tokenB.balance = sudtBalance;
-
       const lpTokenAmount = userLiquidityCells
         .reduce(
           (total, cell) =>
@@ -139,6 +130,20 @@ export class DexLiquidityPoolService {
         new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, poolInfo.infoCell.cellOutput.lock.toHash()).toHash(),
       );
       poolInfo.lpToken.balance = lpTokenAmount;
+
+      const data = CellInfoSerializationHolderFactory.getInstance()
+        .getInfoCellSerialization()
+        .decodeData(poolInfo.infoCell.data);
+
+      poolInfo.tokenA.balance = new BigNumber(data.quoteReserve.toString())
+        .multipliedBy(lpTokenAmount)
+        .div(data.totalLiquidity.toString())
+        .toString();
+
+      poolInfo.tokenB.balance = new BigNumber(data.baseReserve.toString())
+        .multipliedBy(lpTokenAmount)
+        .div(data.totalLiquidity.toString())
+        .toString();
 
       userLiquiditys.push(poolInfo);
     }
@@ -158,50 +163,123 @@ export class DexLiquidityPoolService {
 
   private async getPoolInfos(): Promise<PoolInfoHolder> {
     const poolInfos: PoolInfo[] = [];
-    for (const type of PoolInfo.getTypeScripts()) {
-      const queryOptions: QueryOptions = {
-        lock: {
-          script: {
-            code_hash: PoolInfo.LOCK_CODE_HASH,
-            hash_type: PoolInfo.LOCK_HASH_TYPE,
-            args: '0x',
-          },
-          argsLen: 'any',
-        },
-        type: type.toLumosScript(),
-        order: 'desc',
-      };
+    const infoCells1 = await this.getPoolInfo();
+    const infoCells2 = await this.getSudtSudtPoolInfo();
+    infoCells2.forEach((x) => infoCells1.push(x));
 
-      const infoCells = await this.dexRepository.collectCells(queryOptions, false);
-      if (infoCells.length === 0) {
-        continue;
-      }
-
-      poolInfos.push(this.toPoolInfo(infoCells[infoCells.length - 1], type));
-    }
+    infoCells1.forEach((x) => {
+      poolInfos.push(this.toPoolInfo(x, x.cellOutput.type));
+    });
 
     return new PoolInfoHolder(poolInfos);
+  }
+
+  private async getSudtSudtPoolInfo(): Promise<Cell[]> {
+    const queryOptions: QueryOptions = {
+      lock: {
+        script: {
+          code_hash: INFO_LOCK_CODE_HASH,
+          hash_type: INFO_LOCK_HASH_TYPE,
+          args: '0x',
+        },
+        argsLen: 'any',
+      },
+      type: {
+        script: {
+          code_hash: INFO_TYPE_CODE_HASH,
+          hash_type: INFO_TYPE_HASH_TYPE,
+          args: '0x',
+        },
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+
+    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+    const infoCellMap: Map<string, Cell> = new Map();
+    infoCells.forEach((x) => {
+      const quoteBase = PoolInfoFactory.getQuoteBaseByCell(x);
+      if (!quoteBase) {
+        return;
+      }
+      const key = `${quoteBase.quoteToken.info.name}:${quoteBase.baseToken.info.name}`;
+      if (infoCellMap.has(key)) {
+        const cell = infoCellMap.get(key);
+        if (BigInt(cell.blockNumber) < BigInt(x.blockNumber)) {
+          infoCellMap.set(key, x);
+        }
+      } else {
+        infoCellMap.set(key, x);
+      }
+    });
+
+    const result = [];
+    infoCellMap.forEach((cell, key) => {
+      result.push(cell);
+    });
+
+    return result;
+  }
+
+  private async getPoolInfo(): Promise<Cell[]> {
+    const queryOptions: QueryOptions = {
+      lock: {
+        script: {
+          code_hash: PoolInfo.LOCK_CODE_HASH,
+          hash_type: PoolInfo.LOCK_HASH_TYPE,
+          args: '0x',
+        },
+        argsLen: 'any',
+      },
+      type: {
+        script: {
+          code_hash: PoolInfo.TYPE_CODE_HASH,
+          hash_type: PoolInfo.TYPE_HASH_TYPE,
+          args: '0x',
+        },
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+
+    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+
+    const infoCellMap: Map<string, Cell> = new Map();
+    infoCells.forEach((x) => {
+      const quoteBase = PoolInfoFactory.getQuoteBaseByCell(x);
+      const key = `${quoteBase.quoteToken.info.name}:${quoteBase.baseToken.info.name}`;
+      if (infoCellMap.has(key)) {
+        const cell = infoCellMap.get(key);
+        if (BigInt(cell.blockNumber) < BigInt(x.blockNumber)) {
+          infoCellMap.set(key, x);
+        }
+      } else {
+        infoCellMap.set(key, x);
+      }
+    });
+
+    const result = [];
+    infoCellMap.forEach((cell, key) => {
+      result.push(cell);
+    });
+
+    return result;
   }
 
   toPoolInfo(infoCell: Cell, type: Script): PoolInfo {
     const argsData = CellInfoSerializationHolderFactory.getInstance()
       .getInfoCellSerialization()
       .decodeData(infoCell.data);
-    // const sudtType = PoolInfo.getSudtSymbol(infoCell);
-    // const tokenB = TokenHolderFactory.getInstance().getTokenBySymbol(sudtType);
-    const tokenB = PoolInfoFactory.getQuoteBaseByCell(infoCell).baseToken;
-    tokenB.balance = argsData.sudtReserve.toString();
-
-    // console.log(
-    //   tokenB.info.name,
-    //   CellInfoSerializationHolderFactory.getInstance()
-    //     .getInfoCellSerialization()
-    //     .decodeArgs(infoCell.cellOutput.lock.args),
-    // );
+    const quoteBase = PoolInfoFactory.getQuoteBaseByCell(infoCell);
+    const tokenB = quoteBase.baseToken;
+    tokenB.balance = argsData.baseReserve.toString();
 
     // Prevent modification to the same tokenA
-    const tokenA = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-    tokenA.balance = argsData.ckbReserve.toString();
+    const tokenA =
+      quoteBase.quoteToken.info.name === 'CKB'
+        ? TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH)
+        : TokenHolderFactory.getInstance().getTokenByTypeHash(quoteBase.quoteToken.typeHash);
+    tokenA.balance = argsData.quoteReserve.toString();
     const poolInfo = new PoolInfo(
       type.toHash(),
       argsData.totalLiquidity.toString(),

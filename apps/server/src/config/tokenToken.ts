@@ -13,7 +13,7 @@ export const INFO_TYPE_DEP = {
 
 export const INFO_TYPE_CODE_HASH =
   process.env.TOKEN_TOKEN_INFO_TYPE_CODE_HASH || '0xf085b6c311ed320b9900c9b9e7ddbfd774f1c358578a1e12d092afb6d44792b3';
-export const INFO_TYPE_HASH_TYPE = process.env.TOKEN_TOKEN_INFO_TYPE_HASH_TYPE || 'data';
+export const INFO_TYPE_HASH_TYPE: HashType = <HashType>process.env.TOKEN_TOKEN_INFO_TYPE_HASH_TYPE || 'data';
 
 // INFO LOCK CELL DEL
 export const INFO_LOCK_DEP = {

@@ -8,7 +8,7 @@ dotenv.config();
 export class PoolInfo {
   // INFO CELL
   static TYPE_CODE_HASH = INFO_TYPE_CODE_HASH;
-  static TYPE_HASH_TYPE = INFO_TYPE_HASH_TYPE;
+  static TYPE_HASH_TYPE: HashType = INFO_TYPE_HASH_TYPE;
 
   static LOCK_CODE_HASH = INFO_LOCK_CODE_HASH;
   static LOCK_HASH_TYPE: HashType = INFO_LOCK_HASH_TYPE;

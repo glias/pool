@@ -115,8 +115,8 @@ export interface InfoCellArgs {
 }
 
 export interface InfoCellData {
-  ckbReserve: bigint;
-  sudtReserve: bigint;
+  quoteReserve: bigint;
+  baseReserve: bigint;
   totalLiquidity: bigint;
   liquiditySudtTypeHash: string;
 }

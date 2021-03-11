@@ -16,8 +16,8 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
   };
 
   encodeData = (
-    ckbReserve: bigint,
-    sudtReserve: bigint,
+    quoteReserve: bigint,
+    baseReserve: bigint,
     totalLiquidity: bigint,
     liquiditySudtTypeHash: string,
   ): string => {
@@ -25,8 +25,8 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
 
     return `0x${data
       .encode({
-        ckbReserve,
-        sudtReserve,
+        quoteReserve,
+        baseReserve,
         totalLiquidity,
       })
       .toString('hex')}${liquiditySudtTypeHash.slice(2, 66)}`;
@@ -45,6 +45,9 @@ export class DefaultInfoCellSerialization implements InfoCellSerialization {
   };
 
   private getStructDefine() {
-    return createFixedStruct().field('ckbReserve', U128LE).field('sudtReserve', U128LE).field('totalLiquidity', U128LE);
+    return createFixedStruct()
+      .field('quoteReserve', U128LE)
+      .field('baseReserve', U128LE)
+      .field('totalLiquidity', U128LE);
   }
 }
