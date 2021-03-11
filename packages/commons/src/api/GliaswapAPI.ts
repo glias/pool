@@ -81,6 +81,10 @@ export interface GenerateCancelRequestTransactionPayload {
   lock: Script;
 }
 
+export interface PoolInfoWithStatusFilter {
+  assets: CkbChainSpec[];
+}
+
 export interface GliaswapAPI {
   ckb: CKB;
   /**
