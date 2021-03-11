@@ -271,7 +271,8 @@ export class DexLiquidityPoolService {
       .getInfoCellSerialization()
       .decodeData(infoCell.data);
     const quoteBase = PoolInfoFactory.getQuoteBaseByCell(infoCell);
-    const tokenB = quoteBase.baseToken;
+
+    const tokenB = TokenHolderFactory.getInstance().getTokenByTypeHash(quoteBase.baseToken.typeHash);
     tokenB.balance = argsData.baseReserve.toString();
 
     // Prevent modification to the same tokenA
@@ -288,6 +289,7 @@ export class DexLiquidityPoolService {
       infoCell,
       new Token(new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash()),
     );
+
     return poolInfo;
   }
 
