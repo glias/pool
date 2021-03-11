@@ -1,7 +1,9 @@
 import {
   CkbAssetWithBalance,
+  CkbModel,
   CkbSudtAssetWithBalance,
   EthErc20AssetWithBalance,
+  EthModel,
   GliaswapAssetWithBalance,
   isCkbAsset,
   isCkbNativeAsset,
@@ -14,6 +16,7 @@ import { FormInstance } from 'antd/lib/form';
 import { RealtimeInfo } from 'contexts/GliaswapAssetContext';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useLiquidityPoolInfo } from 'hooks/useLiquidityPool';
+import { differenceWith } from 'lodash';
 import { useState } from 'react';
 import { useMemo, useEffect, useCallback } from 'react';
 import { SwapMode, useSwapContainer } from '../context';
@@ -46,49 +49,54 @@ export const useSwapTable = ({
     return isPayInvalid || isReceiveInvalid;
   }, [isPayInvalid, isReceiveInvalid, currentUserLock]);
 
-  const currentSudt = useMemo(() => {
+  const findPoolInfo = useCallback(
+    (tokens: [CkbAssetWithBalance, CkbAssetWithBalance] | []) => {
+      if (tokens.length === 0) {
+        return [];
+      }
+      for (let i = 0; i < poolInfo.value.length; i++) {
+        const pool = poolInfo.value[i].assets;
+        if (differenceWith(tokens, pool, CkbModel.equals).length === 0) {
+          if (CkbModel.equals(tokens[0], pool[0])) {
+            return pool;
+          }
+          return [pool[1], pool[0]];
+        }
+      }
+      return [];
+    },
+    [poolInfo],
+  );
+
+  const currentPoolInfo = useMemo(() => {
     switch (swapMode) {
       case SwapMode.CrossChainOrder: {
-        if (isEthAsset(tokenA)) {
-          const sudt = shadowEthAssets.find((s) => s.shadowFrom.address === tokenA.address);
-          return sudt;
+        if (EthModel.isCurrentChainAsset(tokenA)) {
+          const baseToken = shadowEthAssets.find((s) => s.shadowFrom.address === tokenA.address);
+          return findPoolInfo([baseToken, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
         }
-        return undefined;
+        return [];
       }
       case SwapMode.NormalOrder: {
-        if (isCkbNativeAsset(tokenA)) {
-          return tokenB as CkbAssetWithBalance;
-        }
-        return tokenA as CkbAssetWithBalance;
+        return findPoolInfo([tokenA, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
       }
       case SwapMode.CrossIn:
       case SwapMode.CrossOut:
-        return undefined;
+        return [];
       default:
-        return undefined;
+        return [];
     }
-  }, [tokenA, tokenB, swapMode, shadowEthAssets]);
-
-  const currentPoolInfo = useMemo(() => {
-    return (poolInfo.value.find((p) => p?.assets?.[1]?.typeHash === currentSudt?.typeHash)?.assets ??
-      []) as CurrentPoolInfo;
-  }, [currentSudt, poolInfo]);
+  }, [tokenA, tokenB, shadowEthAssets, swapMode, findPoolInfo]);
 
   const payReserve = useMemo(() => {
-    const [ckb, sudt] = currentPoolInfo;
-    if (isBid) {
-      return toStringNumberOrZero(ckb?.balance);
-    }
+    const [sudt] = currentPoolInfo;
     return toStringNumberOrZero(sudt?.balance);
-  }, [isBid, currentPoolInfo]);
+  }, [currentPoolInfo]);
 
   const receiveReserve = useMemo(() => {
-    const [ckb, sudt] = currentPoolInfo;
-    if (isBid) {
-      return toStringNumberOrZero(sudt?.balance);
-    }
-    return toStringNumberOrZero(ckb?.balance);
-  }, [isBid, currentPoolInfo]);
+    const [, sudt] = currentPoolInfo;
+    return toStringNumberOrZero(sudt?.balance);
+  }, [currentPoolInfo]);
 
   useEffect(() => {
     setTokenA((t) => calcBalance(pay, t));
@@ -124,11 +132,8 @@ export const useSwapTable = ({
   }, [pay, receive, isBid]);
 
   const priceImpact = useMemo(() => {
-    if (isBid) {
-      return calcPriceImpact(payReserve, receiveReserve, price, tokenB.decimals);
-    }
-    return calcPriceImpact(receiveReserve, payReserve, price, tokenA.decimals);
-  }, [payReserve, receiveReserve, price, isBid, tokenA.decimals, tokenB.decimals]);
+    return calcPriceImpact(payReserve, receiveReserve, price, tokenA.decimals, tokenB.decimals);
+  }, [payReserve, receiveReserve, price, tokenA.decimals, tokenB.decimals]);
 
   const findShadowAsset = useCallback(
     (erc20: EthErc20AssetWithBalance) => {
@@ -155,27 +160,13 @@ export const useSwapTable = ({
         } else {
           setTokenA(selectedAsset);
         }
-      } else if (isEthAsset(selectedAsset)) {
-        const shadowAsset = findShadowAsset(selectedAsset);
-        if (shadowAsset?.shadowFrom?.address === selectedAsset.address || isCkbNativeAsset(tokenB)) {
+      } else if (isEthAsset(selectedAsset) || isCkbSudtAsset(selectedAsset)) {
+        if (EthModel.isCurrentChainAsset(tokenB)) {
+          const shadowAsset = findShadowAsset(tokenB);
           setTokenA(selectedAsset);
-          setTokenB(ckbNativeAsset!);
+          setTokenB(shadowAsset!);
         } else {
           setTokenA(selectedAsset);
-        }
-      } else if (isShadowEthAsset(selectedAsset)) {
-        if (isCkbNativeAsset(tokenB) || (isEthAsset(tokenB) && tokenB.address === selectedAsset.shadowFrom.address)) {
-          setTokenA(selectedAsset);
-        } else {
-          setTokenA(selectedAsset);
-          setTokenB(ckbNativeAsset!);
-        }
-      } else if (isCkbSudtAsset(selectedAsset)) {
-        if (isCkbNativeAsset(tokenB)) {
-          setTokenA(selectedAsset);
-        } else {
-          setTokenA(selectedAsset);
-          setTokenB(ckbNativeAsset!); // ckb
         }
       }
     },
@@ -200,7 +191,7 @@ export const useSwapTable = ({
 
   const receiveAssetFilter = useCallback(
     (asset: GliaswapAssetWithBalance) => {
-      const isCurrentCKB = isCkbNativeAsset(asset);
+      const isCurrentCKB = isCkbAsset(asset);
       const isSwapable = tokenA.symbol === asset.symbol;
       if (isCkbNativeAsset(tokenA)) {
         return true;
@@ -221,11 +212,14 @@ export const useSwapTable = ({
   }, [assets.value, receiveAssetFilter]);
 
   const isPairTogglable = useMemo(() => {
-    if (isEthAsset(tokenA) && isCkbNativeAsset(tokenB)) {
+    if (swapMode === SwapMode.CrossIn || swapMode === SwapMode.CrossOut) {
+      return true;
+    }
+    if (isEthAsset(tokenA) && isCkbAsset(tokenB)) {
       return false;
     }
     return true;
-  }, [tokenA, tokenB]);
+  }, [tokenA, tokenB, swapMode]);
 
   const changePair = useCallback(() => {
     if (isPairTogglable) {
