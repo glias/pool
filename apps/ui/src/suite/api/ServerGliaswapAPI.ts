@@ -1,12 +1,14 @@
 import {
   Asset,
   CkbAssetWithBalance,
+  CkbModel,
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
   EthAsset,
   CkbAsset,
   EthErc20Asset,
   EthErc20AssetWithBalance,
+  EthModel,
   EthNativeAssetWithBalance,
   GenerateAddLiquidityTransactionPayload,
   GenerateCancelRequestTransactionPayload,
@@ -15,12 +17,8 @@ import {
   GenerateGenesisLiquidityTransactionPayload,
   GenerateRemoveLiquidityTransactionPayload,
   GenerateSwapTransactionPayload,
-  getCkbChainSpec,
   GliaswapAPI,
   GliaswapAssetWithBalance,
-  isCkbChainSpec,
-  isEthErc20Asset,
-  isEthNativeAsset,
   LiquidityInfo,
   LiquidityInfoFilter,
   LiquidityOperationSummary,
@@ -28,6 +26,8 @@ import {
   LiquidityPoolFilter,
   Maybe,
   PoolInfo,
+  PoolInfoWithStatus,
+  PoolInfoWithStatusFilter,
   PoolModel,
   price,
   Script as CkbScript,
@@ -42,6 +42,7 @@ import CKB from '@nervosnetwork/ckb-sdk-core';
 import { Modal } from 'antd';
 import Axios, { AxiosError, AxiosInstance } from 'axios';
 import BigNumber from 'bignumber.js';
+import update from 'immutability-helper';
 import { isEmpty, merge } from 'lodash';
 import * as ServerTypes from 'suite/api/server-patch';
 import { Amount, BN, createAssetWithBalance } from 'suite/asset';
@@ -142,7 +143,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
       return res.data;
     }
 
-    const nervosChainSpecs = assets.filter(isCkbChainSpec).map(getCkbChainSpec);
+    const nervosChainSpecs = assets.filter(CkbModel.isCurrentChainAsset).map(CkbModel.getChainSpec);
     const ckbAssets = await this.axios.post<
       (CkbNativeAssetWithBalance | CkbSudtAssetWithBalance | ShadowFromEthWithBalance)[]
     >('/get-asset-with-balance', {
@@ -150,8 +151,8 @@ export class ServerGliaswapAPI implements GliaswapAPI {
       assets: nervosChainSpecs,
     });
 
-    const ethAsset: EthAsset = assets.find(isEthNativeAsset)!;
-    const erc20Assets: EthErc20Asset[] = assets.filter(isEthErc20Asset);
+    const ethAsset: EthAsset = assets.find(EthModel.isNativeAsset)!;
+    const erc20Assets: EthErc20Asset[] = assets.filter(EthModel.isEthErc20Asset);
     try {
       const ethAssets = await Promise.all([
         this.getEthBalance(web3!, ethAddr!, ethAsset),
@@ -407,7 +408,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     };
   };
 
-  async searchERC20(address: string, web3: Web3): Promise<EthAsset | undefined> {
+  async searchERC20(address: string, web3: Web3): Promise<EthErc20AssetWithBalance | undefined> {
     try {
       const contract = new web3.eth.Contract(INFO_ABI, address);
       const name = await contract.methods.name().call();
@@ -417,6 +418,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         name,
         address,
         symbol,
+        balance: '0',
         chainType: 'Ethereum',
         decimals: parseInt(decimals, 10),
       };
@@ -425,10 +427,16 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     }
   }
 
-  generateCreateLiquidityPoolTransaction(
-    _payload: GenerateCreateLiquidityPoolTransactionPayload,
+  async generateCreateLiquidityPoolTransaction(
+    payload: GenerateCreateLiquidityPoolTransactionPayload,
   ): Promise<GenerateCreateLiquidityPoolTransactionResponse> {
-    return Promise.resolve({} as any);
+    payload = update(payload, { assets: (assets) => assets.map((asset) => createAssetWithBalance(asset)) });
+    const res = await this.axios.post('/liquidity-pool/create', payload);
+    if (!res.data.transactionToSign) {
+      // @ts-ignore
+      res.data.transactionToSign = res.data.tx;
+    }
+    return res.data;
   }
 
   generateGenesisLiquidityTransaction(
@@ -439,5 +447,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   generateSwapTransaction(_payload_: GenerateSwapTransactionPayload): Promise<SerializedTransactionToSignWithFee> {
     return Promise.resolve({} as any);
+  }
+
+  async getPoolInfoWithStatus(_filter: PoolInfoWithStatusFilter): Promise<Maybe<PoolInfoWithStatus>> {
+    // TODO replace me when server implemented
+    return null;
   }
 }

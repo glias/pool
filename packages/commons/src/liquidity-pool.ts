@@ -23,6 +23,12 @@ export interface LiquidityInfo extends PoolInfo {
   lpToken: LPTokenWithBalance;
 }
 
+export interface PoolInfoWithStatus extends PoolInfo {
+  status:
+    | 'pending' // the request transaction is pending in the transaction pool
+    | 'completed'; // the create pool request transaction is completed
+}
+
 export type LiquidityOperationStage = Submitted | Confirmed | Canceling | Completed | Canceled;
 
 // the request transaction is pending in the transaction pool

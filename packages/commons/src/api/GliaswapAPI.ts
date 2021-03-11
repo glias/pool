@@ -1,25 +1,28 @@
 import { Transaction } from '@lay2/pw-core';
-import { SwapOrder } from '../swap';
 import CKB from '@nervosnetwork/ckb-sdk-core';
 import Web3 from 'web3';
 import {
   Asset,
   CkbAsset,
   CkbAssetWithBalance,
+  CkbChainSpec,
   GliaswapAssetWithBalance,
   LiquidityInfo,
   LiquidityOperationSummary,
   LPTokenWithBalance,
   Maybe,
   PoolInfo,
+  PoolInfoWithStatus,
   Script,
   SerializedTransactionToSignWithFee,
   SerializedTransactonToSign,
 } from '../';
 import { EthAsset } from '../assets';
+import { SwapOrder } from '../swap';
 
 export interface LiquidityPoolFilter {
   lock?: Script;
+  assets?: CkbChainSpec[];
 }
 
 export interface LiquidityInfoFilter {
@@ -151,4 +154,6 @@ export interface GliaswapAPI {
   searchSUDT: (typeHash: string) => Promise<CkbAsset | undefined>;
 
   searchERC20: (address: string, web3: Web3) => Promise<EthAsset | undefined>;
+
+  getPoolInfoWithStatus: (filter: PoolInfoWithStatusFilter) => Promise<Maybe<PoolInfoWithStatus>>;
 }
