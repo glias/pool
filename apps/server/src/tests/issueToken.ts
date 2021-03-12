@@ -24,10 +24,11 @@ const USER_ADDRESS = privateKeyToAddress(USER_PRIV_KEY, {
 });
 const USER_LOCK = addressToScript(USER_ADDRESS);
 
-const TO_PRIV_KEY = process.env.TO_PRIV_KEY;
-const TO_ADDRESS = privateKeyToAddress(TO_PRIV_KEY, {
-  prefix: AddressPrefix.Testnet,
-});
+// const TO_PRIV_KEY = process.env.TO_PRIV_KEY;
+// const TO_ADDRESS = privateKeyToAddress(TO_PRIV_KEY, {
+//   prefix: AddressPrefix.Testnet,
+// });
+const TO_ADDRESS = process.env.TO_ADDRESS;
 const TO_LOCK = addressToScript(TO_ADDRESS);
 
 export interface CollectedCells {
@@ -328,4 +329,4 @@ const transferToken = async (amount: bigint) => {
 };
 
 issueToken(CKB_DECIMAL * CKB_DECIMAL);
-transferToken(10000000n * CKB_DECIMAL);
+transferToken(1000000n * CKB_DECIMAL);

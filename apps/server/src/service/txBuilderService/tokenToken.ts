@@ -14,7 +14,7 @@ import { TxBuilderService } from '.';
 
 const LIQUIDITY_REQ_TOKEN_X_CAPACITY = 259n * constants.CKB_DECIMAL;
 const LIQUIDITY_REQ_TOKEN_Y_CAPACITY = 219n * constants.CKB_DECIMAL;
-const SWAP_REQ_CAPACITY = 219n * constants.CKB_DECIMAL;
+const SWAP_REQ_CAPACITY = 227n * constants.CKB_DECIMAL;
 
 export class TokenTokenTxBuilderService implements TxBuilderService {
   private readonly cellCollector: CellCollector;
