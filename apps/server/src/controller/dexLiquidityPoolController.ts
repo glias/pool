@@ -18,6 +18,50 @@ export default class DexLiquidityPoolController {
     this.tokenHolder = TokenHolderFactory.getInstance();
   }
 
+  @request('post', '/v1/liquidity-pool-status')
+  @summary('match tokenA tokenB')
+  @description('match tokenA tokenB')
+  @liquidityTag
+  @responses({
+    200: {
+      description: 'success',
+      schema: {
+        type: 'object',
+        properties: {
+          poolId: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lpToken: { type: 'object', properties: (AssetSchema as any).swaggerDocument, required: false },
+          total: { type: 'string', required: true },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          assets: {
+            type: 'array',
+            items: {
+              type: 'object',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              properties: (AssetSchema as any).swaggerDocument,
+            },
+          },
+          model: { type: 'string', required: true },
+        },
+      },
+    },
+  })
+  @body({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tokenAHash: { type: 'string', required: false },
+    tokenBHash: { type: 'string', required: false },
+  })
+  public async poolInfoWithStatus(ctx: Context): Promise<void> {
+    const req = <{ tokenAHash: string; tokenBHash: string }>ctx.request.body;
+    const infoCell = await this.service.poolInfoWithStatus(req.tokenAHash, req.tokenBHash);
+    ctx.status = 200;
+    if (infoCell) {
+      ctx.body = this.toLiquidityInfo(infoCell);
+    } else {
+      ctx.body = null;
+    }
+  }
+
   @request('post', '/v1/liquidity-pool')
   @summary('Get my or all of the liquidity pool')
   @description('Get my or all of the liquidity pool')
@@ -114,6 +158,7 @@ export default class DexLiquidityPoolController {
         total: poolInfo.total,
         assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
         model: 'UNISWAP',
+        status: poolInfo.status,
       };
     }
     return {
@@ -121,6 +166,7 @@ export default class DexLiquidityPoolController {
       total: poolInfo.total,
       assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
       model: 'UNISWAP',
+      status: poolInfo.status,
     };
   }
 

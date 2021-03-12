@@ -36,6 +36,29 @@ export class DexLiquidityPoolService {
     this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
   }
 
+  async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
+    const poolInfos = await this.getLiquidityPools();
+    const poolInfo = poolInfos.find((x) => {
+      const key1 = `${x.tokenA.typeHash}:${x.tokenB.typeHash}`;
+      const key2 = `${x.tokenB.typeHash}:${x.tokenA.typeHash}`;
+
+      const key3 = `${tokenAHash}:${tokenBHash}`;
+      const key4 = `${tokenBHash}:${tokenAHash}`;
+
+      if (key1 === key3) {
+        return true;
+      } else if (key1 === key4) {
+        return true;
+      } else if (key2 === key3) {
+        return true;
+      } else if (key2 === key4) {
+        return true;
+      }
+    });
+
+    return poolInfo;
+  }
+
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
@@ -288,6 +311,7 @@ export class DexLiquidityPoolService {
       tokenB,
       infoCell,
       new Token(new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash()),
+      infoCell.blockNumber === '0' ? 'pending' : 'completed',
     );
 
     return poolInfo;

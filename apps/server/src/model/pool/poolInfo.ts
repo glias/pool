@@ -35,14 +35,24 @@ export class PoolInfo {
   tokenB: Token;
   infoCell: Cell;
   lpToken?: Token;
+  status: string;
 
-  constructor(poolId: string, total: string, tokenA: Token, tokenB: Token, infoCell: Cell, lpToken?: Token) {
+  constructor(
+    poolId: string,
+    total: string,
+    tokenA: Token,
+    tokenB: Token,
+    infoCell: Cell,
+    lpToken?: Token,
+    status = 'completed',
+  ) {
     this.poolId = poolId;
     this.total = total;
     this.tokenA = tokenA;
     this.tokenB = tokenB;
     this.lpToken = lpToken;
     this.infoCell = infoCell;
+    this.status = status;
   }
 
   static getTypeScripts(): Script[] {
