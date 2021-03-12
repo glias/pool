@@ -1,7 +1,7 @@
-import { Token, TokenHolderFactory } from '../tokens';
 import * as utils from '../../utils';
 import { Cell } from '../cell';
 import { CellInfoSerializationHolderFactory } from '../datas';
+import { Token, TokenHolderFactory } from '../tokens';
 
 export class PoolInfoFactory {
   private static quoteBaseHolder: QuoteBaseHolder;
@@ -20,6 +20,14 @@ export class PoolInfoFactory {
       .decodeArgs(cell.cellOutput.lock.args);
     return PoolInfoFactory.getQuoteBase(argsData.hash);
   }
+
+  static sortTypeHash(tokenATypeHash: string, tokenBTypeHash: string): string[] {
+    const typeHashes = [];
+    typeHashes.push(tokenATypeHash);
+    typeHashes.push(tokenBTypeHash);
+
+    return typeHashes.sort();
+  }
 }
 
 class PoolInfoBuilder {
@@ -27,20 +35,26 @@ class PoolInfoBuilder {
     const quoteBaseMap: Map<string, QuoteBase> = new Map();
 
     const tokens = TokenHolderFactory.getInstance().getTokens();
-    let quoteToken;
+
     tokens.forEach((x) => {
-      quoteToken = this.getTypeHash(x);
+      const quoteToken = this.getTypeHash(x);
       tokens.forEach((y) => {
         const baseToken = this.getTypeHash(y);
         if (quoteToken === baseToken) {
           return;
         }
 
+        const typeHashes = PoolInfoFactory.sortTypeHash(x.typeHash, y.typeHash);
         const key1 = `0x${utils.blake2b([quoteToken, baseToken]).slice(2, 66)}`;
         const key2 = `0x${utils.blake2b([baseToken, quoteToken]).slice(2, 66)}`;
 
-        quoteBaseMap.set(key1, new QuoteBase(x, y));
-        quoteBaseMap.set(key2, new QuoteBase(y, x));
+        const quoteBase = new QuoteBase(
+          TokenHolderFactory.getInstance().getTokenByTypeHash(typeHashes[0]),
+          TokenHolderFactory.getInstance().getTokenByTypeHash(typeHashes[1]),
+        );
+
+        quoteBaseMap.set(key1, quoteBase);
+        quoteBaseMap.set(key2, quoteBase);
       });
     });
 

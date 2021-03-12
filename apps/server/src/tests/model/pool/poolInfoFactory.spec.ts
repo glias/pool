@@ -12,3 +12,9 @@ test('get quote/base ', () => {
   const quoteBase = PoolInfoFactory.getQuoteBase(quoteBaseHash.GLIA);
   expect(quoteBase.baseToken.typeHash).toEqual(TokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash);
 });
+
+test('sort quote/base ', () => {
+  const tokenATypeHash = 'cba';
+  const tokenBTypeHash = 'abc';
+  expect(PoolInfoFactory.sortTypeHash(tokenATypeHash, tokenBTypeHash)).toEqual([tokenBTypeHash, tokenATypeHash]);
+});
