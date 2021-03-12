@@ -99,6 +99,12 @@ const generateTokenTokenLPToken = (poolId: string, amount: bigint, tokenSymbolX:
   return {
     balance: amount.toString(),
     typeHash: lpTokenTypeScript.toHash(),
+    typeScript: lpTokenTypeScript,
+    name: `${tokenSymbolX}${tokenSymbolY}`,
+    symbol: `${tokenSymbolX}${tokenSymbolY}`,
+    decimals: 8,
+    logoURI: `${tokenSymbolX}${tokenSymbolY}.jpg`,
+    chainType: 'Nervos',
   };
 };
 
@@ -328,7 +334,7 @@ async function createTokenTokenAddLiquidityTx(poolId: string, tokenSymbolX: stri
   const req = {
     assetsWithDesiredAmount: [
       generateToken(100n * CKB_DECIMAL, tokenSymbolX),
-      generateToken(100n * CKB_DECIMAL, tokenSymbolY),
+      generateToken(120n * CKB_DECIMAL, tokenSymbolY),
     ],
     assetsWithMinAmount: [
       generateToken(50n * CKB_DECIMAL, tokenSymbolX),
@@ -344,11 +350,8 @@ async function createTokenTokenAddLiquidityTx(poolId: string, tokenSymbolX: stri
 
 async function createTokenTokenRemoveLiquidityTx(poolId: string, tokenSymbolX: string, tokenSymbolY: string) {
   const req = {
-    assetsWithMinAmount: [
-      generateToken(10n * CKB_DECIMAL, tokenSymbolX),
-      generateToken(10n * CKB_DECIMAL, tokenSymbolY),
-    ],
-    lpToken: generateTokenTokenLPToken(poolId, 10n * CKB_DECIMAL, tokenSymbolX, tokenSymbolY),
+    assetsWithMinAmount: [generateToken(1n * CKB_DECIMAL, tokenSymbolX), generateToken(1n * CKB_DECIMAL, tokenSymbolY)],
+    lpToken: generateTokenTokenLPToken(poolId, 5n * CKB_DECIMAL, tokenSymbolX, tokenSymbolY),
     poolId,
     lock: USER_LOCK,
     tips: ckbToken(0n),
@@ -357,10 +360,10 @@ async function createTokenTokenRemoveLiquidityTx(poolId: string, tokenSymbolX: s
   await postRequest(REMOVE_LIQUIDITY_URL, req);
 }
 
-async function createTokenTokenSwapTx(poolId: string, tokenSymbolX: string, tokenSymbolY: string) {
+async function createTokenTokenSwapTx(tokenSymbolX: string, tokenSymbolY: string) {
   const req = {
-    assetInWithAmount: generateToken(10n * CKB_DECIMAL, tokenSymbolX),
-    assetOutWithMinAmount: generateToken(10n * CKB_DECIMAL, tokenSymbolY),
+    assetInWithAmount: generateToken(2n * CKB_DECIMAL, tokenSymbolX),
+    assetOutWithMinAmount: generateToken(1n * CKB_DECIMAL, tokenSymbolY),
     lock: USER_LOCK,
     tips: ckbToken(0n),
   };
@@ -376,14 +379,14 @@ const lpReqTxHash = undefined;
 const cancelTxHash = '0x11c6f1390facb535ad440165df8bbafce77a593b7da563dc322e7bee3acd736c';
 
 // Create pool
-// tx hash: 0xed6ef910771c4c4b06c098888b51823fc33f1acddf655d2803692192002a9f53
-// pool id: 0x208b49f79f19eb88a04983599bcb40319ad5b643923683a8f31c18348acba27c
-// Genesis liquidity
-// tx hash: 0x4cf231b1ba8fb8d7b3a8ac8b88dc04959055e832112ab93c9bd2dd4f9eceee3b
+// tx hash: 0x726a2f3d7fd9d2e3559d7d0cc30138d0b95cf9d9f9c950e055ec58febfb409fa
+// pool id: 0x8b77f7f6ac1e7307d567ff8d4599142b4f1fcd5ae29bd0fa0acf2ba2852e0489
+// Genesis
+// tx hash: 0x08632070571a12cc738d21ab6579c69daf894266cf911438eacda4424d5339b8
 
 const poolIds = {
-  // tx hash: 0xed6ef910771c4c4b06c098888b51823fc33f1acddf655d2803692192002a9f53
-  GLIAPenPen: '0x208b49f79f19eb88a04983599bcb40319ad5b643923683a8f31c18348acba27c',
+  // tx hash: 0x726a2f3d7fd9d2e3559d7d0cc30138d0b95cf9d9f9c950e055ec58febfb409fa
+  GLIAPenPen: '0x8b77f7f6ac1e7307d567ff8d4599142b4f1fcd5ae29bd0fa0acf2ba2852e0489',
 };
 
 const tokenX = 'GLIA';
@@ -414,7 +417,7 @@ async function main() {
 
   // await createTokenTokenGenesisTx(testPoolId, tokenX, tokenY);
   // await createTokenTokenAddLiquidityTx(testPoolId, tokenX, tokenY);
-  await createTokenTokenRemoveLiquidityTx(testPoolId, tokenX, tokenY);
+  // await createTokenTokenRemoveLiquidityTx(testPoolId, tokenX, tokenY);
   // await createTokenTokenSwapTx(testPoolId, tokenX, tokenY);
   // await createCancelSwapTx(cancelTxHash);
 }
