@@ -44,7 +44,7 @@ export class PoolInfo {
     tokenB: Token,
     infoCell: Cell,
     lpToken?: Token,
-    status = 'success',
+    status = 'completed',
   ) {
     this.poolId = poolId;
     this.total = total;

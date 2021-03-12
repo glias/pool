@@ -311,7 +311,7 @@ export class DexLiquidityPoolService {
       tokenB,
       infoCell,
       new Token(new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.cellOutput.lock.toHash()).toHash()),
-      infoCell.blockNumber === '0' ? 'pending' : 'success',
+      infoCell.blockNumber === '0' ? 'pending' : 'completed',
     );
 
     return poolInfo;
