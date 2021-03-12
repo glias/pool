@@ -39,7 +39,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const sudtToken =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
-        : PoolInfoFactory.getQuoteBaseByCell(this.poolInfo.infoCell).baseToken;
+        : PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell).tokenB;
     const amountA = ckbToken;
     const amountB = sudtToken;
 

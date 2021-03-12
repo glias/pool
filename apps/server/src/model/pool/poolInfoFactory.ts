@@ -6,7 +6,7 @@ import { Token, TokenHolderFactory } from '../tokens';
 export class PoolInfoFactory {
   private static quoteBaseHolder: QuoteBaseHolder;
 
-  static getQuoteBase(quoteBaseHash: string): QuoteBase {
+  static getTokens(quoteBaseHash: string): QuoteBase {
     if (!PoolInfoFactory.quoteBaseHolder) {
       const builder: PoolInfoBuilder = new PoolInfoBuilder();
       PoolInfoFactory.quoteBaseHolder = new QuoteBaseHolder(builder.build());
@@ -14,11 +14,11 @@ export class PoolInfoFactory {
     return PoolInfoFactory.quoteBaseHolder.getQuoteBase(quoteBaseHash);
   }
 
-  static getQuoteBaseByCell(cell: Cell): QuoteBase {
+  static getTokensByCell(cell: Cell): QuoteBase {
     const argsData = CellInfoSerializationHolderFactory.getInstance()
       .getInfoCellSerialization()
       .decodeArgs(cell.cellOutput.lock.args);
-    return PoolInfoFactory.getQuoteBase(argsData.hash);
+    return PoolInfoFactory.getTokens(argsData.hash);
   }
 
   static sortTypeHash(tokenATypeHash: string, tokenBTypeHash: string): string[] {
@@ -79,13 +79,13 @@ class QuoteBaseHolder {
 }
 
 export class QuoteBase {
-  constructor(private _quoteToken: Token, private _baseToken: Token) {}
+  constructor(private _tokenA: Token, private _tokenB: Token) {}
 
-  get quoteToken(): Token {
-    return this._quoteToken;
+  get tokenA(): Token {
+    return this._tokenA;
   }
 
-  get baseToken(): Token {
-    return this._baseToken;
+  get tokenB(): Token {
+    return this._tokenB;
   }
 }

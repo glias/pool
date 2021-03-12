@@ -9,8 +9,8 @@ const quoteBaseHash: Record<string, string> = {
 };
 
 test('get quote/base ', () => {
-  const quoteBase = PoolInfoFactory.getQuoteBase(quoteBaseHash.GLIA);
-  expect(quoteBase.baseToken.typeHash).toEqual(TokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash);
+  const tokens = PoolInfoFactory.getTokens(quoteBaseHash.GLIA);
+  expect(tokens.tokenB.typeHash).toEqual(TokenHolderFactory.getInstance().getTokenBySymbol('GLIA').typeHash);
 });
 
 test('sort quote/base ', () => {
