@@ -31,7 +31,7 @@ export async function buildCancelReq(
   })();
 
   const tokenCells = requestCells.filter((cell: Cell) => {
-    return !cell.cellOutput.type && cell.cellOutput.type.codeHash == config.SUDT_TYPE_CODE_HASH;
+    return cell.cellOutput.type && cell.cellOutput.type.codeHash == config.SUDT_TYPE_CODE_HASH;
   });
 
   const minCKBChangeCapacity = txBuilderUtils.minCKBChangeCapacity(req.userLock);
