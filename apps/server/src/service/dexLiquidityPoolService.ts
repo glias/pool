@@ -39,21 +39,14 @@ export class DexLiquidityPoolService {
   async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
     const poolInfos = await this.getLiquidityPools();
     const poolInfo = poolInfos.find((x) => {
-      const key1 = `${x.tokenA.typeHash}:${x.tokenB.typeHash}`;
-      const key2 = `${x.tokenB.typeHash}:${x.tokenA.typeHash}`;
+      const hashes1 = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash);
+      const hashes2 = PoolInfoFactory.sortTypeHash(x.tokenA.typeHash, x.tokenB.typeHash);
 
-      const key3 = `${tokenAHash}:${tokenBHash}`;
-      const key4 = `${tokenBHash}:${tokenAHash}`;
-
-      if (key1 === key3) {
-        return true;
-      } else if (key1 === key4) {
-        return true;
-      } else if (key2 === key3) {
-        return true;
-      } else if (key2 === key4) {
+      if (hashes1[0] === hashes2[0] && hashes1[1] === hashes2[1]) {
         return true;
       }
+
+      return false;
     });
 
     return poolInfo;
@@ -221,11 +214,11 @@ export class DexLiquidityPoolService {
     const infoCells = await this.dexRepository.collectCells(queryOptions, true);
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
-      const quoteBase = PoolInfoFactory.getQuoteBaseByCell(x);
-      if (!quoteBase) {
+      const tokens = PoolInfoFactory.getTokensByCell(x);
+      if (!tokens) {
         return;
       }
-      const key = `${quoteBase.quoteToken.info.name}:${quoteBase.baseToken.info.name}`;
+      const key = `${tokens.tokenA.info.name}:${tokens.tokenB.info.name}`;
       if (infoCellMap.has(key)) {
         const cell = infoCellMap.get(key);
         if (BigInt(cell.blockNumber) < BigInt(x.blockNumber)) {
@@ -237,9 +230,9 @@ export class DexLiquidityPoolService {
     });
 
     const result = [];
-    infoCellMap.forEach((cell, key) => {
+    for (const cell of infoCellMap.values()) {
       result.push(cell);
-    });
+    }
 
     return result;
   }
@@ -269,8 +262,8 @@ export class DexLiquidityPoolService {
 
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
-      const quoteBase = PoolInfoFactory.getQuoteBaseByCell(x);
-      const key = `${quoteBase.quoteToken.info.name}:${quoteBase.baseToken.info.name}`;
+      const tokens = PoolInfoFactory.getTokensByCell(x);
+      const key = `${tokens.tokenA.info.name}:${tokens.tokenB.info.name}`;
       if (infoCellMap.has(key)) {
         const cell = infoCellMap.get(key);
         if (BigInt(cell.blockNumber) < BigInt(x.blockNumber)) {
@@ -282,9 +275,9 @@ export class DexLiquidityPoolService {
     });
 
     const result = [];
-    infoCellMap.forEach((cell, key) => {
+    for (const cell of infoCellMap.values()) {
       result.push(cell);
-    });
+    }
 
     return result;
   }
@@ -293,16 +286,16 @@ export class DexLiquidityPoolService {
     const argsData = CellInfoSerializationHolderFactory.getInstance()
       .getInfoCellSerialization()
       .decodeData(infoCell.data);
-    const quoteBase = PoolInfoFactory.getQuoteBaseByCell(infoCell);
+    const tokens = PoolInfoFactory.getTokensByCell(infoCell);
 
-    const tokenB = TokenHolderFactory.getInstance().getTokenByTypeHash(quoteBase.baseToken.typeHash);
+    const tokenB = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
     tokenB.balance = argsData.baseReserve.toString();
 
     // Prevent modification to the same tokenA
     const tokenA =
-      quoteBase.quoteToken.info.name === 'CKB'
+      tokens.tokenA.info.name === 'CKB'
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH)
-        : TokenHolderFactory.getInstance().getTokenByTypeHash(quoteBase.quoteToken.typeHash);
+        : TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
     tokenA.balance = argsData.quoteReserve.toString();
     const poolInfo = new PoolInfo(
       type.toHash(),
