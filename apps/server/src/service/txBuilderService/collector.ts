@@ -26,7 +26,9 @@ export interface CellCollector {
 export class TxBuilderCellCollector implements CellCollector {
   private readonly ckbRepository: DexRepository;
   private readonly codec: SudtCellSerialization;
-  private warningMessage = `You don't have enough live cells to complete this transaction, please wait for other transactions to be completed.`;
+  private warningMessage = (tokenSymbol: string): string => {
+    return `You don't have enough live ${tokenSymbol} cells to complete this transaction, please wait for other transactions to be completed.`;
+  };
 
   constructor() {
     this.ckbRepository = ckbRepository;
@@ -120,7 +122,7 @@ export class TxBuilderCellCollector implements CellCollector {
       inputToken = inputToken + this.codec.decodeData(cell.data);
     }
     if (inputToken < token.getBalance()) {
-      ctx.throw(400, this.warningMessage);
+      ctx.throw(400, this.warningMessage(token.info.symbol));
     }
 
     return {
@@ -150,7 +152,7 @@ export class TxBuilderCellCollector implements CellCollector {
       inputCapacity = inputCapacity + BigInt(cell.cellOutput.capacity);
     }
     if (inputCapacity < amount) {
-      ctx.throw(400, this.warningMessage);
+      ctx.throw(400, this.warningMessage('ckb'));
     }
 
     return {
