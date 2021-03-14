@@ -211,7 +211,7 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
 
-    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+    const infoCells = await this.dexRepository.collectCells(queryOptions, true, true);
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
       const tokens = PoolInfoFactory.getTokensByCell(x);
