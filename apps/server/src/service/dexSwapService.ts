@@ -1,6 +1,7 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import { Context } from 'koa';
-import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config';
+import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config/index';
+import * as tokenToken from '../config/tokenToken';
 import { Logger } from '../logger';
 import {
   BridgeInfo,
@@ -49,8 +50,9 @@ export class DexSwapService {
     const sw = new StopWatch();
     sw.start();
 
-    const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
     const orders: DexOrderChain[] = [];
+
+    const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -78,6 +80,15 @@ export class DexSwapService {
       }
     });
 
+    const sudt = await this.getSudtSudt();
+    const factory2 = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
+    const sudtOrders = factory2.getOrderChains(queryOptions.lock, null, sudt, bridgeInfoMatch);
+    sudtOrders.forEach((x) => {
+      if (x.cell.lock.args.slice(100, 164) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash) {
+        orders.push(x);
+      }
+    });
+
     Logger.info('total:', sw.total());
 
     return orders
@@ -85,6 +96,20 @@ export class DexSwapService {
       .map((x) => x.getOrderHistory())
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
+  }
+
+  private async getSudtSudt() {
+    const orderLock2: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
+    const queryOptions2: QueryOptions = {
+      lock: {
+        script: orderLock2.toLumosScript(),
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+    const txs2 = await this.dexRepository.collectTransactions(queryOptions2, true, true);
+
+    return txs2;
   }
 
   private async getCross(
