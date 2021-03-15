@@ -1,6 +1,7 @@
 import { has, propEq } from '../../utils';
 import { EthAsset, EthChainSpec, ShadowFromEthAsset } from '../types';
-import { CkbModel, defineAssetModel, predicate } from './';
+import { CkbModel } from './ckb';
+import { defineAssetModel, predicate } from './define';
 
 const RawEthModel = defineAssetModel<EthAsset, EthChainSpec>({
   chainType: 'Ethereum',
