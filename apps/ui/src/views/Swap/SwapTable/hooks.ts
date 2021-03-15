@@ -49,18 +49,18 @@ export const useSwapTable = ({
     return isPayInvalid || isReceiveInvalid;
   }, [isPayInvalid, isReceiveInvalid, currentUserLock]);
 
-  const findPoolInfo = useCallback(
+  const getSortedPoolAssets = useCallback(
     (tokens: [CkbAssetWithBalance, CkbAssetWithBalance] | []) => {
       if (tokens.length === 0) {
         return [];
       }
       for (let i = 0; i < poolInfo.value.length; i++) {
-        const pool = poolInfo.value[i].assets;
-        if (differenceWith(tokens, pool, CkbModel.equals).length === 0) {
-          if (CkbModel.equals(tokens[0], pool[0])) {
-            return pool;
+        const poolAssets = poolInfo.value[i].assets;
+        if (differenceWith(tokens, poolAssets, CkbModel.equals).length === 0) {
+          if (CkbModel.equals(tokens[0], poolAssets[0])) {
+            return poolAssets;
           }
-          return [pool[1], pool[0]];
+          return [poolAssets[1], poolAssets[0]];
         }
       }
       return [];
@@ -68,17 +68,17 @@ export const useSwapTable = ({
     [poolInfo],
   );
 
-  const currentPoolInfo = useMemo(() => {
+  const currentPoolAssets = useMemo(() => {
     switch (swapMode) {
       case SwapMode.CrossChainOrder: {
         if (EthModel.isCurrentChainAsset(tokenA)) {
           const baseToken = shadowEthAssets.find((s) => s.shadowFrom.address === tokenA.address);
-          return findPoolInfo([baseToken, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
+          return getSortedPoolAssets([baseToken, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
         }
         return [];
       }
       case SwapMode.NormalOrder: {
-        return findPoolInfo([tokenA, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
+        return getSortedPoolAssets([tokenA, tokenB] as [CkbAssetWithBalance, CkbAssetWithBalance]);
       }
       case SwapMode.CrossIn:
       case SwapMode.CrossOut:
@@ -86,17 +86,17 @@ export const useSwapTable = ({
       default:
         return [];
     }
-  }, [tokenA, tokenB, shadowEthAssets, swapMode, findPoolInfo]);
+  }, [tokenA, tokenB, shadowEthAssets, swapMode, getSortedPoolAssets]);
 
   const payReserve = useMemo(() => {
-    const [sudt] = currentPoolInfo;
+    const [sudt] = currentPoolAssets;
     return toStringNumberOrZero(sudt?.balance);
-  }, [currentPoolInfo]);
+  }, [currentPoolAssets]);
 
   const receiveReserve = useMemo(() => {
-    const [, sudt] = currentPoolInfo;
+    const [, sudt] = currentPoolAssets;
     return toStringNumberOrZero(sudt?.balance);
-  }, [currentPoolInfo]);
+  }, [currentPoolAssets]);
 
   useEffect(() => {
     setTokenA((t) => calcBalance(pay, t));
@@ -260,6 +260,6 @@ export const useSwapTable = ({
     payReserve,
     receiveReserve,
     poolName,
-    currentPoolInfo,
+    currentPoolAssets,
   };
 };
