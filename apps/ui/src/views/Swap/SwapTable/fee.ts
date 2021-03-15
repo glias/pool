@@ -38,10 +38,10 @@ export function calcPrice(pay: string, receive: string, isBid: boolean) {
   return new BigNumber(receive).div(pay).toString();
 }
 
-export function calcPriceImpact(ckbReserve: string, sudtReserve: string, price: string, sudtDecimal: number) {
-  const ps = new BigNumber(ckbReserve)
-    .div(10 ** 8)
-    .div(new BigNumber(sudtReserve).div(new BigNumber(10).pow(sudtDecimal)));
+export function calcPriceImpact(aReserve: string, bReserve: string, price: string, aDecimal: number, bDecimal: number) {
+  const ps = new BigNumber(bReserve)
+    .div(10 ** bDecimal)
+    .div(new BigNumber(aReserve).div(new BigNumber(10).pow(aDecimal)));
   return new BigNumber(price).minus(ps).absoluteValue().div(ps).toFixed(4, 1);
 }
 
