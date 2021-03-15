@@ -30,7 +30,7 @@ class LiquidityOrderMatcher implements OrderMatcher {
   // liquidity order lock args: user_lock_hash (32 bytes, 0..32) | version (u8, 1 byte, 32..33) | amountOutMin (u128, 16 bytes, 33..49) | sudt_type_hash (32 bytes, 49..81) | tips (8 bytes, 81..89) | tips_sudt (16 bytes, 89..105)
   // argsLen = 228
   match(cell: CellOutput): boolean {
-    if (cell.lock.args.length === 228) {
+    if (cell.lock.args.length === 228 || cell.lock.args.length === 196) {
       return true;
     }
     return false;
