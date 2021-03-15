@@ -78,6 +78,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
             '/liquidity-pool/orders/add-liquidity',
             '/liquidity-pool/orders/cancel',
             '/liquidity-pool/orders/remove-liquidity',
+            '/liquidity-pool/create',
           ].includes(error.config.url ?? '')
         ) {
           Modal.error({
