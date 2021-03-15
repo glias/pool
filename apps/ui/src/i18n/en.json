@@ -82,7 +82,8 @@
       "confirming": "Please confirm or cancel the transaction in your wallet.",
       "minimum-pay": "The minimum pay amount should bigger than 4 CKB",
       "type-hash": "Please try to use a valid token type hash to find token.",
-      "address": "Please try to use a valid token address to find token."
+      "address": "Please try to use a valid token address to find token.",
+      "pool-not-exist": "The {{poolName}} pool does not exist. Please go to create the pool first."
     }
   }
 }

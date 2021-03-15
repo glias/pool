@@ -106,6 +106,8 @@ export const SwapTable: React.FC = () => {
     receiveReserve,
     price,
     priceImpact,
+    poolName,
+    currentPoolInfo,
   } = useSwapTable({
     form,
     tokenA,
@@ -354,6 +356,11 @@ export const SwapTable: React.FC = () => {
         {ckbEnoughMessage ? (
           <Form.Item className="warning">
             <span>{ckbEnoughMessage}</span>{' '}
+          </Form.Item>
+        ) : null}
+        {currentPoolInfo.length === 0 ? (
+          <Form.Item className="warning">
+            <span>{i18n.t('validation.pool-not-exist', { poolName })}</span>{' '}
           </Form.Item>
         ) : null}
         <InputNumber

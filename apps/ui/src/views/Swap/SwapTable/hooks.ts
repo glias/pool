@@ -227,6 +227,24 @@ export const useSwapTable = ({
     }
   }, [isPairTogglable, togglePair]);
 
+  const poolName = useMemo(() => {
+    let symbolA = tokenA.symbol;
+    let symbolB = tokenB.symbol;
+    if (EthModel.isCurrentChainAsset(tokenA)) {
+      const token = findShadowAsset(tokenA);
+      if (token) {
+        symbolA = token.symbol;
+      }
+    }
+    if (EthModel.isCurrentChainAsset(tokenB)) {
+      const token = findShadowAsset(tokenB);
+      if (token) {
+        symbolA = token.symbol;
+      }
+    }
+    return `${symbolA}-${symbolB}`;
+  }, [tokenA, tokenB, findShadowAsset]);
+
   return {
     onPaySelectAsset,
     onReceiveSelect,
@@ -241,5 +259,7 @@ export const useSwapTable = ({
     priceImpact,
     payReserve,
     receiveReserve,
+    poolName,
+    currentPoolInfo,
   };
 };
