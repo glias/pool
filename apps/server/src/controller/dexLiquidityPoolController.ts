@@ -159,7 +159,7 @@ export default class DexLiquidityPoolController {
         assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
         model: 'UNISWAP',
         status: poolInfo.status,
-        poolInfo: poolInfo.infoCell,
+        poolCell: poolInfo.infoCell,
       };
     }
     return {
@@ -168,7 +168,7 @@ export default class DexLiquidityPoolController {
       assets: [poolInfo.tokenA.toAsset(), poolInfo.tokenB.toAsset()],
       model: 'UNISWAP',
       status: poolInfo.status,
-      poolInfo: poolInfo.infoCell,
+      poolCell: poolInfo.infoCell,
     };
   }
 
