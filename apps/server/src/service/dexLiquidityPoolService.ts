@@ -35,7 +35,6 @@ export class DexLiquidityPoolService {
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
   }
-
   async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
     const poolInfos = await this.getLiquidityPools();
     const poolInfo = poolInfos.find((x) => {
@@ -55,8 +54,9 @@ export class DexLiquidityPoolService {
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
+    const orderLock = this.getOrderLock(infoCell);
     const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell);
-    const orderLock = ScriptBuilder.buildLiquidityOrderLockScript();
+
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
@@ -104,6 +104,15 @@ export class DexLiquidityPoolService {
       })
       .sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp))
       .reverse();
+  }
+
+  private getOrderLock(infoCell: PoolInfo): Script {
+    const tokens = PoolInfoFactory.getTokensByCell(infoCell.infoCell);
+    if (tokens.tokenA.typeHash === CKB_TOKEN_TYPE_HASH && tokens.tokenB.typeHash === CKB_TOKEN_TYPE_HASH) {
+      return ScriptBuilder.buildLiquidityOrderLockScript();
+    }
+
+    return ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {

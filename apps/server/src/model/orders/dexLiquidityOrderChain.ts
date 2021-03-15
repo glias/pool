@@ -8,7 +8,6 @@ import {
   Script,
   PoolInfoFactory,
 } from '..';
-import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
@@ -35,13 +34,12 @@ export class DexLiquidityChain extends DexOrderChain {
 
   getOrderHistory(): OrderHistory {
     const transactionHash = this.getLastOrder().getTxHash();
-    const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-    const sudtToken =
+    const tokens = PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell);
+    const amountA = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+    const amountB =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
         : PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell).tokenB;
-    const amountA = ckbToken;
-    const amountB = sudtToken;
 
     // FIXME:
     if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
