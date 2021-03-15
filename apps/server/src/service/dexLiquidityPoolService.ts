@@ -91,7 +91,11 @@ export class DexLiquidityPoolService {
 
     const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, infoCell.infoCell.cellOutput.lock.toHash());
     return liquidityOrders
-      .filter((x) => x.filterOrderHistory() && x.cell.lock.args.slice(116, 180) === userLockHash)
+      .filter(
+        (x) =>
+          x.filterOrderHistory() &&
+          (x.cell.lock.args.slice(116, 180) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash),
+      )
       .map((x) => {
         const history = x.getOrderHistory();
         const lpToken = new Token(typeScript.toHash());
