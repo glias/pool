@@ -2,7 +2,7 @@ import { Empty, Skeleton, Tag, Typography } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import { Section, SpaceBetweenRow } from 'components/Layout';
-import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
+import { useLiquidityDetail } from 'hooks/useLiquidityDetail';
 import i18n from 'i18n';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -15,7 +15,7 @@ interface LiquidityInfoProps {
 }
 
 export const UserLiquidityInfo: React.FC = () => {
-  const { userLiquidityQuery } = useLiquidityQuery();
+  const { userLiquidityQuery } = useLiquidityDetail();
   const userLiquidity = userLiquidityQuery.data;
 
   if (!userLiquidity) return null;
@@ -41,7 +41,7 @@ export const UserLiquidityInfo: React.FC = () => {
 };
 
 export const LiquidityInfo: React.FC<LiquidityInfoProps> = ({ poolId }) => {
-  const { poolLiquidityQuery } = useLiquidityQuery();
+  const { poolLiquidityQuery } = useLiquidityDetail();
 
   if (poolLiquidityQuery.isLoading) {
     return (

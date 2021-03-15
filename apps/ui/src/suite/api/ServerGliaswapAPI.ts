@@ -1,11 +1,11 @@
 import {
   Asset,
+  CkbAsset,
   CkbAssetWithBalance,
   CkbModel,
   CkbNativeAssetWithBalance,
   CkbSudtAssetWithBalance,
   EthAsset,
-  CkbAsset,
   EthErc20Asset,
   EthErc20AssetWithBalance,
   EthModel,
@@ -449,8 +449,29 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return Promise.resolve({} as any);
   }
 
-  async getPoolInfoWithStatus(_filter: PoolInfoWithStatusFilter): Promise<Maybe<PoolInfoWithStatus>> {
-    // TODO replace me when server implemented
-    return null;
+  async getPoolInfoWithStatus(filter: PoolInfoWithStatusFilter): Promise<Maybe<PoolInfoWithStatus>> {
+    const res = await this.axios.post('/liquidity-pool-status', {
+      tokenAHash: filter.assets[0].typeHash,
+      tokenBHash: filter.assets[1].typeHash,
+    });
+
+    if (!res.data) return;
+
+    // TODO DONT create asset here, use the server response
+    res.data.lpToken = merge(
+      createAssetWithBalance(
+        {
+          chainType: 'Nervos',
+          typeHash: '',
+          decimals: Math.ceil(
+            res.data.assets.reduce((lpTokenDecimal: number, asset: Asset) => lpTokenDecimal + asset.decimals, 0) / 2,
+          ),
+        },
+        res.data.total,
+      ),
+      res.data.lpToken,
+    );
+
+    return res.data;
   }
 }

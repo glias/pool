@@ -1,3 +1,4 @@
+import { SerializedTransactonToSign, TransactionHelper } from '@gliaswap/commons';
 import PWCore, { PwCollector, Transaction } from '@lay2/pw-core';
 import Web3 from 'web3';
 import Web3Modal, { ICoreOptions } from 'web3modal';
@@ -5,19 +6,20 @@ import { PWWeb3ModalProvider } from '../patch/PWWeb3ModalProvider';
 import { Signer } from '../types';
 import { AbstractWalletAdapter } from './AbstractWalletAdapter';
 
-class PWSigner implements Signer<Transaction, Transaction> {
+class PWSigner implements Signer<Transaction | SerializedTransactonToSign, Transaction> {
   address: string;
 
   constructor(private pw: PWCore, address?: string) {
     this.address = address ?? PWCore.provider.address.toCKBAddress(); // address ?? PWCore.provider.address;
   }
 
-  sendTransaction(tx: Transaction): Promise<CKBComponents.Hash> {
-    return this.pw.sendTransaction(tx);
+  sendTransaction(tx: Transaction | SerializedTransactonToSign): Promise<CKBComponents.Hash> {
+    if (tx instanceof Transaction) return this.pw.sendTransaction(tx);
+    return this.pw.sendTransaction(TransactionHelper.deserializeTransactionToSign(tx));
   }
 }
 
-export class Web3ModalAdapter extends AbstractWalletAdapter<Transaction, Transaction> {
+export class Web3ModalAdapter extends AbstractWalletAdapter<Transaction | SerializedTransactonToSign, Transaction> {
   readonly web3Modal: Web3Modal;
   provider: any;
   web3: Web3 | undefined;

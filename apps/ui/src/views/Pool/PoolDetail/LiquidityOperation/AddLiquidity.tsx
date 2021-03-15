@@ -12,6 +12,7 @@ import { useAddLiquidity } from 'hooks/useAddLiquidity';
 import i18n from 'i18n';
 import { zip } from 'lodash';
 import React, { useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Amount, createAssetWithBalance } from 'suite';
 import { OperationConfirmModal } from './OperationConfirmModal';
@@ -83,6 +84,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
   const poolAssets = poolLiquidity.assets;
   const [poolAsset1, poolAsset2] = poolAssets;
   const [confirming, setConfirming] = useState(false);
+  const { poolId } = useParams<{ poolId: string }>();
 
   const {
     generateAddLiquidityTransaction,
@@ -93,7 +95,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     readyToAddAmounts,
     sendReadyToAddLiquidityTransaction,
     readyToAddLiquidityTransaction,
-  } = useAddLiquidity();
+  } = useAddLiquidity(poolId);
 
   const onSubmit: FormikConfig<InputFields>['onSubmit'] = async (v, actions) => {
     if (!readyToAddAmounts) return;

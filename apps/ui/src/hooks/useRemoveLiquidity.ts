@@ -8,7 +8,7 @@ import {
 import BigNumber from 'bignumber.js';
 import { useGliaswap } from 'hooks/useGliaswap';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
-import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
+import { useLiquidityDetail } from 'hooks/useLiquidityDetail';
 import update from 'immutability-helper';
 import { useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
@@ -35,7 +35,7 @@ interface ReadyToRemoveLiquidity {
 }
 
 export function useRemoveLiquidity(poolId?: string): UseRemoveLiquidityState {
-  const { userLiquidityQuery } = useLiquidityQuery(poolId);
+  const { userLiquidityQuery } = useLiquidityDetail(poolId);
   const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 import { Tabs } from 'antd';
 import { Section } from 'components/Layout';
-import { useLiquidityQuery } from 'hooks/useLiquidityQuery';
+import { useLiquidityDetail } from 'hooks/useLiquidityDetail';
 import i18n from 'i18n';
 import React from 'react';
 import styled from 'styled-components';
@@ -14,7 +14,7 @@ export interface LiquidityOperationProps {
 }
 
 export const LiquidityOperation: React.FC<LiquidityOperationProps> = (props) => {
-  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityQuery(props.poolId);
+  const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityDetail(props.poolId);
   const { data: poolLiquidity } = poolLiquidityQuery;
   const { data: userLiquidity } = userLiquidityQuery;
 
