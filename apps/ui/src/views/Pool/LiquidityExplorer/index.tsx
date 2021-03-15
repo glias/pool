@@ -5,7 +5,7 @@ import i18n from 'i18n';
 import { differenceWith } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { useHistory, useLocation } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { AssetFilter } from './AssetFilter';
 import { LiquidityList } from './LiquidityList';
@@ -50,8 +50,8 @@ const LiquidityExplorer = () => {
         />
       </header>
       <Row justify="space-between" align="middle" style={{ paddingTop: '32px' }}>
-        <Button type="primary" disabled>
-          {i18n.t('Create Pool')}
+        <Button type="primary" disabled={!currentUserLock}>
+          <Link to="/pool/create">{i18n.t('Create Pool')}</Link>
         </Button>
         <AssetFilter onChange={setSpecsFilter} />
       </Row>

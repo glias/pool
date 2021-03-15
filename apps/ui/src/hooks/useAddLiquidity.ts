@@ -1,14 +1,15 @@
 // the uniswap-model liquidity
 
-import { price, SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
+import { LiquidityInfo, Maybe, price, SerializedTransactionToSignWithFee, TransactionHelper } from '@gliaswap/commons';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
-import { useQueryLiquidityInfo } from 'hooks/useLiquidityQuery';
+import { useQueryLiquidityInfo } from 'hooks/useLiquidityDetail';
 import { useCallback, useMemo, useState } from 'react';
-import { useQueryClient } from 'react-query';
+import { QueryObserverResult, useQueryClient } from 'react-query';
 import { Amount, BN, createAssetWithBalance } from 'suite';
 
 interface UseAddLiquidityState {
+  poolQuery: QueryObserverResult<Maybe<LiquidityInfo>>;
   onUserInputReadyToAddAmount: (amountWithDecimal: string, assetIndex: number) => (Amount | undefined)[] | undefined;
   generateAddLiquidityTransaction: (balances?: string[]) => Promise<SerializedTransactionToSignWithFee>;
   readyToAddLiquidityTransaction: SerializedTransactionToSignWithFee | undefined;
@@ -25,10 +26,11 @@ interface UseAddLiquidityState {
   readyToReceiveLPAmount: Amount | undefined;
 }
 
-export function useAddLiquidity(): UseAddLiquidityState {
+export function useAddLiquidity(poolId?: string): UseAddLiquidityState {
   const { api, currentUserLock, assertsConnectedAdapter } = useGliaswap();
   const { ckbAssets: userCkbAssets } = useGliaswapAssets();
-  const { data: poolInfo } = useQueryLiquidityInfo();
+  const poolQuery = useQueryLiquidityInfo(poolId);
+  const { data: poolInfo } = poolQuery;
   const [{ slippage }] = useGlobalSetting();
   const queryClient = useQueryClient();
 
@@ -171,5 +173,6 @@ export function useAddLiquidity(): UseAddLiquidityState {
     readyToAddLiquidityTransaction,
     sendReadyToAddLiquidityTransaction,
     readyToReceiveLPAmount,
+    poolQuery,
   };
 }

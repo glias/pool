@@ -10,22 +10,20 @@ interface LiquidityDetail {
   userLiquidityQuery: QueryObserverResult<Maybe<LiquidityInfo & { share: number }>>;
 }
 
-export function useQueryLiquidityInfo(inputPoolId?: string): QueryObserverResult<Maybe<LiquidityInfo>> {
+export function useQueryLiquidityInfo(poolId?: string): QueryObserverResult<Maybe<LiquidityInfo>> {
   const { api } = useGliaswap();
 
-  const { poolId: paramPoolId } = useParams<{ poolId: string }>();
-  const poolId = inputPoolId ?? paramPoolId;
-
-  return useQuery<Maybe<LiquidityInfo>>(['getLiquidityInfo', poolId], async () => {
-    return api.getLiquidityInfo({ poolId });
-  });
+  return useQuery<Maybe<LiquidityInfo>>(
+    ['getLiquidityInfo', poolId],
+    async () => {
+      if (!poolId) return;
+      return api.getLiquidityInfo({ poolId });
+    },
+    { enabled: !!poolId },
+  );
 }
 
-// function balanceToZero(asset: CkbAssetWithBalance): CkbAssetWithBalance {
-//   return update(asset, { balance: { $set: '0' } });
-// }
-
-export function useLiquidityQuery(inputPoolId?: string): LiquidityDetail {
+export function useLiquidityDetail(inputPoolId?: string): LiquidityDetail {
   const { poolId: paramPoolId } = useParams<{ poolId: string }>();
   const poolId = inputPoolId ?? paramPoolId;
 
@@ -56,8 +54,5 @@ export function useLiquidityQuery(inputPoolId?: string): LiquidityDetail {
     },
   );
 
-  return {
-    poolLiquidityQuery,
-    userLiquidityQuery,
-  };
+  return { poolLiquidityQuery, userLiquidityQuery };
 }
