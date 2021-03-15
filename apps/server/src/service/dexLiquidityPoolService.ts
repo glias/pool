@@ -1,4 +1,4 @@
-import { QueryOptions } from '@ckb-lumos/base';
+import { QueryOptions, ScriptWrapper } from '@ckb-lumos/base';
 import { BigNumber } from 'bignumber.js';
 import { Context } from 'koa';
 
@@ -19,6 +19,9 @@ import {
   Script,
   TokenHolderFactory,
   PoolInfoFactory,
+  scriptEquals,
+  CellOutput,
+  TransactionWithStatus,
 } from '../model';
 
 import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
@@ -194,13 +197,96 @@ export class DexLiquidityPoolService {
     const poolInfos: PoolInfo[] = [];
     const infoCells1 = await this.getPoolInfo();
     const infoCells2 = await this.getSudtSudtPoolInfo();
+    const infoCells3 = await this.getPendingInfo();
+
     infoCells2.forEach((x) => infoCells1.push(x));
+    infoCells3.forEach((x) => infoCells1.push(x));
 
     infoCells1.forEach((x) => {
       poolInfos.push(this.toPoolInfo(x, x.cellOutput.type));
     });
 
     return new PoolInfoHolder(poolInfos);
+  }
+
+  private async getPendingInfo(): Promise<Cell[]> {
+    const poolTxs = await this.dexRepository.getPoolTxs();
+    const result = [];
+
+    const ckbLock: ScriptWrapper = {
+      script: {
+        code_hash: PoolInfo.LOCK_CODE_HASH,
+        hash_type: PoolInfo.LOCK_HASH_TYPE,
+        args: '0x',
+      },
+      argsLen: 'any',
+    };
+    const ckbType: ScriptWrapper = {
+      script: {
+        code_hash: PoolInfo.TYPE_CODE_HASH,
+        hash_type: PoolInfo.TYPE_HASH_TYPE,
+        args: '0x',
+      },
+      argsLen: 'any',
+    };
+    const sudtLock: ScriptWrapper = {
+      script: {
+        code_hash: INFO_LOCK_CODE_HASH,
+        hash_type: INFO_LOCK_HASH_TYPE,
+        args: '0x',
+      },
+      argsLen: 'any',
+    };
+    const sudtType: ScriptWrapper = {
+      script: {
+        code_hash: INFO_TYPE_CODE_HASH,
+        hash_type: INFO_TYPE_HASH_TYPE,
+        args: '0x',
+      },
+      argsLen: 'any',
+    };
+
+    for (const tx of poolTxs) {
+      for (let i = 0; i < tx.transaction.outputs.length; i++) {
+        const cell = tx.transaction.outputs[i];
+        if (!cell.type) {
+          continue;
+        }
+
+        if (
+          scriptEquals.matchLockScriptWapper(ckbLock, cell.lock) &&
+          scriptEquals.matchTypeScriptWapper(ckbType, cell.type)
+        ) {
+          result.push(this.buildPendingCell(cell, tx, i));
+        }
+
+        if (
+          scriptEquals.matchLockScriptWapper(sudtLock, cell.lock) &&
+          scriptEquals.matchTypeScriptWapper(sudtType, cell.type)
+        ) {
+          result.push(this.buildPendingCell(cell, tx, i));
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private buildPendingCell(cellOutput: CellOutput, tx: TransactionWithStatus, i: number): Cell {
+    return {
+      cellOutput: {
+        capacity: cellOutput.capacity,
+        lock: cellOutput.lock,
+        type: cellOutput.type,
+      },
+      outPoint: {
+        txHash: tx.transaction.hash,
+        index: `0x${i.toString(16)}`,
+      },
+      blockHash: tx.txStatus.blockHash,
+      blockNumber: '0',
+      data: tx.transaction.outputsData[i],
+    };
   }
 
   private async getSudtSudtPoolInfo(): Promise<Cell[]> {
@@ -224,7 +310,7 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
 
-    const infoCells = await this.dexRepository.collectCells(queryOptions, true, true);
+    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
       const tokens = PoolInfoFactory.getTokensByCell(x);
