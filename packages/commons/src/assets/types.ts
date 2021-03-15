@@ -3,16 +3,19 @@ import { has, propEq } from '../utils';
 export type ChainType = 'Nervos' | 'Ethereum';
 export type Script = CKBComponents.Script;
 
-export interface ChainSpec {
-  chainType: ChainType;
-}
+export type ChainSpec<Name extends string = string, Spec = unknown> = {
+  chainType: Name;
+} & Spec;
 
-export interface Asset extends ChainSpec {
+export type Asset<C extends string = string, S = unknown> = {
   name: string;
   decimals: number;
   symbol: string;
   logoURI?: string;
-}
+} & ChainSpec<C, S>;
+
+export type ChainSpecOf<T> = T extends Asset<infer Chain, infer Spec> ? ChainSpec<Chain, Spec> : never;
+export type SpecOf<T> = T extends Asset<infer _C, infer Spec> ? Spec : never;
 
 export type BalanceValue = string;
 // the free balance
@@ -25,13 +28,15 @@ export type OccupiedBalance = { occupied: BalanceValue };
 // the asset with the balance
 export type AssetWithBalance = Balanced & Asset;
 
-export type CkbChainSpec = { chainType: 'Nervos'; typeHash: string };
+export type CkbChainSpec = ChainSpec<'Nervos', { typeHash: string }>;
+export type CkbNativeSpec = CkbChainSpec & {
+  typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000';
+};
+
 export type CkbAsset = CkbChainSpec & Asset;
 export type GliaswapLockedBalance = Balanced & LockedBalance;
 // prettier-ignore
-export type CkbNativeAsset =
-  CkbAsset
-  & { typeHash: '0x0000000000000000000000000000000000000000000000000000000000000000'; };
+export type CkbNativeAsset = CkbAsset & CkbNativeSpec;
 export type CkbSudtAsset = CkbAsset;
 export type CkbAssetWithBalance = CkbAsset & Balanced;
 export type CkbNativeAssetWithBalance = CkbNativeAsset & GliaswapLockedBalance & OccupiedBalance;
@@ -42,8 +47,9 @@ export type ShadowFromEth = { shadowFrom: EthAsset };
 export type ShadowFromEthAsset = CkbAsset & ShadowFromEth;
 export type ShadowFromEthWithBalance = ShadowFromEthAsset & GliaswapLockedBalance;
 
-export type EthChainSpec = { chainType: 'Ethereum'; address: string };
-export type EthAsset = EthChainSpec & Asset;
+export type EthChainSpec = ChainSpec<'Ethereum', { address: string }>;
+export type EthAsset = Asset<'Ethereum', { address: string }>;
+
 // prettier-ignore
 export type EthNativeAsset = EthAsset & { address: '0x0000000000000000000000000000000000000000'; };
 export type EthErc20Asset = EthAsset;

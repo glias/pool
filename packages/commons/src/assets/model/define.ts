@@ -1,10 +1,10 @@
-import { Asset, ChainSpec } from '..';
+import { Asset, ChainSpecOf } from '..';
 
 function notImplemented(): never {
   throw new Error('The method is not implemented');
 }
 
-export type DerivedFromChainPredicate<T extends Asset> = <I extends Asset>(x: I) => x is I & T;
+export type DerivedFromChainPredicate<T> = <I>(x: I) => x is I & T;
 
 /**
  * utility for TypeScript
@@ -13,14 +13,17 @@ export function predicate<T extends Asset>(pred: <I extends Asset>(x: I) => bool
   return pred as DerivedFromChainPredicate<T>;
 }
 
-export interface AssetModel<A extends Asset, S extends ChainSpec> {
+export interface AssetModel<
+  A extends Asset,
+  N = unknown // Spec of the native asset
+> {
   readonly chainType: string;
   /**
    * Get the identifier of an asset. For example, the contract address of an ERC20
    */
   identity: (x: A) => string;
 
-  getChainSpec: (asset: A) => S;
+  getChainSpec: (asset: A) => ChainSpecOf<A>;
 
   /**
    * Check if the two assets are equal
@@ -35,11 +38,11 @@ export interface AssetModel<A extends Asset, S extends ChainSpec> {
   /**
    * Detect if an asset is derived from this chain
    */
-  isNativeAsset: DerivedFromChainPredicate<A>;
+  isNativeAsset: DerivedFromChainPredicate<A & N>;
 }
 
 export type Extendable<T> = T & { extend: <E>(extension: E) => Extendable<T & E> };
-export type ExtendableAssetModel<A extends Asset, S extends ChainSpec> = Extendable<AssetModel<A, S>>;
+export type ExtendableAssetModel<A extends Asset, N = unknown> = Extendable<AssetModel<A, N>>;
 
 /**
  * Turning a plain object into an extensible object
@@ -60,8 +63,8 @@ export function extendable<Raw>(raw: Raw): Extendable<Raw> {
   return Object.assign({}, raw, { extend }) as Extendable<Raw>;
 }
 
-export interface DefineAssetModelOptions<A extends Asset, S extends ChainSpec> {
-  chainType: S['chainType'];
+export interface DefineAssetModelOptions<A extends Asset> {
+  chainType: ChainSpecOf<A>['chainType'];
   /**
    * Get the identifier of an asset. For example, the contract address of an ERC20
    */
@@ -70,12 +73,12 @@ export interface DefineAssetModelOptions<A extends Asset, S extends ChainSpec> {
   /**
    * Detect if an asset is derived from this chain. If not provided, the {@link chainType} is used to determine
    */
-  isCurrentChainAsset?: (x: Asset) => boolean;
+  isCurrentChainAsset?: <X extends Asset>(x: X) => boolean;
 
   /**
    * Detect if an asset is derived from this chain
    */
-  isNativeAsset?: (x: Asset) => boolean;
+  isNativeAsset?: <X extends Asset>(x: X) => boolean;
 
   /**
    * Check if the two assets are equal. If not provided, the {@link identity} is used to determine
@@ -85,12 +88,12 @@ export interface DefineAssetModelOptions<A extends Asset, S extends ChainSpec> {
   /**
    * Get {@link ChainSpec} from an asset. If not provided, will only get a plain {@link ChainSpec}
    */
-  getChainSpec?: (asset: A) => S;
+  getChainSpec?: (asset: A) => ChainSpecOf<A>;
 }
 
-export function defineAssetModel<A extends Asset, S extends ChainSpec>(
-  options: DefineAssetModelOptions<A, S>,
-): ExtendableAssetModel<A, S> {
+export function defineAssetModel<A extends Asset, N = unknown>(
+  options: DefineAssetModelOptions<A>,
+): ExtendableAssetModel<A, N> {
   const { identity, chainType } = options;
 
   if (!identity) throw new Error('identity is required in options');
@@ -100,14 +103,19 @@ export function defineAssetModel<A extends Asset, S extends ChainSpec>(
 
   const isNativeAsset = predicate<A>(options.isNativeAsset ?? notImplemented);
 
-  const getChainSpec: DefineAssetModelOptions<A, S>['getChainSpec'] =
-    options.getChainSpec ?? ((asset) => ({ chainType: asset.chainType } as S));
+  const getChainSpec: DefineAssetModelOptions<A>['getChainSpec'] =
+    options.getChainSpec ?? ((asset) => ({ chainType: asset.chainType } as ChainSpecOf<A>));
 
-  const equals = options.equals ?? ((a: A, b: A) => identity(a) === identity(b));
+  const equals =
+    options.equals ??
+    ((a: A, b: A) => {
+      if (!a || !b) return false;
+      return identity(a) === identity(b);
+    });
 
   if (!identity) throw new Error('The identity is required when define an AssetModel');
 
-  const model: AssetModel<A, S> = {
+  const model: AssetModel<A, N> = {
     chainType,
     identity,
     getChainSpec,

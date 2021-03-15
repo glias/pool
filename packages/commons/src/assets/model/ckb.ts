@@ -1,8 +1,8 @@
 import { has, propEq } from '../../utils';
-import { CkbAsset, CkbChainSpec } from '../types';
+import { CkbAsset, CkbNativeSpec } from '../types';
 import { defineAssetModel, predicate } from './';
 
-const RawCkbModel = defineAssetModel<CkbAsset, CkbChainSpec>({
+const RawCkbModel = defineAssetModel<CkbAsset, CkbNativeSpec>({
   chainType: 'Nervos',
   identity: (asset) => asset.typeHash,
   getChainSpec: (asset) => ({ typeHash: asset.typeHash, chainType: asset.chainType }),
