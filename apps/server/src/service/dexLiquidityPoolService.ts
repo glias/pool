@@ -108,7 +108,7 @@ export class DexLiquidityPoolService {
 
   private getOrderLock(infoCell: PoolInfo): Script {
     const tokens = PoolInfoFactory.getTokensByCell(infoCell.infoCell);
-    if (tokens.tokenA.typeHash === CKB_TOKEN_TYPE_HASH && tokens.tokenB.typeHash === CKB_TOKEN_TYPE_HASH) {
+    if (tokens.tokenA.typeHash === CKB_TOKEN_TYPE_HASH || tokens.tokenB.typeHash === CKB_TOKEN_TYPE_HASH) {
       return ScriptBuilder.buildLiquidityOrderLockScript();
     }
 
