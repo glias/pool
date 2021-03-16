@@ -7,7 +7,7 @@ export const RequestFeeLabel = () => {
   return (
     <span>
       {i18n.t('Request fee')}&nbsp;
-      <Tooltip overlay={i18n.t('This fee goes to deal-miners as the incentives.')}>
+      <Tooltip overlay={i18n.t('This fee goes to deal-miners as the incentives')}>
         <InfoCircleOutlined />
       </Tooltip>
     </span>

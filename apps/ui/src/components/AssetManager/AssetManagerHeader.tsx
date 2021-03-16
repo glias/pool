@@ -87,8 +87,7 @@ export const WalletConnectionStatusHeader = () => {
     <WalletConnectionStatusHeaderWrapper>
       <div className="info-connection">
         <div className="wallet">
-          {t('Connected to ')}
-          <Text strong>{connected}</Text>
+          {t('Connected to')}&nbsp;<Text strong>{connected}</Text>
         </div>
         <div className="address">
           <Text copyable={{ text: address }}>{truncateMiddle(address, 16)}</Text>
