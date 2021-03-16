@@ -27,7 +27,7 @@ const LiquidityExplorer = () => {
     return { lock, assets: specsFilter };
   }, [pathname, currentUserLock, specsFilter]);
 
-  const { data, status } = useQuery(['getLiquidityPools', api, poolFilter], async () => {
+  const { data, status } = useQuery(['getLiquidityPools', poolFilter], async () => {
     const pools = await api.getLiquidityPools(poolFilter);
     return pools.filter((pool) => differenceWith(specsFilter, pool.assets, CkbModel.equals).length === 0);
   });

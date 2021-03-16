@@ -44,13 +44,13 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     return addressToScript(adapter.signer.address);
   }, [adapter]);
 
-  const currentEthAddress = useMemo(() => {
-    return lockScript?.args ?? '';
-  }, [lockScript]);
+  // const currentEthAddress = useMemo(() => {
+  //   return lockScript?.args ?? '';
+  // }, [lockScript]);
 
   const { data, status } = useQuery(
-    ['getAssetsWithBalance', api, lockScript],
-    () => api.getAssetsWithBalance(lockScript!, assetList, currentEthAddress, raw.web3),
+    ['getAssetsWithBalance', lockScript],
+    () => api.getAssetsWithBalance(lockScript!, assetList),
     // TODO: use the env to define the
     { refetchInterval: 10000, enabled: lockScript != null && !!raw.web3 },
   );

@@ -1,6 +1,5 @@
 import { Transaction } from '@lay2/pw-core';
 import CKB from '@nervosnetwork/ckb-sdk-core';
-import Web3 from 'web3';
 import {
   Asset,
   CkbAsset,
@@ -86,6 +85,11 @@ export interface PoolInfoWithStatusFilter {
 }
 
 export interface GliaswapAPI {
+  /**
+   * @deprecated Since external libraries are out of our control,
+   * a base interface should have as few direct dependencies on third-party libraries as possible,
+   * and therefore may later be refactored to a method in the interface
+   */
   ckb: CKB;
   /**
    * get the default asset list, used as a placeholder
@@ -98,12 +102,7 @@ export interface GliaswapAPI {
   /**
    * Get assets with balances, if no `assets` is passed, the built-in AssetWithBalance is returned
    */
-  getAssetsWithBalance: (
-    lock: Script,
-    assets?: Asset[],
-    ethAddr?: string,
-    web3?: Web3,
-  ) => Promise<GliaswapAssetWithBalance[]>;
+  getAssetsWithBalance: (lock: Script, assets?: Asset[]) => Promise<GliaswapAssetWithBalance[]>;
   /**
    * get liquidity pools information
    */
@@ -155,9 +154,11 @@ export interface GliaswapAPI {
     payload: GenerateCancelRequestTransactionPayload,
   ) => Promise<SerializedTransactionToSignWithFee>;
 
+  // might be refactored to `searchAssets`
   searchSUDT: (typeHash: string) => Promise<CkbAsset | undefined>;
 
-  searchERC20: (address: string, web3: Web3) => Promise<EthAsset | undefined>;
+  // might be refactored to `searchAssets`
+  searchERC20: (address: string) => Promise<EthAsset | undefined>;
 
   getPoolInfoWithStatus: (filter: PoolInfoWithStatusFilter) => Promise<Maybe<PoolInfoWithStatus>>;
 }

@@ -1,7 +1,6 @@
 import { SearchOutlined } from '@ant-design/icons';
 import { Asset, ChainType, isCkbSudtAsset, isEthAsset } from '@gliaswap/commons';
 import { Input, Tabs } from 'antd';
-import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { MetaContainer } from 'components/MetaContainer';
 import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
@@ -72,9 +71,6 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
   const [searchStatus, setSearchStatus] = useState(SearchStatus.None);
   const [currentTab, setCurrentTab] = useState<ChainType>('Nervos');
   const { api } = useGliaswap();
-  const {
-    raw: { web3 },
-  } = useWalletAdapter<Web3ModalAdapter>();
 
   const sudtAssets = useMemo(() => {
     return assets.filter(isCkbSudtAsset);
@@ -99,7 +95,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
         setSearchResult(asset);
         setSearchStatus(SearchStatus.None);
       } else {
-        const res = await search(val, web3!);
+        const res = await search(val);
         if (res) {
           setSearchResult(res as any);
           setSearchStatus(SearchStatus.Unregistered);
@@ -109,7 +105,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
         }
       }
     },
-    [currentTab, erc20Assets, sudtAssets, web3, api],
+    [currentTab, erc20Assets, sudtAssets, api],
   );
 
   const searchOnChange = useCallback(

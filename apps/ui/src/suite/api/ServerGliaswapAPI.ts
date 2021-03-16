@@ -58,17 +58,8 @@ export class ServerGliaswapAPI implements GliaswapAPI {
 
   web3: Web3 | undefined;
 
-  private static instance: ServerGliaswapAPI;
-
-  public static getInstance() {
-    if (ServerGliaswapAPI.instance == null) {
-      ServerGliaswapAPI.instance = new ServerGliaswapAPI();
-    }
-
-    return ServerGliaswapAPI.instance;
-  }
-
-  constructor(/*private ethFetcher: EthAssetFetcher, serverUrl?: string*/) {
+  constructor(web3?: Web3) {
+    this.web3 = web3;
     this.axios = Axios.create({ baseURL: `${process.env.REACT_APP_SERVER_URL}/v1` });
     this.axios.interceptors.response.use(
       (res) => res,
@@ -132,12 +123,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     };
   }
 
-  async getAssetsWithBalance(
-    lock: CkbScript,
-    assets?: Asset[],
-    ethAddr?: string,
-    web3?: Web3,
-  ): Promise<GliaswapAssetWithBalance[]> {
+  async getAssetsWithBalance(lock: CkbScript, assets?: Asset[]): Promise<GliaswapAssetWithBalance[]> {
     if (!assets) {
       const res = await this.axios.post('/get-asset-with-balance', { lock });
       return res.data;
@@ -154,9 +140,11 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     const ethAsset: EthAsset = assets.find(EthModel.isNativeAsset)!;
     const erc20Assets: EthErc20Asset[] = assets.filter(EthModel.isEthErc20Asset);
     try {
+      const web3 = this.web3!;
+      const ethAddr = web3.utils.toChecksumAddress(lock.args);
       const ethAssets = await Promise.all([
         this.getEthBalance(web3!, ethAddr!, ethAsset),
-        ...erc20Assets.map((a) => this.getErc20Balance(web3!, ethAddr!, a)),
+        ...erc20Assets.map((a) => this.getErc20Balance(web3, ethAddr, a)),
       ]);
       return [...ckbAssets.data, ...ethAssets] as GliaswapAssetWithBalance[];
     } catch (error) {
@@ -408,8 +396,9 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     };
   };
 
-  async searchERC20(address: string, web3: Web3): Promise<EthErc20AssetWithBalance | undefined> {
+  async searchERC20(address: string): Promise<EthErc20AssetWithBalance | undefined> {
     try {
+      const web3 = this.web3!;
       const contract = new web3.eth.Contract(INFO_ABI, address);
       const name = await contract.methods.name().call();
       const symbol = await contract.methods.symbol().call();
