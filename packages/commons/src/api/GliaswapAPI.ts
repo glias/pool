@@ -85,6 +85,11 @@ export interface PoolInfoWithStatusFilter {
 }
 
 export interface GliaswapAPI {
+  /**
+   * @deprecated Since external libraries are out of our control,
+   * a base interface should have as few direct dependencies on third-party libraries as possible,
+   * and therefore may later be refactored to a method in the interface
+   */
   ckb: CKB;
   /**
    * get the default asset list, used as a placeholder
