@@ -2,13 +2,11 @@
   "name": "@gliaswap/commons",
   "version": "0.0.1",
   "main": "./lib/index.js",
-  "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "lodash": "4.17.20"
-  },
   "peerDependencies": {
     "@lay2/pw-core": "^0.3.22",
-    "@nervosnetwork/ckb-types": "^0.39.0"
+    "@nervosnetwork/ckb-types": "^0.39.0",
+    "bignumber.js": "^9.0.1",
+    "lodash": "4.17.20"
   },
   "devDependencies": {
     "@lay2/pw-core": "^0.3.22",
