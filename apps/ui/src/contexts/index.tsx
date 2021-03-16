@@ -11,6 +11,7 @@ import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 export const GliaswapProvider: React.FC = (props) => {
   const [api, setAPI] = useState<GliaswapAPI>(() => new ServerGliaswapAPI());
+  const [assetList, setAssetList] = useState<Asset[]>([]);
   const bridgeAPI = useConstant(() => BridgeAPI.getInstance());
 
   const adapter = useConstant(() => {
@@ -31,7 +32,6 @@ export const GliaswapProvider: React.FC = (props) => {
 
   adapter.on('connectStatusChanged', () => setAPI(new ServerGliaswapAPI(adapter.web3)));
 
-  const [assetList, setAssetList] = useState<Asset[]>([]);
   useEffect(() => {
     (async () => {
       const hide = message.loading('launching app...', 0);
@@ -39,7 +39,8 @@ export const GliaswapProvider: React.FC = (props) => {
       hide();
       setAssetList(list);
     })();
-  }, [api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const queryClient = useMemo(() => {
     return new QueryClient();
