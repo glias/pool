@@ -10,7 +10,7 @@ import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 export const GliaswapProvider: React.FC = (props) => {
-  const api: GliaswapAPI = useConstant(() => ServerGliaswapAPI.getInstance());
+  const [api, setAPI] = useState<GliaswapAPI>(() => new ServerGliaswapAPI());
   const bridgeAPI = useConstant(() => BridgeAPI.getInstance());
 
   const adapter = useConstant(() => {
@@ -28,6 +28,8 @@ export const GliaswapProvider: React.FC = (props) => {
       },
     });
   });
+
+  adapter.on('connectStatusChanged', () => setAPI(new ServerGliaswapAPI(adapter.web3)));
 
   const [assetList, setAssetList] = useState<Asset[]>([]);
   useEffect(() => {

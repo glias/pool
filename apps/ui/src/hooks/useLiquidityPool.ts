@@ -13,7 +13,7 @@ export function useLiquidityPoolInfo(queryOptions?: UseQueryOptions<PoolInfo[], 
   const [isLoadingPoolInfo, setIsLoadingPollInfo] = useState(false);
   const { api } = useGliaswap();
 
-  const { data, status } = useQuery(['getLiquidityPools', api], () => api.getLiquidityPools(), queryOptions);
+  const { data, status } = useQuery(['getLiquidityPools', queryOptions], () => api.getLiquidityPools(), queryOptions);
 
   useEffect(() => {
     if (status === 'loading') {
