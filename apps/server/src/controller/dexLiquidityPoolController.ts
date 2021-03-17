@@ -301,7 +301,13 @@ export default class DexLiquidityPoolController {
   })
   public async getOrders(ctx: Context): Promise<void> {
     const req = <{ poolId: string; lock: Script }>ctx.request.body;
-    const result = await this.service.getOrders(req.poolId, cellConver.converScript(req.lock));
+    let result;
+    if (!req.poolId) {
+      result = await this.service.getBatchOrders(cellConver.converScript(req.lock));
+    } else {
+      result = await this.service.getOrders(req.poolId, cellConver.converScript(req.lock));
+    }
+
     ctx.status = 200;
     ctx.body = result.map((x) => {
       return {

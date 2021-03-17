@@ -47,7 +47,6 @@ export class DexLiquidityChain extends DexOrderChain {
       if (tokens.isSudtSudt()) {
         for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
           const cell = this.tx.transaction.outputs[i];
-          console.log(cell.type);
           if (
             cell.lock.codeHash === LIQUIDITY_LOCK_CODE_HASH &&
             cell.lock.hashType === LIQUIDITY_LOCK_HASH_TYPE &&
@@ -171,9 +170,10 @@ export class DexLiquidityChain extends DexOrderChain {
   }
 
   filterOrderHistory(): boolean {
-    if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELED) {
-      return true;
-    }
-    return false;
+    return true;
+    // if (this.getStatus() !== ORDER_STATUS.COMPLETED && this.getStatus() !== ORDER_STATUS.CANCELED) {
+    //   return true;
+    // }
+    // return false;
   }
 }

@@ -57,6 +57,113 @@ export class DexLiquidityPoolService {
     return poolInfo;
   }
 
+  async getBatchOrders(lock: Script): Promise<OrderHistory[]> {
+    const liquidityOrders: OrderHistory[] = [];
+    const orderLock1 = ScriptBuilder.buildLiquidityOrderLockScript();
+    const removeQueryOptions1: QueryOptions = {
+      lock: {
+        script: orderLock1.toLumosScript(),
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+
+    const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
+    const removeQueryOptions2: QueryOptions = {
+      lock: {
+        script: orderLock2.toLumosScript(),
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+
+    const userLockHash = lock.toHash().slice(2, 66);
+    const removeTxs1 = await this.dexRepository.collectTransactions(removeQueryOptions1, true, true);
+    const removeTxs2 = await this.dexRepository.collectTransactions(removeQueryOptions2, true, true);
+    const infoCells = await this.getLiquidityPools();
+    infoCells.forEach((x) => {
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x);
+      const lpTokenTypeScript = new Script(x.tokenB.typeScript.codeHash, 'type', x.infoCell.cellOutput.lock.toHash());
+      const orders1 = factory.getOrderChains(removeQueryOptions1.lock, lpTokenTypeScript, removeTxs1, null);
+      const orders2 = factory.getOrderChains(removeQueryOptions2.lock, lpTokenTypeScript, removeTxs2, null);
+      orders1.forEach((x) => orders2.push(x));
+
+      const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
+      orders2
+        .filter(
+          (x) =>
+            x.filterOrderHistory() &&
+            (x.cell.lock.args.slice(116, 180) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash),
+        )
+        .forEach((x) => {
+          const history = x.getOrderHistory();
+          const lpToken = new Token(typeScript.toHash());
+          lpToken.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getSudtCellSerialization()
+            .decodeData(x.data)
+            .toString();
+          history.lpToken = lpToken;
+          liquidityOrders.push(history);
+        });
+    });
+
+    const addOrders = await this.batchAddOrder(lock);
+    addOrders.forEach((x) => liquidityOrders.push(x));
+
+    return liquidityOrders.sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp)).reverse();
+  }
+
+  async batchAddOrder(lock: Script): Promise<OrderHistory[]> {
+    const liquidityOrders: OrderHistory[] = [];
+    const orderLock1 = ScriptBuilder.buildLiquidityOrderLockScript();
+    const queryOptions1: QueryOptions = {
+      lock: {
+        script: orderLock1.toLumosScript(),
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+
+    const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
+    const queryOptions2: QueryOptions = {
+      lock: {
+        script: orderLock2.toLumosScript(),
+        argsLen: 'any',
+      },
+      order: 'desc',
+    };
+    const userLockHash = lock.toHash().slice(2, 66);
+    const addOrders1 = await this.dexRepository.collectTransactions(queryOptions1, true, true);
+    const addOrders2 = await this.dexRepository.collectTransactions(queryOptions2, true, true);
+    const infoCells = await this.getLiquidityPools();
+    infoCells.forEach((x) => {
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x);
+      const orders1 = factory.getOrderChains(queryOptions1.lock, x.tokenB.typeScript, addOrders1, null);
+      const orders2 = factory.getOrderChains(queryOptions2.lock, x.tokenB.typeScript, addOrders2, null);
+      orders1.forEach((x) => orders2.push(x));
+
+      const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
+      orders2
+        .filter(
+          (x) =>
+            x.filterOrderHistory() &&
+            (x.cell.lock.args.slice(116, 180) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash),
+        )
+        .forEach((x) => {
+          const history = x.getOrderHistory();
+          const lpToken = new Token(typeScript.toHash());
+          lpToken.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getSudtCellSerialization()
+            .decodeData(x.data)
+            .toString();
+          history.lpToken = lpToken;
+          liquidityOrders.push(history);
+        });
+    });
+
+    return liquidityOrders;
+  }
+
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
