@@ -232,6 +232,7 @@ export const CreatePool: React.FC = () => {
               selectedKey={selectedAsset?.typeHash}
               disabledKeys={selectedAssets.map(CkbModel.identity)}
               enableSearch
+              group={(asset) => asset.chainType}
             />
           }
         />
