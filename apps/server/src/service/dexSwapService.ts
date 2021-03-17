@@ -80,9 +80,7 @@ export class DexSwapService {
       }
     });
 
-    const sudt = await this.getSudtSudt();
-    const factory2 = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
-    const sudtOrders = factory2.getOrderChains(queryOptions.lock, null, sudt, bridgeInfoMatch);
+    const sudtOrders = await this.getSudtSudt(lock, bridgeInfoMatch);
     sudtOrders.forEach((x) => {
       if (x.cell.lock.args.slice(100, 164) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash) {
         orders.push(x);
@@ -98,18 +96,19 @@ export class DexSwapService {
       .reverse();
   }
 
-  private async getSudtSudt() {
-    const orderLock2: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
-    const queryOptions2: QueryOptions = {
+  private async getSudtSudt(lock: Script, bridgeInfoMatch: BridgeInfoMatchChain) {
+    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
+    const queryOptions: QueryOptions = {
       lock: {
-        script: orderLock2.toLumosScript(),
+        script: orderLock.toLumosScript(),
         argsLen: 'any',
       },
       order: 'desc',
     };
-    const txs2 = await this.dexRepository.collectTransactions(queryOptions2, true, true);
-
-    return txs2;
+    const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
+    const factory2 = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
+    const sudtOrders = factory2.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
+    return sudtOrders;
   }
 
   private async getCross(
