@@ -1,3 +1,4 @@
+import { CKB_TOKEN_TYPE_HASH } from '../../config';
 import * as utils from '../../utils';
 import { Cell } from '../cell';
 import { CellInfoSerializationHolderFactory } from '../datas';
@@ -80,6 +81,14 @@ class QuoteBaseHolder {
 
 export class QuoteBase {
   constructor(private _tokenA: Token, private _tokenB: Token) {}
+
+  isSudtSudt(): boolean {
+    if (this.tokenA.typeHash === CKB_TOKEN_TYPE_HASH || this.tokenB.typeHash === CKB_TOKEN_TYPE_HASH) {
+      return false;
+    }
+
+    return true;
+  }
 
   get tokenA(): Token {
     return this._tokenA;
