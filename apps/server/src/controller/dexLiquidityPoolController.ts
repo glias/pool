@@ -1,6 +1,7 @@
 import * as commons from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
+import { DateTime, Duration } from 'luxon';
 
 import * as config from '../config';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
@@ -8,6 +9,7 @@ import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
+const PENDING_POOL_CREATION_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 export default class DexLiquidityPoolController {
   private readonly service: DexLiquidityPoolService;
@@ -228,11 +230,27 @@ export default class DexLiquidityPoolController {
       },
     );
 
-    const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
-    const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
+    const livePoolExists = await this.service.poolInfoWithStatus(tokenA.typeHash, tokenB.typeHash);
+    if (livePoolExists) {
+      ctx.throw(400, 'pool already created');
+    }
 
-    ctx.status = 200;
-    ctx.body = resp.serialize();
+    const now = new DateTime();
+    const pendingPoolCreationDate = await this.service.poolCreationDate(tokenA.typeHash, tokenB.typeHash);
+    if (now.diff(pendingPoolCreationDate) < Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT)) {
+      ctx.throw(400, 'pending pool creation exists');
+    }
+
+    try {
+      await this.service.setPoolCreationDate(tokenA.typeHash, tokenB.typeHash, now);
+      const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
+      const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
+
+      ctx.status = 200;
+      ctx.body = resp.serialize();
+    } catch (_) {
+      ctx.throw(500, 'pending pool date creation failed');
+    }
   }
 
   @request('post', '/v1/liquidity-pool/orders')

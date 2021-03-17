@@ -1,7 +1,9 @@
 import { QueryOptions, ScriptWrapper } from '@ckb-lumos/base';
 import { BigNumber } from 'bignumber.js';
 import { Context } from 'koa';
+import { DateTime } from 'luxon';
 
+import { dexCache } from '../cache';
 import { CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
 import {
   INFO_LOCK_CODE_HASH,
@@ -38,6 +40,7 @@ export class DexLiquidityPoolService {
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
   }
+
   async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
     const poolInfos = await this.getLiquidityPools();
     const poolInfo = poolInfos.find((x) => {
@@ -455,6 +458,31 @@ export class DexLiquidityPoolService {
 
   public async buildCancelRequestTx(ctx: Context, req: txBuilder.CancelRequest): Promise<txBuilder.TransactionWithFee> {
     return await this.txBuilderServiceFactory.cancel().build(ctx, req);
+  }
+
+  async poolCreationDate(tokenAHash: string, tokenBHash: string): Promise<DateTime> {
+    const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
+
+    try {
+      const dateString = await dexCache.get(poolKey);
+      if (dateString === '') {
+        return new DateTime();
+      }
+
+      return DateTime.fromJSDate(new Date(dateString));
+    } catch (e) {
+      return new DateTime();
+    }
+  }
+
+  async setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: DateTime): Promise<void> {
+    const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
+
+    if (!(await dexCache.getLock(poolKey))) {
+      throw new Error('get dex cache lock failed');
+    }
+
+    dexCache.set(poolKey, date.toJSDate().toLocaleString());
   }
 }
 
