@@ -267,7 +267,7 @@ export class CkbRepository implements DexRepository {
     }
   }
 
-  private async getPoolTxs(): Promise<TransactionWithStatus[]> {
+  async getPoolTxs(): Promise<TransactionWithStatus[]> {
     try {
       const QueryOptions = {
         url: ckbConfig.nodeUrl,

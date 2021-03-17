@@ -77,7 +77,7 @@ class DefaultScriptEquals implements ScriptEquals {
   ): boolean {
     if ('argsLen' in script && script.argsLen && script.argsLen !== -1) {
       const s1 = this.normalizeScript(script);
-      const s2 = this.normalizeScript(script);
+      const s2 = this.normalizeScript(targetScript);
       return s1.code_hash === s2.code_hash && s1.hash_type === s2.hash_type;
     }
 

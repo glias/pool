@@ -54,6 +54,8 @@ export interface DexRepository extends ForceBridgeRepository {
     includeInputCells?: boolean,
   ) => Promise<TransactionWithStatus[]>;
 
+  getPoolTxs: () => Promise<TransactionWithStatus[]>;
+
   getTransactions(hashes: string[]): Promise<TransactionWithStatus[]>;
 
   getTransaction(hash: string): Promise<TransactionWithStatus>;
