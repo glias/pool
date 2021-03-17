@@ -1,7 +1,8 @@
+import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { Context } from 'koa';
 
 import * as config from '../../config';
-import { Script, PoolInfo } from '../../model';
+import { Script } from '../../model';
 import { ckbRepository, DexRepository } from '../../repository';
 import * as utils from '../../utils';
 
@@ -53,11 +54,15 @@ export class CancelRequestTxBuilder {
 
 export class TokenLPTypeScriptBuilder {
   public build(poolId: string, tokenTypeHashes: string[]): Script {
+    const [lockCodeHash, lockHashType] = tokenTypeHashes.find((hash) => hash == CKB_TYPE_HASH)
+      ? [config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE]
+      : [config.tokenTokenConfig.INFO_LOCK_CODE_HASH, config.tokenTokenConfig.INFO_LOCK_HASH_TYPE];
+
     // Generate info lock script
     const infoTypeHash = poolId;
-    const pairHash = utils.blake2b(tokenTypeHashes);
+    const pairHash = utils.blake2b(tokenTypeHashes.sort());
     const infoLockArgs = `0x${utils.trim0x(pairHash)}${utils.trim0x(infoTypeHash)}`;
-    const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);
+    const infoLock = new Script(lockCodeHash, lockHashType, infoLockArgs);
 
     // Generate liquidity provider token type script
     return new Script(config.SUDT_TYPE_CODE_HASH, 'type', infoLock.toHash());
