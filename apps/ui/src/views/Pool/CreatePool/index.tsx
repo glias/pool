@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { AssetWithBalance, CkbAssetWithBalance, CkbModel } from '@gliaswap/commons';
-import { Button, Col, Form, Input, Row, Select, Typography } from 'antd';
+import { Button, Col, Divider, Form, Input, Row, Select, Typography } from 'antd';
 import { ButtonProps } from 'antd/lib/button';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
@@ -25,7 +25,10 @@ import { useCreatePool } from './useCreatePool';
 const Text = Typography.Text;
 
 const CreatePoolWrapper = styled.div`
-  font-weight: bold;
+
+  .ant-form{
+    font-weight: bold;
+  }
 
   .ant-form-item {
     padding: 12px;
@@ -245,8 +248,18 @@ export const CreatePool: React.FC = () => {
   const poolAssets = poolQuery.data?.assets;
 
   return (
-    <Section>
-      <CreatePoolWrapper>
+    <CreatePoolWrapper>
+      <Section>
+        <strong>{i18n.t('You are the first liquidity provider')}</strong>
+        <p style={{ lineHeight: '16px' }}>
+          {i18n.t(
+            'Create the pool before adding liquidity. And the ratio of tokens you add will set the price of this pool.',
+          )}
+        </p>
+      </Section>
+      <Section>
+        <strong>{i18n.t('Create Pool')}</strong>
+        <Divider style={{ margin: 8 }} />
         <Form layout="vertical">
           <Form.Item label={i18n.t('Model')}>
             <Select defaultValue="UNISWAP" bordered={false}>
@@ -301,51 +314,51 @@ export const CreatePool: React.FC = () => {
             </Row>
           )}
         </Form>
-      </CreatePoolWrapper>
 
-      <OperationConfirmModal
-        visible={confirming}
-        onOk={() => sendReadyToAddLiquidityTransaction()}
-        onCancel={() => setConfirming(false)}
-        operation={<Text strong>{i18n.t('Add Liquidity')}</Text>}
-      >
-        {confirming && poolAssets && poolQuery.data && (
-          <>
-            <div className="label">{i18n.t('Add')}</div>
-            {readyToAddAmounts && (
-              <AssetBalanceList
-                assets={zip(poolAssets, readyToAddAmounts).map(([asset, added]) =>
-                  createAssetWithBalance(asset!, added!.value),
-                )}
-              />
-            )}
-            <div style={{ padding: '8px 0' }}>
-              <DownArrowSvg />
-            </div>
-            <div className="label">
-              <LiquidityPoolTokenTooltip>{i18n.t('Receive(EST.)')}</LiquidityPoolTokenTooltip>
-            </div>
-            <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
-              <div>
-                <HumanizeBalance asset={poolQuery.data.lpToken} value={readyToReceiveLPAmount} />
+        <OperationConfirmModal
+          visible={confirming}
+          onOk={() => sendReadyToAddLiquidityTransaction()}
+          onCancel={() => setConfirming(false)}
+          operation={<Text strong>{i18n.t('Add Liquidity')}</Text>}
+        >
+          {confirming && poolAssets && poolQuery.data && (
+            <>
+              <div className="label">{i18n.t('Add')}</div>
+              {readyToAddAmounts && (
+                <AssetBalanceList
+                  assets={zip(poolAssets, readyToAddAmounts).map(([asset, added]) =>
+                    createAssetWithBalance(asset!, added!.value),
+                  )}
+                />
+              )}
+              <div style={{ padding: '8px 0' }}>
+                <DownArrowSvg />
               </div>
-              <div>
-                <PoolAssetSymbol assets={poolAssets} />
+              <div className="label">
+                <LiquidityPoolTokenTooltip>{i18n.t('Receive(EST.)')}</LiquidityPoolTokenTooltip>
               </div>
-            </SpaceBetweenRow>
+              <SpaceBetweenRow style={{ fontWeight: 'bold' }}>
+                <div>
+                  <HumanizeBalance asset={poolQuery.data.lpToken} value={readyToReceiveLPAmount} />
+                </div>
+                <div>
+                  <PoolAssetSymbol assets={poolAssets} />
+                </div>
+              </SpaceBetweenRow>
 
-            <SpaceBetweenRow>
-              <TransactionFeeLabel />
-              <HumanizeBalance
-                asset={{ symbol: 'CKB', decimals: 8 }}
-                value={readyToAddLiquidityTransaction?.fee}
-                maxToFormat={8}
-                showSuffix
-              />
-            </SpaceBetweenRow>
-          </>
-        )}
-      </OperationConfirmModal>
-    </Section>
+              <SpaceBetweenRow>
+                <TransactionFeeLabel />
+                <HumanizeBalance
+                  asset={{ symbol: 'CKB', decimals: 8 }}
+                  value={readyToAddLiquidityTransaction?.fee}
+                  maxToFormat={8}
+                  showSuffix
+                />
+              </SpaceBetweenRow>
+            </>
+          )}
+        </OperationConfirmModal>
+      </Section>
+    </CreatePoolWrapper>
   );
 };
