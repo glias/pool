@@ -13,7 +13,7 @@ test('serialized encoding and decoding args', () => {
       argsHex.userLockHash,
       argsHex.version,
       argsHex.amountOutMin,
-      argsHex.tipsCkb,
+      argsHex.tips,
       argsHex.tipsSudt,
     );
 
