@@ -8,6 +8,8 @@ import {
   Script,
   PoolInfoFactory,
 } from '..';
+import { LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE } from '../../config/tokenToken';
+import { scriptEquals } from '../scriptEquals';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
@@ -40,20 +42,53 @@ export class DexLiquidityChain extends DexOrderChain {
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
         : PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell).tokenB;
-
     // FIXME:
     if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
-      amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY * 2n).toString();
+      if (tokens.isSudtSudt()) {
+        for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
+          const cell = this.tx.transaction.outputs[i];
+          console.log(cell.type);
+          if (
+            cell.lock.codeHash === LIQUIDITY_LOCK_CODE_HASH &&
+            cell.lock.hashType === LIQUIDITY_LOCK_HASH_TYPE &&
+            scriptEquals.equalsTypeScript(cell.type, tokens.tokenA.typeScript)
+          ) {
+            amountA.balance = CellInfoSerializationHolderFactory.getInstance()
+              .getSudtCellSerialization()
+              .decodeData(this.tx.transaction.outputsData[i])
+              .toString();
+          }
+        }
+      } else {
+        amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY * 2n).toString();
+      }
     } else {
       amountA.balance = CellInfoSerializationHolderFactory.getInstance()
         .getLiquidityCellSerialization()
         .decodeArgs(this.cell.lock.args)
         .ckbMin.toString();
     }
-    amountB.balance = CellInfoSerializationHolderFactory.getInstance()
-      .getLiquidityCellSerialization()
-      .decodeData(this.data)
-      .toString();
+
+    if (tokens.isSudtSudt()) {
+      for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
+        const cell = this.tx.transaction.outputs[i];
+        if (
+          cell.lock.codeHash === LIQUIDITY_LOCK_CODE_HASH &&
+          cell.lock.hashType === LIQUIDITY_LOCK_HASH_TYPE &&
+          scriptEquals.equalsTypeScript(cell.type, tokens.tokenB.typeScript)
+        ) {
+          amountB.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getSudtCellSerialization()
+            .decodeData(this.tx.transaction.outputsData[i])
+            .toString();
+        }
+      }
+    } else {
+      amountB.balance = CellInfoSerializationHolderFactory.getInstance()
+        .getLiquidityCellSerialization()
+        .decodeData(this.data)
+        .toString();
+    }
     const steps = this.buildStep();
     const status = this.getStatus();
 
