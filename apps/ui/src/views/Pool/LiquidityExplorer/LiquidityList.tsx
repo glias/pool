@@ -1,5 +1,5 @@
-import { PoolInfo } from '@gliaswap/commons';
-import { Empty } from 'antd';
+import { PoolInfoWithStatus } from '@gliaswap/commons';
+import { Empty, Spin } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import i18n from 'i18n';
@@ -46,7 +46,7 @@ const LiquidityListWrapper = styled.div`
 `;
 
 interface LiquidityListProps {
-  pools: PoolInfo[];
+  pools: PoolInfoWithStatus[];
 }
 
 export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
@@ -63,14 +63,20 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
       {pools.length <= 0 ? (
         <Empty style={{ color: '#fff' }}>{i18n.t('No liquidity found. Go to Explore Pool to add liquidity')}</Empty>
       ) : (
-        pools.map(({ assets, poolId }) => (
-          <Section key={poolId} className="liquidity-item" onClick={() => history.push(`/pool/${poolId}`)}>
-            <SpaceBetweenRow style={{ padding: 0, fontSize: '14px' }}>
-              <div className="asset-symbol">
-                <PoolAssetSymbol assets={assets} />
-              </div>
-              <AssetBalanceList assets={assets} hideSymbolIcon />
-            </SpaceBetweenRow>
+        pools.map(({ assets, poolId, status }) => (
+          <Section
+            key={poolId}
+            className="liquidity-item"
+            onClick={() => status === 'completed' && history.push(`/pool/${poolId}`)}
+          >
+            <Spin spinning={status === 'pending'}>
+              <SpaceBetweenRow style={{ padding: 0, fontSize: '14px' }}>
+                <div className="asset-symbol">
+                  <PoolAssetSymbol assets={assets} />
+                </div>
+                <AssetBalanceList assets={assets} hideSymbolIcon />
+              </SpaceBetweenRow>
+            </Spin>
           </Section>
         ))
       )}

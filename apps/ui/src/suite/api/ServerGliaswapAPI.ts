@@ -25,7 +25,6 @@ import {
   LiquidityOperationSummaryFilter,
   LiquidityPoolFilter,
   Maybe,
-  PoolInfo,
   PoolInfoWithStatus,
   PoolInfoWithStatusFilter,
   PoolModel,
@@ -209,7 +208,18 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     return res.data;
   }
 
-  async getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfo[]> {
+  async getLiquidityPools(filter: LiquidityPoolFilter | undefined): Promise<PoolInfoWithStatus[]> {
+    function convertResponse(liquidityRes: LiquidityResponse[]): PoolInfoWithStatus[] {
+      return liquidityRes
+        .map((item) => ({
+          model: item.model as PoolModel,
+          poolId: item.poolId,
+          assets: item.assets as CkbAssetWithBalance[],
+          status: item.status,
+        }))
+        .sort((asset) => (asset.status === 'pending' ? 1 : 0)); // move the pending items to the end
+    }
+
     const res = await this.axios.post<LiquidityResponse[]>('/liquidity-pool', filter);
 
     // TODO the server asset balance is wrong, this is a patch to fix the server error
@@ -232,18 +242,10 @@ export class ServerGliaswapAPI implements GliaswapAPI {
         });
       });
 
-      return userLiquidates.map<PoolInfo>((item) => ({
-        model: item.model as PoolModel,
-        poolId: item.poolId,
-        assets: item.assets as CkbAssetWithBalance[],
-      }));
+      return convertResponse(userLiquidates);
     }
 
-    return res.data.map<PoolInfo>((item) => ({
-      model: item.model as PoolModel,
-      poolId: item.poolId,
-      assets: item.assets as CkbAssetWithBalance[],
-    }));
+    return convertResponse(res.data);
   }
 
   async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityOperationSummary[]> {
