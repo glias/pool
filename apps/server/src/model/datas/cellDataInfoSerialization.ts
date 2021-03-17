@@ -121,7 +121,7 @@ export interface SwapCellSudtSudtSerialization {
     tipsCkb: bigint,
     tipsSudt: bigint,
   ): string;
-  decodeArgs(argsHex: string): SwapOrderSudtSudtCellArgs;
+  decodeArgs(argsHex: string): SwapOrderCellArgs;
   encodeData(sudtAmount: bigint): string;
   decodeData(dataHex: string): bigint;
 }
@@ -169,16 +169,6 @@ export interface SwapOrderCellArgs {
   tips: bigint;
   tipsSudt: bigint;
 }
-
-export interface SwapOrderSudtSudtCellArgs {
-  sudtTypeHash: string;
-  userLockHash: string;
-  version: number;
-  amountOutMin: bigint;
-  tipsCkb: bigint;
-  tipsSudt: bigint;
-}
-
 export interface InfoCellArgs {
   hash: string;
   infoTypeHash: string;
