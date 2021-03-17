@@ -10,7 +10,6 @@ import {
   LiquidityOperationSummary,
   LPTokenWithBalance,
   Maybe,
-  PoolInfo,
   PoolInfoWithStatus,
   Script,
   SerializedTransactionToSignWithFee,
@@ -106,7 +105,7 @@ export interface GliaswapAPI {
   /**
    * get liquidity pools information
    */
-  getLiquidityPools: (filter?: LiquidityPoolFilter) => Promise<PoolInfo[]>;
+  getLiquidityPools: (filter?: LiquidityPoolFilter) => Promise<PoolInfoWithStatus[]>;
 
   /**
    * get liquidity info by poolId, when a lock is passed in,
