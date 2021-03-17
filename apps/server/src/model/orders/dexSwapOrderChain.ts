@@ -8,7 +8,9 @@ import {
   Token,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH, FORCE_BRIDGE_LOCK_HASH_CODE } from '../../config';
+import * as utils from '../../utils';
 import { BridgeInfo } from '../bridge';
+import { PoolInfoFactory, QuoteBase } from '../pool';
 import { TokenHolderFactory } from '../tokens';
 import { DexOrderChain, OrderHistory, ORDER_STATUS, Step } from './dexOrderChain';
 
@@ -119,12 +121,17 @@ export class DexSwapOrderChain extends DexOrderChain {
         return token;
       }
     } else {
-      const argsData = this.getArgsData();
-      const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
-        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
-      );
-      return argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
+      const tokens = this.getTokens();
+      if (tokens) {
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+      } else {
+        const argsData = this.getArgsData();
+        const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+        const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
+          argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
+        );
+        return argsData.sudtTypeHash == CKB_TYPE_HASH ? sudtToken : ckbToken;
+      }
     }
   }
 
@@ -138,13 +145,18 @@ export class DexSwapOrderChain extends DexOrderChain {
         return token.toERC20Token();
       }
     } else {
-      const argsData = this.getArgsData();
-      const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
-      const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
-        argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
-      );
+      const tokens = this.getTokens();
+      if (tokens) {
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
+      } else {
+        const argsData = this.getArgsData();
+        const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
+        const sudtToken = TokenHolderFactory.getInstance().getTokenByTypeHash(
+          argsData.sudtTypeHash === CKB_TOKEN_TYPE_HASH ? this.cell.type.toHash() : argsData.sudtTypeHash,
+        );
 
-      return argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
+        return argsData.sudtTypeHash == CKB_TYPE_HASH ? ckbToken : sudtToken;
+      }
     }
   }
 
@@ -297,5 +309,15 @@ export class DexSwapOrderChain extends DexOrderChain {
     }
 
     return false;
+  }
+
+  private getTokens(): QuoteBase {
+    if (!this.cell.type) {
+      return undefined;
+    }
+
+    const typeHash = PoolInfoFactory.sortTypeHash(this.cell.lock.args.slice(0, 66), this.cell.type.toHash());
+    const key = `0x${utils.blake2b(typeHash).slice(2, 66)}`;
+    return PoolInfoFactory.getTokens(key);
   }
 }
