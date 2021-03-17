@@ -13,6 +13,7 @@ export class MockRepositoryFactory {
 }
 
 export class MockRepository implements DexRepository {
+  getPoolTxs: () => Promise<TransactionWithStatus[]>;
   getBlockTimestampByHash(blockHash: string): Promise<string> {
     throw new BizException('Method not implemented.');
   }
