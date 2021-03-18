@@ -1,9 +1,12 @@
+import { PoolInfoWithStatus } from '@gliaswap/commons';
+
 export interface LiquidityResponse {
   poolId: string;
   lpToken: LpToken;
   total: string;
   assets: AssetsEntity[];
   model: string;
+  status: PoolInfoWithStatus['status'];
 }
 export interface LpToken {
   typeHash: string;
