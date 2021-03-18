@@ -35,6 +35,7 @@ import { txBuilder } from '.';
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderServiceFactory: txBuilder.TxBuilderServiceFactory;
+  private readonly blockNumber = `0x${Number(1379791).toString(16)}`;
 
   constructor(dexRepository?: DexRepository) {
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
@@ -300,7 +301,8 @@ export class DexLiquidityPoolService {
     };
 
     const userLiquidityCells = await this.dexRepository.collectCells(queryOptions, true, true);
-    return userLiquidityCells;
+
+    return userLiquidityCells.filter((x) => BigInt(x.blockNumber) > BigInt(this.blockNumber));
   }
 
   private async getPoolInfos(): Promise<PoolInfoHolder> {
@@ -418,6 +420,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
 
     const infoCells = await this.dexRepository.collectCells(queryOptions, true);
@@ -464,6 +467,7 @@ export class DexLiquidityPoolService {
         },
         argsLen: 'any',
       },
+      fromBlock: this.blockNumber,
       order: 'desc',
     };
 
