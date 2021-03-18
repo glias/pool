@@ -386,6 +386,7 @@ export const SwapTable: React.FC = () => {
             group: (a) => a.chainType,
             bold: true,
             enableSearch: true,
+            showAvailableBalance: true,
           }}
         />
         <div className={`swap ${isPairToggleable ? 'clickable' : 'unclickable'}`} onClick={changePair}>
@@ -413,6 +414,7 @@ export const SwapTable: React.FC = () => {
             group: (a) => a.chainType,
             bold: true,
             enableSearch: true,
+            showAvailableBalance: true,
           }}
         />
         {disabled ? null : (

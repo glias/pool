@@ -143,7 +143,7 @@ export function InputNumber<T extends Asset, K extends Key>({
       {max ? (
         <MaxContainer>
           <button type="button" onClick={() => setMax?.(max)}>
-            {`${i18n.t('common.max')}: ${new BigNumber(max).toFixed(4, BigNumber.ROUND_DOWN)}`}
+            {`${i18n.t('common.max')}: ${new BigNumber(max).toFormat(4)}`}
           </button>
         </MaxContainer>
       ) : null}
