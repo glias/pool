@@ -49,6 +49,8 @@ function buildURL(txhash: string, isETH: boolean) {
 
 interface Progress {
   title: string;
+  activeTitle?: string;
+  meta?: React.ReactNode;
   description?: string;
   txHash?: string;
   isEth: boolean;
@@ -85,21 +87,43 @@ export const StepModal = () => {
         },
         {
           title: i18n.t('swap.progress.confirm-eth'),
+          activeTitle: i18n.t('swap.progress.confirming-eth'),
           description: `${i18n.t('swap.progress.lock')} ${tokenA.symbol.slice(2)}`,
           txHash: orderSteps?.[1]?.transactionHash,
           isEth: true,
         },
         {
           title: i18n.t('swap.progress.confirm-ckb'),
+          activeTitle: i18n.t('swap.progress.confirming-ckb'),
           description: `${tokenA.symbol.slice(2)} ➜ ${tokenA.symbol}`,
           txHash: orderSteps?.[2]?.transactionHash,
+          meta: (
+            <Trans
+              defaults="<bold>Step 3</bold> may take 5-15 minutes. It is necessary to wait for the confirmation of 15 blocks on the Ethereum to ensure the security."
+              components={{ bold: <strong /> }}
+            />
+          ),
           isEth: false,
         },
         {
           title: i18n.t(stageStatus === 'canceling' ? 'actions.cancel-order' : 'swap.progress.sucess'),
+          activeTitle: i18n.t(stageStatus === 'canceling' ? 'actions.canceling-order' : 'swap.progress.swapping'),
           description: `${tokenA.symbol} ➜ CKB`,
           txHash: orderSteps?.[3]?.transactionHash,
           isEth: false,
+          meta:
+            stageStatus === 'canceling' ? (
+              <Trans
+                defaults="Cancelling an operation will usually take roughly half of a minute. However, the cancellation could fail if it conflicts with the transaction from the deal-miner. Please notice that cancelling this swap will return the ETH cross-chain asset on Nervos(ck{{symbol}}) to you."
+                values={{ symbol: tokenA.symbol }}
+              />
+            ) : (
+              <Trans
+                defaults="Normally your swap will complete successfully soon after <bold>step 3</bold>, but if the price fluctuates above the slippage, your swap will be pending until the pool price fluctuates back to the price you submitted. Please be notice if canceling this swap, you will receive the ETH cross-chain asset on CKB - ck{{symbol}}."
+                values={{ symbol: tokenA.symbol }}
+                components={{ bold: <strong /> }}
+              />
+            ),
         },
       ];
     } else if (isCrossIn) {
@@ -112,12 +136,15 @@ export const StepModal = () => {
         },
         {
           title: i18n.t('swap.progress.confirm-eth'),
+          activeTitle: i18n.t('swap.progress.confirming-eth'),
           description: `${i18n.t('swap.progress.lock')} ${tokenA.symbol}`,
           txHash: orderSteps?.[1]?.transactionHash,
           isEth: true,
         },
         {
           title: i18n.t('swap.progress.sucess'),
+          activeTitle: i18n.t('swap.progress.swapping'),
+          meta: i18n.t('swap.swap-modal.cross-time', { chain: 'Ethereum' }),
           description: `${tokenA.symbol} ➜ ck${tokenA.symbol}`,
           txHash: orderSteps?.[2]?.transactionHash,
           isEth: false,
@@ -133,12 +160,15 @@ export const StepModal = () => {
         },
         {
           title: i18n.t('swap.progress.confirm-ckb'),
+          activeTitle: i18n.t('swap.progress.confirming-ckb'),
           description: `${i18n.t('swap.progress.burn')} ${tokenA.symbol}`,
           txHash: orderSteps?.[1]?.transactionHash,
           isEth: false,
         },
         {
           title: i18n.t('swap.progress.sucess'),
+          activeTitle: i18n.t('swap.progress.swapping'),
+          meta: i18n.t('swap.swap-modal.cross-time', { chain: 'Nervos' }),
           description: `${tokenA.symbol} ➜ ${tokenA.symbol.slice(2)}`,
           txHash: orderSteps?.[2]?.transactionHash,
           isEth: true,
@@ -155,6 +185,7 @@ export const StepModal = () => {
       },
       {
         title: i18n.t('swap.progress.confirm-ckb'),
+        activeTitle: i18n.t('swap.progress.confirming-ckb'),
         description: `${i18n.t('swap.progress.lock')} ${tokenA.symbol}`,
         txHash: orderSteps?.[1]?.transactionHash,
         isEth: false,
@@ -163,9 +194,19 @@ export const StepModal = () => {
         title: i18n.t(
           stageStatus === 'canceling' || stageStatus === 'canceled' ? 'actions.cancel-order' : 'swap.progress.sucess',
         ),
+        activeTitle: i18n.t(stageStatus === 'canceling' ? 'actions.canceling-order' : 'swap.progress.swapping'),
         description: `${tokenA.symbol} ➜ ${tokenB.symbol}`,
         txHash: orderSteps?.[2]?.transactionHash,
         isEth: false,
+        meta:
+          stageStatus === 'canceling' ? (
+            <Trans defaults="Cancelling an operation will usually take roughly half of a minute. However, the cancellation could fail if it conflicts with the transaction from the deal-miner." />
+          ) : (
+            <Trans
+              defaults="Normally your swap will complete successfully soon after <bold>step 2</bold>, but if the price fluctuates above the slippage, your add liquidity request will be pending until the pool price fluctuates back to the price you submitted. You also have the option to cancel the operation if it takes too long."
+              components={{ bold: <strong /> }}
+            />
+          ),
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,26 +276,29 @@ export const StepModal = () => {
       <section className="step">
         <Steps direction="vertical" size="small" current={currentIndex + 1}>
           {progress.map((p, i) => {
+            const isCurrentIndex = i === currentIndex + 1 || (stageStatus === 'canceling' && i === currentIndex);
+            const titleText = isCurrentIndex ? p.activeTitle : p.title;
             const title = p.txHash ? (
               <a target="_blank" rel="noopener noreferrer" href={buildURL(p.txHash, p.isEth)}>
-                {p.title}
+                {titleText}
               </a>
             ) : (
-              p.title
+              titleText
+            );
+            const description = isCurrentIndex ? (
+              <>
+                <span>{p.description}</span>
+                {p.meta ? <MetaContainer>{p.meta}</MetaContainer> : null}
+              </>
+            ) : (
+              p.description
             );
             return (
-              <Step className={i === 0 ? 'first' : ''} title={title} description={p.description} key={p.title + i} />
+              <Step className={i === 0 ? 'first' : ''} title={title} description={description} key={p.title + i} />
             );
           })}
         </Steps>
       </section>
-      <MetaContainer>
-        <Trans
-          defaults="Normally your swap will complete successfully soon after <bold>step {{step}}</bold>, but if the price fluctuates above the slippage, your swap will be pending until the pool price fluctuates back to the price you submitted. You also have the option to cancel the operation if it takes too long." // optional defaultValue
-          values={{ step: type === SwapOrderType.CrossChainOrder ? 3 : 2 }}
-          components={{ bold: <strong /> }}
-        />
-      </MetaContainer>
     </Container>
   );
 };

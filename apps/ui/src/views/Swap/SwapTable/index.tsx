@@ -358,7 +358,8 @@ export const SwapTable: React.FC = () => {
             <span>{ckbEnoughMessage}</span>{' '}
           </Form.Item>
         ) : null}
-        {currentPoolAssets.length === 0 ? (
+        {currentPoolAssets.length === 0 &&
+        (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) ? (
           <Form.Item className="warning">
             <span>{i18n.t('validation.pool-not-exist', { poolName })}</span>{' '}
           </Form.Item>
