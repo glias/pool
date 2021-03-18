@@ -1,10 +1,5 @@
 import { createFixedStruct, U8, U128LE } from 'easy-byte';
-import {
-  SudtCellSerialization,
-  SwapCellSudtSudtSerialization,
-  SwapOrderSudtSudtCellArgs,
-  TipsArgsSerialization,
-} from '.';
+import { SudtCellSerialization, SwapCellSudtSudtSerialization, SwapOrderCellArgs, TipsArgsSerialization } from '.';
 
 export class DefaultSwapCellSudtSudtSerialization implements SwapCellSudtSudtSerialization {
   constructor(private serialization: SudtCellSerialization, private tipsArgsSerialization: TipsArgsSerialization) {
@@ -31,21 +26,24 @@ export class DefaultSwapCellSudtSudtSerialization implements SwapCellSudtSudtSer
       .toString('hex')}${tipsArgs}`;
   };
 
-  decodeArgs = (argsHex: string): SwapOrderSudtSudtCellArgs => {
+  decodeArgs = (argsHex: string): SwapOrderCellArgs => {
     const args = this.getStructDefine();
 
     const dataLength = 66 + 64 + 2 + 32;
 
     const sudtTypeHash = argsHex.slice(0, 66);
     const userLockHash = `0x${argsHex.slice(66, 66 + 64)}`;
-    const tips = this.tipsArgsSerialization.decodeSwapSudtSudtArgs(argsHex.slice(dataLength, argsHex.length));
+    const tipsData = this.tipsArgsSerialization.decodeSwapSudtSudtArgs(argsHex.slice(dataLength, argsHex.length));
+    const tips = tipsData.tipsCkb;
+    const tipsSudt = tipsData.tipsSudt;
 
     const structObj = args.decode(Buffer.from(argsHex.slice(130, dataLength), 'hex'));
     return {
       sudtTypeHash,
       userLockHash,
       ...structObj,
-      ...tips,
+      tips,
+      tipsSudt,
     };
   };
 

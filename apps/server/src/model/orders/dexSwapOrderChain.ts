@@ -56,15 +56,23 @@ export class DexSwapOrderChain extends DexOrderChain {
       }
     } else {
       const argsData = this.getArgsData();
-      if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
-        // sudt => ckb
-        amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
+      const tokens = this.getTokens();
+      if (!tokens || !tokens.isSudtSudt()) {
+        if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
+          // sudt => ckb
+          amountIn.balance = this._isOrder === false ? this._bridgeInfo.amount : this.getData().toString();
+        } else {
+          // ckb => sudt
+          amountIn.balance =
+            this._isOrder === false
+              ? this._bridgeInfo.amount
+              : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+        }
       } else {
-        // ckb => sudt
-        amountIn.balance =
-          this._isOrder === false
-            ? this._bridgeInfo.amount
-            : (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY).toString();
+        amountIn.balance = CellInfoSerializationHolderFactory.getInstance()
+          .getSudtCellSerialization()
+          .decodeData(this.data)
+          .toString();
       }
 
       if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
@@ -163,6 +171,19 @@ export class DexSwapOrderChain extends DexOrderChain {
   getArgsData(): SwapOrderCellArgs {
     if (!this._isOrder && this._bridgeInfo) {
       return null;
+    }
+
+    const tokens = this.getTokens();
+    if (!tokens) {
+      return CellInfoSerializationHolderFactory.getInstance()
+        .getSwapCellSerialization()
+        .decodeArgs(this.cell.lock.args);
+    }
+
+    if (tokens.isSudtSudt()) {
+      return CellInfoSerializationHolderFactory.getInstance()
+        .getSwapCellSudtSudtSerialization()
+        .decodeArgs(this.cell.lock.args);
     }
 
     return CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeArgs(this.cell.lock.args);
