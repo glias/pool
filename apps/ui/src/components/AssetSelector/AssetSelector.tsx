@@ -54,7 +54,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
     disabledKeys,
     children,
     enableSearch,
-    showAvailableBalance,
+    balanceCaculator,
     ...otherProps
   } = props;
   const [modalVisible, setModalVisible] = useState(false);
@@ -120,7 +120,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
         onCancel={() => setModalVisible(false)}
         visible={modalVisible}
         assets={assets}
-        showAvailableBalance={showAvailableBalance}
+        balanceCaculator={balanceCaculator}
         onSelected={onSelect}
         renderKey={renderKey}
         enableSearch={enableSearch}
@@ -139,7 +139,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
     selectedKey,
     disabledKeys,
     enableSearch,
-    showAvailableBalance,
+    balanceCaculator,
   ]);
 
   return (
