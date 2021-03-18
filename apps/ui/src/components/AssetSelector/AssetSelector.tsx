@@ -2,6 +2,7 @@ import { Asset } from '@gliaswap/commons';
 import { Button } from 'antd';
 import { ReactComponent as TriangleSvg } from 'assets/svg/triangle.svg';
 import { AssetSymbol } from 'components/Asset';
+import { omit } from 'lodash';
 import React, { Key, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { AssetListProps } from './AssetList';
@@ -103,12 +104,13 @@ export function AssetSelector<A extends Asset, K extends Key>(
       );
     }
 
-    if (selectable)
+    if (selectable) {
       return (
-        <Button {...otherProps} onClick={onClick} type="primary">
+        <Button {...omit(otherProps, 'bold')} onClick={onClick} type="primary">
           Select a token
         </Button>
       );
+    }
     return null;
   }, [children, onClick, otherProps, selectable, selectedAsset]);
 

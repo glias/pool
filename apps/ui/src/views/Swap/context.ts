@@ -17,7 +17,7 @@ import { crossChainOrdersCache } from 'cache/index';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import i18n from 'i18n';
 import { cloneDeep } from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { createContainer } from 'unstated-next';
 import { TransactionConfig } from 'web3-core';
@@ -38,6 +38,14 @@ export enum ApproveStatus {
 
 export type crossChainOrdersUpdateFn<T = Array<SwapOrder>> = (_: T) => T;
 
+const usePrevious = <T extends unknown>(value: T): T | undefined => {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
 const useSwap = () => {
   const [cancelModalVisable, setCancelModalVisable] = useState(false);
   const [reviewModalVisable, setReviewModalVisable] = useState(false);
@@ -53,6 +61,8 @@ const useSwap = () => {
   const [crossChainOrders, setCrossChainOrders] = useState<Array<SwapOrder>>(
     crossChainOrdersCache.get(currentCkbAddress),
   );
+
+  const previousPair = usePrevious({ tokenA, tokenB });
 
   useEffect(() => {
     if (adapter.status === 'connected' && currentCkbAddress) {
@@ -323,6 +333,7 @@ const useSwap = () => {
     currentOrder,
     setSwapList,
     setCurrentOrderTxHash,
+    previousPair,
   };
 };
 

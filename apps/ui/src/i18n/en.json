@@ -51,18 +51,22 @@
       "progress": {
         "title": "Progress",
         "submit": "Request Submitted",
-        "confirm-eth": "Confirming on Ethereum",
-        "confirm-ckb": "Confirming on Nervos",
+        "confirm-eth": "Confirm on Ethereum",
+        "confirming-eth": "Confirming on Ethereum",
+        "confirm-ckb": "Confirm on Nervos",
+        "confirming-ckb": "Confirming on Nervos",
         "sucess": "Swap Successfully",
         "lock": "Lock",
         "burn": "Burn",
+        "swapping": "Swapping",
         "swap-desc": "Normally your swap will complete successfully soon after step {{step}}, but if the price fluctuates above the slippage, your swap will be pending until the pool price fluctuates back to the price you submitted. You also have the option to cancel the operation if it takes too long."
       }
     },
     "actions": {
       "cancel": "Cancel",
       "pending": "Pending",
-      "cancel-order": "Cancel Order"
+      "cancel-order": "Cancel Swap Successfully",
+      "canceling-order": "Canceling Order"
     },
     "common": {
       "max": "Max",

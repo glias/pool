@@ -25,17 +25,16 @@ import { calcBalance, calcPrice, calcPriceImpact, toStringNumberOrZero } from '.
 export type CurrentPoolInfo = [CkbAssetWithBalance, CkbSudtAssetWithBalance] | [];
 
 export const useSwapTable = ({
-  form,
   assets,
   tokenA,
   tokenB,
 }: {
-  form: FormInstance;
+  form?: FormInstance;
   assets: RealtimeInfo<GliaswapAssetWithBalance[]>;
   tokenA: GliaswapAssetWithBalance;
   tokenB: GliaswapAssetWithBalance;
 }) => {
-  const { setTokenA, setTokenB, setPay, setReceive, togglePair, pay, receive, isBid, swapMode } = useSwapContainer();
+  const { setTokenA, setTokenB, togglePair, pay, receive, isBid, swapMode } = useSwapContainer();
   const { ckbNativeAsset, ethNativeAsset, shadowEthAssets } = useGliaswapAssets();
   const [isPayInvalid, setIsPayInvalid] = useState(true);
   const [isReceiveInvalid, setIsReceiveInvalid] = useState(true);
@@ -118,14 +117,6 @@ export const useSwapTable = ({
       setIsReceiveInvalid(true);
     }
   }, [pay, receive]);
-
-  // reset when pair changes
-  useEffect(() => {
-    form.resetFields();
-    setPay('');
-    setReceive('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenA.symbol, tokenB.symbol]);
 
   const price = useMemo(() => {
     return calcPrice(pay, receive, isBid);

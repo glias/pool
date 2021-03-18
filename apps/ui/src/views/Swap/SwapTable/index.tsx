@@ -1,9 +1,13 @@
 import {
+  CkbModel,
+  EthModel,
   EthErc20AssetWithBalance,
   GliaswapAssetWithBalance,
   isCkbAsset,
   isCkbNativeAsset,
   ShadowFromEthWithBalance,
+  CkbAsset,
+  EthAsset,
 } from '@gliaswap/commons';
 import { HashType, Script } from '@lay2/pw-core';
 import { Form, Modal } from 'antd';
@@ -15,7 +19,7 @@ import { InputNumber } from 'components/InputNumber';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import i18n from 'i18n';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { getValidBalanceString } from 'utils';
@@ -76,6 +80,7 @@ export const SwapTable: React.FC = () => {
     payMax,
     ckbEnoughMessage,
     form,
+    previousPair,
   } = useSwapContainer();
   const {
     currentCkbAddress: ckbAddress,
@@ -240,10 +245,13 @@ export const SwapTable: React.FC = () => {
     [fillReceiveWithPay, setPay],
   );
 
-  const receiveOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+  const fillPayWithReceive = useCallback(
+    (val: string, setSelf = false) => {
       setReceive(val);
+      if (setSelf) {
+        form.setFieldsValue({ receive: val });
+        form.validateFields(['receive']);
+      }
       if (swapMode === SwapMode.CrossIn) {
         form.setFieldsValue({ pay: val });
         setPay(val);
@@ -267,6 +275,39 @@ export const SwapTable: React.FC = () => {
     },
     [setReceive, swapMode, form, tokenA.decimals, setPay, tokenB.decimals, payReserve, receiveReserve],
   );
+
+  const receiveOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      fillPayWithReceive(val);
+    },
+    [fillPayWithReceive],
+  );
+
+  // reset when pair changes
+  useEffect(() => {
+    const prevTokenA = previousPair?.tokenA;
+    const prevTokenB = previousPair?.tokenB;
+    const receive = form.getFieldValue('receive');
+    const pay = form.getFieldValue('pay');
+    if (CkbModel.isCurrentChainAsset(tokenA) && !CkbModel.equals(tokenA, prevTokenA as CkbAsset)) {
+      fillPayWithReceive(receive, true);
+      return;
+    }
+    if (EthModel.isCurrentChainAsset(tokenA) && !EthModel.equals(tokenA, prevTokenA as EthAsset)) {
+      fillPayWithReceive(receive, true);
+      return;
+    }
+    if (CkbModel.isCurrentChainAsset(tokenB) && !CkbModel.equals(tokenB, prevTokenB as CkbAsset)) {
+      fillReceiveWithPay(pay, true);
+      return;
+    }
+    if (EthModel.isCurrentChainAsset(tokenB) && !EthModel.equals(tokenB, prevTokenB as EthAsset)) {
+      fillReceiveWithPay(pay, true);
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenA.symbol, tokenB.symbol]);
 
   const isCkbBuySudt = useMemo(() => isCkbNativeAsset(tokenA), [tokenA]);
 
@@ -358,7 +399,8 @@ export const SwapTable: React.FC = () => {
             <span>{ckbEnoughMessage}</span>{' '}
           </Form.Item>
         ) : null}
-        {currentPoolAssets.length === 0 ? (
+        {currentPoolAssets.length === 0 &&
+        (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) ? (
           <Form.Item className="warning">
             <span>{i18n.t('validation.pool-not-exist', { poolName })}</span>{' '}
           </Form.Item>
