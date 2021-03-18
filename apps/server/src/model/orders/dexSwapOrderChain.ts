@@ -131,7 +131,10 @@ export class DexSwapOrderChain extends DexOrderChain {
     } else {
       const tokens = this.getTokens();
       if (tokens) {
-        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+        if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+        }
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
       } else {
         const argsData = this.getArgsData();
         const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
@@ -155,7 +158,10 @@ export class DexSwapOrderChain extends DexOrderChain {
     } else {
       const tokens = this.getTokens();
       if (tokens) {
-        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
+        if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
+        }
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
       } else {
         const argsData = this.getArgsData();
         const ckbToken = TokenHolderFactory.getInstance().getTokenByTypeHash(CKB_TOKEN_TYPE_HASH);
