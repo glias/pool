@@ -63,7 +63,7 @@ const SearchMeta = ({ status, chainType }: { status: SearchStatus; chainType: Ch
 };
 
 export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedAssetListProps<A, K>) {
-  const { group, assets, onSelected, enableSearch } = props;
+  const { group, assets, onSelected, enableSearch, balanceCaculator } = props;
 
   const grouped = useMemo(() => groupBy(group, assets), [assets, group]);
   const [searchValue, setSearchValue] = useState('');
@@ -159,6 +159,7 @@ export function GroupedAssetList<A extends Asset, K extends Key>(props: GroupedA
                 <AssetList
                   assets={assetList}
                   onSelected={onSelected}
+                  balanceCaculator={balanceCaculator}
                   disabledKeys={disabledKeys}
                   filterValue={searchValue}
                   renderKey={(asset) => props.renderKey(asset, assets.indexOf(asset), groupedAssets)}
