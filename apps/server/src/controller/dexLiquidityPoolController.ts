@@ -235,7 +235,7 @@ export default class DexLiquidityPoolController {
       ctx.throw(400, 'pool already created');
     }
 
-    const now = new DateTime();
+    const now = DateTime.now();
     const pendingPoolCreationDate = await this.service.poolCreationDate(tokenA.typeHash, tokenB.typeHash);
     if (now.diff(pendingPoolCreationDate) < Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT)) {
       ctx.throw(400, 'pending pool creation exists');
