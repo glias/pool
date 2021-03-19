@@ -122,16 +122,23 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   tokenA(): Token {
+    const tokens = this.getTokens();
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
 
-      if (this._isIn) {
-        return token.toERC20Token();
+      if (tokens) {
+        if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+        }
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
       } else {
-        return token;
+        if (this._isIn) {
+          return token.toERC20Token();
+        } else {
+          return token;
+        }
       }
     } else {
-      const tokens = this.getTokens();
       if (tokens) {
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
           return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
@@ -149,16 +156,22 @@ export class DexSwapOrderChain extends DexOrderChain {
   }
 
   tokenB(): Token {
+    const tokens = this.getTokens();
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
-
-      if (this._isIn) {
-        return token;
+      if (tokens) {
+        if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
+        }
+        return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
       } else {
-        return token.toERC20Token();
+        if (this._isIn) {
+          return token;
+        } else {
+          return token.toERC20Token();
+        }
       }
     } else {
-      const tokens = this.getTokens();
       if (tokens) {
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
           return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
