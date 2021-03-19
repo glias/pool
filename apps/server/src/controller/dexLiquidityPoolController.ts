@@ -9,7 +9,7 @@ import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '../
 import { AssetSchema, ScriptSchema, StepSchema, TokenSchema, TransactionToSignSchema } from './swaggerSchema';
 
 const liquidityTag = tags(['Liquidity']);
-const PENDING_POOL_CREATION_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+const PENDING_POOL_CREATION_TIMEOUT_MINUTES = 10;
 
 export default class DexLiquidityPoolController {
   private readonly service: DexLiquidityPoolService;
@@ -237,8 +237,11 @@ export default class DexLiquidityPoolController {
 
     const now = DateTime.now();
     const pendingPoolCreationDate = await this.service.poolCreationDate(tokenA.typeHash, tokenB.typeHash);
-    if (now.diff(pendingPoolCreationDate) < Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT)) {
-      ctx.throw(400, 'pending pool creation exists');
+    const elapsed = now.diff(pendingPoolCreationDate);
+    const timeout = Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT_MINUTES * 60 * 1000);
+    if (elapsed < timeout) {
+      const eta = timeout.minus(elapsed).minutes;
+      ctx.throw(400, `pool creating, please try again later. eta: ${eta} minute(s)`);
     }
 
     try {
