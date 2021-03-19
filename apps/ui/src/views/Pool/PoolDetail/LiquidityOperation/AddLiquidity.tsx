@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Asset, AssetWithBalance, isCkbNativeAsset, LiquidityInfo } from '@gliaswap/commons';
+import { Asset, AssetWithBalance, CkbModel, LiquidityInfo } from '@gliaswap/commons';
 import { Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, AssetPrice, AssetSymbol, PoolAssetSymbol } from 'components/Asset';
@@ -173,7 +173,7 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
 
   function shouldShowMaxLabel(asset: Asset, userFreeBalance?: Amount): userFreeBalance is Amount {
     if (!userFreeBalance) return false;
-    if (isCkbNativeAsset(asset)) return userFreeBalance.value.gt(10 ** 8);
+    if (CkbModel.isNativeAsset(asset)) return userFreeBalance.value.gt(10 ** 8);
     return userFreeBalance.value.gt(0);
   }
 
@@ -182,6 +182,11 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
     if (readyToAddShare < 0.0001) return '< 0.01 %';
     return (readyToAddShare * 100).toFixed(2) + ' %';
   }, [readyToAddShare]);
+
+  function calcMaxAvailable(asset: Asset, balance: Amount): Amount {
+    // 0.1 CKB should be reserved as transaction fee
+    return CkbModel.isNativeAsset(asset) ? balance.newValue((val) => val.minus(10 ** 8)) : balance;
+  }
 
   return (
     <AddLiquidityWrapper>
@@ -193,17 +198,10 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
                 <div
                   className="label-max"
                   onClick={() =>
-                    // asset 1 is ckb, so reduce 0.1 ckb first to ensure sufficient transaction fee
-                    onAsset1Changed(
-                      userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).toHumanizeWithMaxDecimal(),
-                      form,
-                    )
+                    onAsset1Changed(calcMaxAvailable(poolAsset1, userFreeBalances![0]).toHumanizeWithMaxDecimal(), form)
                   }
                 >
-                  <HumanizeBalance
-                    asset={poolAsset1}
-                    value={userFreeBalances![0].newValue((val) => val.minus(10 ** 8)).value}
-                  />
+                  <HumanizeBalance asset={poolAsset1} value={calcMaxAvailable(poolAsset1, userFreeBalances![0])} />
                 </div>
               )}
               <Input
@@ -222,9 +220,11 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
               {shouldShowMaxLabel(poolAsset2, userFreeBalances?.[1]) && (
                 <div
                   className="label-max"
-                  onClick={() => onAsset2Changed(userFreeBalances![1].toHumanizeWithMaxDecimal(), form)}
+                  onClick={() =>
+                    onAsset2Changed(calcMaxAvailable(poolAsset2, userFreeBalances![1]).toHumanizeWithMaxDecimal(), form)
+                  }
                 >
-                  <HumanizeBalance asset={poolAsset2} value={userFreeBalances![1]} />
+                  <HumanizeBalance asset={poolAsset2} value={calcMaxAvailable(poolAsset2, userFreeBalances![1])} />
                 </div>
               )}
               <Input
