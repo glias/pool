@@ -59,6 +59,26 @@ export const LiquidityOperationSteps: React.FC<LiquidityOperationStepsProps> = (
     );
   }
 
+  if (type === 'add' && stage.status === 'canceled') {
+    return (
+      <Steps direction="vertical" size="small" current={3}>
+        {renderStepItem('Submitted', stage.steps[0].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Canceled Add liquidity', stage.steps[2].txHash)}
+      </Steps>
+    );
+  }
+
+  if (type === 'add' && stage.status === 'completed') {
+    return (
+      <Steps direction="vertical" size="small" current={3}>
+        {renderStepItem('Submitted', stage.steps[0].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Added liquidity', stage.steps[2].txHash)}
+      </Steps>
+    );
+  }
+
   if (type === 'remove' && stage.status === 'pending') {
     return (
       <Steps direction="vertical" size="small" current={1}>
@@ -85,6 +105,26 @@ export const LiquidityOperationSteps: React.FC<LiquidityOperationStepsProps> = (
         {renderStepItem('Submitted', stage.steps[0].txHash)}
         {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
         {renderStepItem('Cancelling Remove Liquidity', stage.steps[2].txHash)}
+      </Steps>
+    );
+  }
+
+  if (type === 'remove' && stage.status === 'canceled') {
+    return (
+      <Steps direction="vertical" size="small" current={3}>
+        {renderStepItem('Submitted', stage.steps[0].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Canceled Remove Liquidity', stage.steps[2].txHash)}
+      </Steps>
+    );
+  }
+
+  if (type === 'remove' && stage.status === 'completed') {
+    return (
+      <Steps direction="vertical" size="small" current={3}>
+        {renderStepItem('Submitted', stage.steps[0].txHash)}
+        {renderStepItem('Confirmed on Nervos', stage.steps[1].txHash)}
+        {renderStepItem('Removed Liquidity', stage.steps[2].txHash)}
       </Steps>
     );
   }

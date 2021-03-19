@@ -1,6 +1,6 @@
 import {
   CkbAssetWithBalance,
-  LiquidityOperationStage,
+  LiquidityOperationStageWithSteps,
   LiquidityOperationSummary,
   LiquidityOperationType,
 } from '@gliaswap/commons';
@@ -68,16 +68,15 @@ export interface StepsEntity {
 
 export function transformLiquidityOperationInfo(data: LiquidityOperationInfo[]): LiquidityOperationSummary[] {
   return data.map<LiquidityOperationSummary>((info) => {
-    const lpToken = merge(createAssetWithBalance({ chainType: 'Nervos', typeHash: '' }, info.total), info.lpToken, {
-      decimals: Math.ceil(info.tokenA.decimals + info.tokenB.decimals) / 2,
-    });
-
+    const defaultDecimals = Math.ceil((info.tokenA.decimals + info.tokenB.decimals) / 2);
+    const baseLPToken = { chainType: 'Nervos', typeHash: '', decimals: defaultDecimals };
+    const lpToken = merge(createAssetWithBalance(baseLPToken, info.total), info.lpToken) as CkbAssetWithBalance;
     const steps = info.stage.steps.map((step) => ({ txHash: step.transactionHash }));
 
     return {
       poolId: info.poolId,
       model: 'UNISWAP',
-      stage: { status: info.stage.status, steps } as LiquidityOperationStage,
+      stage: { status: info.stage.status, steps } as LiquidityOperationStageWithSteps,
       assets: [info.tokenA as CkbAssetWithBalance, info.tokenB as CkbAssetWithBalance],
       time: info.timestamp,
       txHash: info.transactionHash,

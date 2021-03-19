@@ -7,6 +7,7 @@ import {
   CkbChainSpec,
   GliaswapAssetWithBalance,
   LiquidityInfo,
+  LiquidityOperationStage,
   LiquidityOperationSummary,
   LPTokenWithBalance,
   Maybe,
@@ -31,6 +32,7 @@ export interface LiquidityInfoFilter {
 export interface LiquidityOperationSummaryFilter {
   poolId: string;
   lock: Script;
+  stage?: LiquidityOperationStage[];
 }
 
 export interface GenerateCreateLiquidityPoolTransactionPayload {

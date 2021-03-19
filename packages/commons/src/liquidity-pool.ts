@@ -29,7 +29,12 @@ export interface PoolInfoWithStatus extends PoolInfo {
     | 'completed'; // the create pool request transaction is completed
 }
 
-export type LiquidityOperationStage = Submitted | Confirmed | Canceling | Completed | Canceled;
+export type LiquidityOperationStage = 'pending' | 'open' | 'canceling' | 'canceled' | 'completed';
+// export type LiquidityOperationSteps<Stage extends LiquidityOperationStage, Steps> = {
+//   status: Stage;
+//   steps: Steps;
+// };
+export type LiquidityOperationStageWithSteps = Submitted | Confirmed | Canceling | Completed | Canceled;
 
 // the request transaction is pending in the transaction pool
 type Submitted = { status: 'pending'; steps: [{ txHash: string }] };
@@ -49,7 +54,7 @@ export interface LiquidityOperationSummary extends PoolInfo {
   assets: LiquidityAssetWithBalance[];
   lpToken: LPTokenWithBalance;
   type: LiquidityOperationType;
-  stage: LiquidityOperationStage;
+  stage: LiquidityOperationStageWithSteps;
 }
 
 export interface PoolShareInfo {
