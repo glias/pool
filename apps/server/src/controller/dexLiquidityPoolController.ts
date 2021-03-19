@@ -241,7 +241,7 @@ export default class DexLiquidityPoolController {
     const timeout = Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT_MINUTES * 60 * 1000);
     if (elapsed < timeout) {
       const eta = timeout.minus(elapsed).minutes;
-      ctx.throw(400, `pool creating, please try again later. eta: ${eta} minute(s)`);
+      ctx.throw(400, `The pool is creating, please try again later. eta: ${eta} minute(s)`);
     }
 
     try {
