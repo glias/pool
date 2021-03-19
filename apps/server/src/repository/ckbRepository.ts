@@ -89,9 +89,11 @@ export class CkbRepository implements DexRepository {
   ): Promise<TransactionWithStatus[]> {
     const sw = new StopWatch();
     sw.start();
+
     const lumosTxs = await this.lumosRepository.collectTransactions(queryOptions);
     Logger.info('query txs:', sw.split());
-    const result = await Promise.all(
+
+    let result = await Promise.all(
       lumosTxs.map(async (x) => {
         const tx = transactionConver.conver(x);
         const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
@@ -99,6 +101,13 @@ export class CkbRepository implements DexRepository {
         return tx;
       }),
     );
+
+    if (queryOptions.fromBlock) {
+      const timestamp = await this.getTimestampByBlockNumber(queryOptions.fromBlock);
+      if (timestamp) {
+        result = result.filter((x) => BigInt(x.txStatus.timestamp) > BigInt(timestamp));
+      }
+    }
 
     Logger.info('query txs timestamp:', sw.split());
 
@@ -157,30 +166,6 @@ export class CkbRepository implements DexRepository {
     if (hashes.length === 0) {
       return [];
     }
-
-    // const result = [];
-    // for (const hash of hashes) {
-    //   const txJson = await this.dexCache.get(hash);
-    //   if (!txJson) {
-    //     const tx = await this.getTransaction(hash);
-    //     this.dexCache.set(hash, JSON.stringify(tx));
-    //     result.push(tx);
-    //   } else {
-    //     result.push(JSON.parse(txJson));
-    //   }
-    // }
-    //
-    // for (const x of result) {
-    //   const tx = transactionConver.conver(x);
-    //   if (tx.txStatus.blockHash) {
-    //     const timestamp = await this.getBlockTimestampByHash(tx.txStatus.blockHash);
-    //     tx.txStatus.timestamp = timestamp;
-    //   } else {
-    //     tx.txStatus.timestamp = `0x${new Date().getTime().toString(16)}`;
-    //   }
-    // }
-    //
-    // return result;
 
     const ckbReqParams = [];
     hashes.forEach((x) => ckbReqParams.push(['getTransaction', x]));
@@ -314,6 +299,17 @@ export class CkbRepository implements DexRepository {
     });
 
     return groupByInputOutPoint;
+  }
+
+  private async getTimestampByBlockNumber(blockNumber: string): Promise<string> {
+    const req = [];
+    req.push(['getHeaderByNumber', blockNumber]);
+    const block = await this.ckbNode.rpc.createBatchRequest(req).exec();
+    if (block) {
+      return block[0].timestamp;
+    }
+    // this.dexCache.set(`timestamp:${blockNumber}`, block[0].header.timestamp);
+    return '0';
   }
 
   private genKey(outPoint: OutPoint) {

@@ -67,6 +67,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
 
     const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
@@ -76,6 +77,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
 
     const userLockHash = lock.toHash().slice(2, 66);
@@ -123,6 +125,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
 
     const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
@@ -132,6 +135,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
     const userLockHash = lock.toHash().slice(2, 66);
     const addOrders1 = await this.dexRepository.collectTransactions(queryOptions1, true, true);
@@ -178,6 +182,7 @@ export class DexLiquidityPoolService {
       },
       type: infoCell.tokenB.typeScript.toLumosScript(),
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
     const addOrders = await this.dexRepository.collectTransactions(queryOptions, true, true);
     const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
@@ -195,6 +200,7 @@ export class DexLiquidityPoolService {
       },
       type: lpTokenTypeScript.toLumosScript(),
       order: 'desc',
+      fromBlock: this.blockNumber,
     };
 
     const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true, true);
