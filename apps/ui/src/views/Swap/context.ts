@@ -85,10 +85,12 @@ const useSwap = () => {
         return SwapMode.CrossChainOrder;
       }
     }
-    if (EthModel.isShadowEthAsset(tokenA)) {
-      if (EthModel.isCurrentChainAsset(tokenB) && EthModel.equals(tokenA.shadowFrom, tokenB)) {
-        return SwapMode.CrossOut;
-      }
+    if (
+      EthModel.isShadowEthAsset(tokenA) &&
+      EthModel.isCurrentChainAsset(tokenB) &&
+      EthModel.equals(tokenA.shadowFrom, tokenB)
+    ) {
+      return SwapMode.CrossOut;
     }
     return SwapMode.NormalOrder;
   }, [tokenA, tokenB]);
