@@ -252,5 +252,6 @@ export const useSwapTable = ({
     receiveReserve,
     poolName,
     currentPoolAssets,
+    poolInfo,
   };
 };

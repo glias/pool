@@ -19,6 +19,7 @@ import { InputNumber } from 'components/InputNumber';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
 import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import i18n from 'i18n';
+import { isEmpty } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { getAvailableBalance } from 'suite';
@@ -114,6 +115,7 @@ export const SwapTable: React.FC = () => {
     priceImpact,
     poolName,
     currentPoolAssets,
+    poolInfo,
   } = useSwapTable({
     form,
     tokenA,
@@ -285,12 +287,15 @@ export const SwapTable: React.FC = () => {
     [fillPayWithReceive],
   );
 
-  // reset when pair changes
+  // fill pay or receive when pair changes
   useEffect(() => {
     const prevTokenA = previousPair?.tokenA;
     const prevTokenB = previousPair?.tokenB;
     const receive = form.getFieldValue('receive');
     const pay = form.getFieldValue('pay');
+    if (isEmpty(prevTokenA) || isEmpty(prevTokenB) || isEmpty(receive) || isEmpty(pay)) {
+      return;
+    }
     if (CkbModel.isCurrentChainAsset(tokenA) && !CkbModel.equals(tokenA, prevTokenA as CkbAsset)) {
       fillPayWithReceive(receive, true);
       return;
@@ -401,6 +406,7 @@ export const SwapTable: React.FC = () => {
           </Form.Item>
         ) : null}
         {currentPoolAssets.length === 0 &&
+        poolInfo.value.length !== 0 &&
         (swapMode === SwapMode.CrossChainOrder || swapMode === SwapMode.NormalOrder) ? (
           <Form.Item className="warning">
             <span>{i18n.t('validation.pool-not-exist', { poolName })}</span>{' '}
