@@ -43,7 +43,12 @@ export class DexLiquidityPoolService {
   }
 
   async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
-    const poolInfos = await this.getLiquidityPools();
+    const pendingCells = await this.getPendingInfo();
+    const poolInfos = [];
+    pendingCells.forEach((x) => {
+      poolInfos.push(this.toPoolInfo(x, x.cellOutput.type));
+    });
+
     const poolInfo = poolInfos.find((x) => {
       const hashes1 = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash);
       const hashes2 = PoolInfoFactory.sortTypeHash(x.tokenA.typeHash, x.tokenB.typeHash);
@@ -315,10 +320,10 @@ export class DexLiquidityPoolService {
     const poolInfos: PoolInfo[] = [];
     const infoCells1 = await this.getPoolInfo();
     const infoCells2 = await this.getSudtSudtPoolInfo();
-    const infoCells3 = await this.getPendingInfo();
+    // const infoCells3 = await this.getPendingInfo();
 
     infoCells2.forEach((x) => infoCells1.push(x));
-    infoCells3.forEach((x) => infoCells1.push(x));
+    // infoCells3.forEach((x) => infoCells1.push(x));
 
     infoCells1.forEach((x) => {
       poolInfos.push(this.toPoolInfo(x, x.cellOutput.type));
@@ -429,7 +434,7 @@ export class DexLiquidityPoolService {
       fromBlock: this.blockNumber,
     };
 
-    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+    const infoCells = await this.dexRepository.collectCells(queryOptions, false);
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
       const tokens = PoolInfoFactory.getTokensByCell(x);
@@ -477,7 +482,7 @@ export class DexLiquidityPoolService {
       order: 'desc',
     };
 
-    const infoCells = await this.dexRepository.collectCells(queryOptions, true);
+    const infoCells = await this.dexRepository.collectCells(queryOptions, false);
 
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
