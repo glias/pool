@@ -577,12 +577,12 @@ export class DexLiquidityPoolService {
     try {
       const dateString = await dexCache.get(poolKey);
       if (dateString === '') {
-        return new DateTime();
+        return DateTime.now();
       }
 
       return DateTime.fromJSDate(new Date(dateString));
     } catch (e) {
-      return new DateTime();
+      return DateTime.now();
     }
   }
 
