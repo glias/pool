@@ -15,11 +15,12 @@ import { DexOrderChain, OrderHistory } from '../model/orders/dexOrderChain';
 import { DexOrderChainFactory, ORDER_TYPE } from '../model/orders/dexOrderChainFactory';
 import { ckbRepository, DexRepository } from '../repository';
 
-import { txBuilder } from '.';
+import { dexLiquidityPoolService, DexLiquidityPoolService, txBuilder } from '.';
 
 export class DexSwapService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderServiceFactory: txBuilder.TxBuilderServiceFactory;
+  private readonly poolService: DexLiquidityPoolService = dexLiquidityPoolService;
 
   constructor() {
     this.dexRepository = ckbRepository;
@@ -71,7 +72,9 @@ export class DexSwapService {
     crossOrders.forEach((x) => orders.push(x));
     Logger.info('crossOrders:', sw.split());
 
-    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
+    const poolInfos = await this.poolService.getLiquidityPools();
+
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null, poolInfos);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
@@ -105,8 +108,10 @@ export class DexSwapService {
       },
       order: 'desc',
     };
+    const poolInfos = await this.poolService.getLiquidityPools();
+
     const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
-    const factory2 = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null);
+    const factory2 = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null, poolInfos);
     const sudtOrders = factory2.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     return sudtOrders;
   }
@@ -139,8 +144,10 @@ export class DexSwapService {
       txs.push(transaction);
     }
 
+    const poolInfos = await this.poolService.getLiquidityPools();
+
     const orders: DexOrderChain[] = [];
-    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.CROSS_CHAIN, null);
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.CROSS_CHAIN, null, poolInfos);
 
     txs.forEach((x) => {
       const pureCrossOrders = factory.getOrderChains(lock, null, [x], bridgeInfoMatch);

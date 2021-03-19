@@ -6,6 +6,7 @@ import {
   CellInfoSerializationHolderFactory,
   Script,
   Token,
+  PoolInfo,
 } from '..';
 import { CKB_TOKEN_TYPE_HASH, FORCE_BRIDGE_LOCK_HASH_CODE } from '../../config';
 import * as utils from '../../utils';
@@ -34,11 +35,12 @@ export class DexSwapOrderChain extends DexOrderChain {
     index: number,
     live: boolean,
     nextOrderCell: DexOrderChain,
+    poolInfos: PoolInfo[],
     private readonly _isIn?: boolean,
     private readonly _isOrder?: boolean,
     private readonly _bridgeInfo?: BridgeInfo,
   ) {
-    super(userLock, cell, data, tx, index, nextOrderCell, live);
+    super(userLock, cell, data, tx, index, nextOrderCell, live, poolInfos);
   }
 
   getOrderHistory(): OrderHistory {
