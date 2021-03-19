@@ -1,12 +1,11 @@
 import {
+  CkbModel,
+  EthModel,
   GliaswapAssetWithBalance,
-  isCkbAsset,
   isCkbNativeAsset,
   isCkbSudtAsset,
-  isEthAsset,
   isEthErc20Asset,
   isEthNativeAsset,
-  isShadowEthAsset,
   SwapOrder,
   SwapOrderType,
 } from '@gliaswap/commons';
@@ -77,15 +76,17 @@ const useSwap = () => {
     if (!tokenA || !tokenB) {
       return SwapMode.CrossChainOrder;
     }
-    if (isEthAsset(tokenA)) {
-      if (isCkbNativeAsset(tokenB)) {
+    if (EthModel.isCurrentChainAsset(tokenA)) {
+      if (CkbModel.isNativeAsset(tokenB)) {
         return SwapMode.CrossChainOrder;
-      } else if (isShadowEthAsset(tokenB)) {
+      } else if (EthModel.isShadowEthAsset(tokenB) && EthModel.equals(tokenA, tokenB.shadowFrom)) {
         return SwapMode.CrossIn;
+      } else {
+        return SwapMode.CrossChainOrder;
       }
     }
-    if (isCkbAsset(tokenA)) {
-      if (isEthAsset(tokenB)) {
+    if (EthModel.isShadowEthAsset(tokenA)) {
+      if (EthModel.isCurrentChainAsset(tokenB) && EthModel.equals(tokenA.shadowFrom, tokenB)) {
         return SwapMode.CrossOut;
       }
     }
