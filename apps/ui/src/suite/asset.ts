@@ -37,6 +37,13 @@ export function calcTotalBalance(asset: Asset | GliaswapAssetWithBalance): BigNu
   return BN(0);
 }
 
+export function getAvailableBalance(asset: Asset | GliaswapAssetWithBalance): BigNumber {
+  if (utils.has(asset, 'balance')) {
+    return BN(asset.balance);
+  }
+  return BN(0);
+}
+
 export function createAssetWithBalance<T extends ChainSpec>(
   asset: T | Partial<Asset>,
   balance: Amount | BigNumber.Value = 0,

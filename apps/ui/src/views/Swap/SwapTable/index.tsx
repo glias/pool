@@ -21,6 +21,7 @@ import { useGlobalSetting } from 'hooks/useGlobalSetting';
 import i18n from 'i18n';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { getAvailableBalance } from 'suite';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { getValidBalanceString } from 'utils';
 import { SwapMode, useSwapContainer } from '../context';
@@ -428,6 +429,7 @@ export const SwapTable: React.FC = () => {
             group: (a) => a.chainType,
             bold: true,
             enableSearch: true,
+            balanceCaculator: getAvailableBalance,
           }}
         />
         <div className={`swap ${isPairToggleable ? 'clickable' : 'unclickable'}`} onClick={changePair}>
@@ -455,6 +457,7 @@ export const SwapTable: React.FC = () => {
             group: (a) => a.chainType,
             bold: true,
             enableSearch: true,
+            balanceCaculator: getAvailableBalance,
           }}
         />
         {disabled ? null : (

@@ -1,9 +1,10 @@
 import { Asset } from '@gliaswap/commons';
+import BigNumber from 'bignumber.js';
 import { AssetSymbol } from 'components/Asset';
 import { HumanizeBalance } from 'components/Balance';
 import React, { Key } from 'react';
 import styled from 'styled-components';
-import { calcTotalBalance } from 'suite';
+import { Amount, calcTotalBalance } from 'suite';
 
 const AssetListWrapper = styled.ul`
   padding-inline-start: 0;
@@ -35,13 +36,14 @@ export interface AssetListProps<A extends Asset, K extends Key> {
   onSelected?: (key: K, asset: A) => void | Promise<void>;
   enableSearch?: boolean;
   filterValue?: string;
+  balanceCaculator?: (asset: A) => BigNumber | Amount;
   groupFilter?: (key: K) => boolean;
 }
 
 export function AssetList<A extends Asset, K extends Key>(
   props: React.PropsWithChildren<AssetListProps<A, K>> & React.HTMLAttributes<HTMLUListElement>,
 ) {
-  const { assets, onSelected, disabledKeys, filterValue, ...wrapperProps } = props;
+  const { assets, onSelected, disabledKeys, filterValue, balanceCaculator, ...wrapperProps } = props;
   const listNode = assets
     .filter(
       filterValue && !filterValue.startsWith('0x')
@@ -52,7 +54,7 @@ export function AssetList<A extends Asset, K extends Key>(
       const assetNode = (
         <>
           <AssetSymbol asset={asset} />
-          <HumanizeBalance asset={asset} value={calcTotalBalance(asset)} />
+          <HumanizeBalance asset={asset} value={balanceCaculator ? balanceCaculator(asset) : calcTotalBalance(asset)} />
         </>
       );
       const key = props.renderKey(asset, i, assets);
