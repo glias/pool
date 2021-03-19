@@ -1,6 +1,6 @@
 import { InfoOutlined } from '@ant-design/icons';
-import { LiquidityOperationSummary } from '@gliaswap/commons';
-import { Button, Divider, List, Typography } from 'antd';
+import { LiquidityOperationStage, LiquidityOperationSummary } from '@gliaswap/commons';
+import { Button, Divider, List, Select, Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
 import { HumanizeBalance } from 'components/Balance';
@@ -12,11 +12,9 @@ import { useGliaswap } from 'hooks';
 import { useCancelLiquidityOperation } from 'hooks/useCancelLiquidityOperation';
 import i18n from 'i18n';
 import { upperFirst } from 'lodash';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { truncateMiddle } from 'utils';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './LiquidityOperation/components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -41,26 +39,37 @@ const LiquidityOrderSummarySectionWrapper = styled.div`
 const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) => {
   const summary = props.summary;
   const status = summary.stage.status;
+  const operationDisplay = i18n.t(
+    (() => {
+      if (status === 'pending') return 'Pending';
+      if (status === 'open') return 'Cancel';
+      if (status === 'canceling') return 'Canceling';
+      return '';
+    })(),
+  );
   return (
     <LiquidityOrderSummarySectionWrapper>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Time')}</div>
         <div>{dayjs(summary.time).format('YYYY/MM/DD HH:mm:ss')}</div>
       </SpaceBetweenRow>
-      <SpaceBetweenRow>
-        <div className="label">{i18n.t('Pool ID')}</div>
-        <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>
-      </SpaceBetweenRow>
+      {/*<SpaceBetweenRow>*/}
+      {/*  <div className="label">{i18n.t('Pool ID')}</div>*/}
+      {/*  <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>*/}
+      {/*</SpaceBetweenRow>*/}
       <SpaceBetweenRow>
         <div className="label">{i18n.t(upperFirst(summary.type))}</div>
         <AssetBalanceList assets={summary.assets} hideSymbolIcon />
       </SpaceBetweenRow>
       <SpaceBetweenRow>
         <div />
+
         <div>
-          <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
-            {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
-          </Button>
+          {operationDisplay && (
+            <Button size="small" onClick={props.onCancel} loading={status !== 'open'} disabled={status !== 'open'}>
+              {i18n.t(status === 'pending' ? 'Pending' : status === 'open' ? 'Cancel' : 'Canceling')}
+            </Button>
+          )}
           &nbsp;
           <Button className="info-button" size="small" onClick={props.onViewInfo} icon={<InfoOutlined />} />
         </div>
@@ -93,17 +102,26 @@ const LiquidityOrderListWrapper = styled(Section)`
   }
 `;
 
+type StatusSelector = 'pending' | 'completed';
+
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const poolId = props.poolId;
   const { api, currentUserLock } = useGliaswap();
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityOperationSummary | null>(null);
   const [viewingSummary, setViewingSummary] = useState<LiquidityOperationSummary | null>(null);
+  const [statusSelector, setStatusSelector] = useState<StatusSelector>('pending');
+
+  const stage = useMemo<LiquidityOperationStage[]>(() => {
+    if (statusSelector === 'pending') return ['pending', 'open', 'canceling'];
+    if (statusSelector === 'completed') return ['completed', 'canceled'];
+    return [];
+  }, [statusSelector]);
 
   const query = useQuery(
-    ['getLiquidityOperationSummaries', poolId, currentUserLock],
+    ['getLiquidityOperationSummaries', { poolId, currentUserLock, stage }],
     () => {
       if (!currentUserLock) throw new Error('The current user is lock is not found, maybe the wallet is disconnected');
-      return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId });
+      return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId, stage });
     },
     { enabled: currentUserLock != null, refetchInterval: 10000 },
   );
@@ -148,7 +166,10 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
     <LiquidityOrderListWrapper>
       <SpaceBetweenRow className="title">
         <div>
-          {i18n.t('My Pending Request')}
+          <Select<StatusSelector> bordered={false} defaultValue="pending" onSelect={setStatusSelector}>
+            <Select.Option value="pending">{i18n.t('My Pending Request')}</Select.Option>
+            <Select.Option value="completed">{i18n.t('My History Request')}</Select.Option>
+          </Select>
           <QueryTips query={query} />
         </div>
       </SpaceBetweenRow>
