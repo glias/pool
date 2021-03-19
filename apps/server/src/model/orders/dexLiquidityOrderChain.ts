@@ -29,8 +29,9 @@ export class DexLiquidityChain extends DexOrderChain {
     live: boolean,
     nextOrderCell: DexOrderChain,
     poolInfo: PoolInfo,
+    poolInfos: PoolInfo[],
   ) {
-    super(userLock, cell, data, tx, index, nextOrderCell, live);
+    super(userLock, cell, data, tx, index, nextOrderCell, live, poolInfos);
     this.poolInfo = poolInfo;
   }
 

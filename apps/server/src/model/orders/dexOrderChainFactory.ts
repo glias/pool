@@ -51,8 +51,9 @@ export class DexOrderChainFactory {
   private orderMatcher: SwapOrderMatcher;
   private poolInfo: PoolInfo;
   private userLock: Script;
+  private poolInfos: PoolInfo[];
 
-  constructor(userLock: Script, orderType: string, poolInfo: PoolInfo) {
+  constructor(userLock: Script, orderType: string, poolInfo: PoolInfo, poolInfos: PoolInfo[]) {
     this.isSwapOrder = orderType === ORDER_TYPE.LIQUIDITY ? false : true;
     this.orderMatcher = this.isSwapOrder ? new SwapOrderMatcher() : new LiquidityOrderMatcher();
     if (orderType === ORDER_TYPE.CROSS_CHAIN) {
@@ -61,6 +62,7 @@ export class DexOrderChainFactory {
     this.markTheCellThatHasBeenTracked = new Set();
     this.poolInfo = poolInfo;
     this.userLock = userLock;
+    this.poolInfos = poolInfos;
   }
 
   getOrderChains(
@@ -122,8 +124,8 @@ export class DexOrderChainFactory {
         : nextTx.transaction.outputsData[index];
 
     return this.isSwapOrder
-      ? new DexSwapOrderChain(this.userLock, output, data, nextTx, index, false, null)
-      : new DexLiquidityChain(this.userLock, output, data, nextTx, index, false, null, this.poolInfo);
+      ? new DexSwapOrderChain(this.userLock, output, data, nextTx, index, false, null, this.poolInfos)
+      : new DexLiquidityChain(this.userLock, output, data, nextTx, index, false, null, this.poolInfo, this.poolInfos);
   }
 
   private matchIndexOfInputInArray(inputs: Input[], targetInputOutPoint: string): number {
@@ -169,8 +171,20 @@ export class DexOrderChainFactory {
         const isOrder = bridgeInfoResult ? bridgeInfoResult.isOrder : null;
         const bridgeInfo = bridgeInfoResult ? bridgeInfoResult.bridgeInfo : null;
         const order = this.isSwapOrder
-          ? new DexSwapOrderChain(this.userLock, output, data, x, index, false, null, isIn, isOrder, bridgeInfo)
-          : new DexLiquidityChain(this.userLock, output, data, x, index, false, null, this.poolInfo);
+          ? new DexSwapOrderChain(
+              this.userLock,
+              output,
+              data,
+              x,
+              index,
+              false,
+              null,
+              this.poolInfos,
+              isIn,
+              isOrder,
+              bridgeInfo,
+            )
+          : new DexLiquidityChain(this.userLock, output, data, x, index, false, null, this.poolInfo, this.poolInfos);
 
         orderCells.push(order);
       });

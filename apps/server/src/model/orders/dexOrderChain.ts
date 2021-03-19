@@ -44,8 +44,9 @@ export abstract class DexOrderChain {
     private readonly _data: string,
     private readonly _tx: TransactionWithStatus,
     private readonly _index: number,
-    private _nextOrderCell?: DexOrderChain,
+    private _nextOrderCell: DexOrderChain,
     private _live: boolean = false,
+    private poolInfos: PoolInfo[],
   ) {}
 
   abstract getOrderHistory(): OrderHistory;
@@ -111,7 +112,9 @@ export abstract class DexOrderChain {
     const last = this.getLastOrder();
 
     const infoCell = last.tx.transaction.inputs[0].cellOutput.type
-      ? PoolInfo.getTypeScriptByPoolId(last.tx.transaction.inputs[0].cellOutput.type.toHash())
+      ? this.poolInfos.find(
+          (x) => x.infoCell.cellOutput.type.toHash() === last.tx.transaction.inputs[0].cellOutput.type.toHash(),
+        )
       : null;
 
     if (infoCell) {

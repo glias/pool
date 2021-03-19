@@ -80,12 +80,14 @@ export class DexLiquidityPoolService {
       fromBlock: this.blockNumber,
     };
 
+    const infoPools = await this.getLiquidityPools();
+
     const userLockHash = lock.toHash().slice(2, 66);
     const removeTxs1 = await this.dexRepository.collectTransactions(removeQueryOptions1, true, true);
     const removeTxs2 = await this.dexRepository.collectTransactions(removeQueryOptions2, true, true);
     const infoCells = await this.getLiquidityPools();
     infoCells.forEach((x) => {
-      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x);
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
       const lpTokenTypeScript = new Script(x.tokenB.typeScript.codeHash, 'type', x.infoCell.cellOutput.lock.toHash());
       const orders1 = factory.getOrderChains(removeQueryOptions1.lock, lpTokenTypeScript, removeTxs1, null);
       const orders2 = factory.getOrderChains(removeQueryOptions2.lock, lpTokenTypeScript, removeTxs2, null);
@@ -137,12 +139,13 @@ export class DexLiquidityPoolService {
       order: 'desc',
       fromBlock: this.blockNumber,
     };
+
     const userLockHash = lock.toHash().slice(2, 66);
     const addOrders1 = await this.dexRepository.collectTransactions(queryOptions1, true, true);
     const addOrders2 = await this.dexRepository.collectTransactions(queryOptions2, true, true);
     const infoCells = await this.getLiquidityPools();
     infoCells.forEach((x) => {
-      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x);
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
       const orders1 = factory.getOrderChains(queryOptions1.lock, x.tokenB.typeScript, addOrders1, null);
       const orders2 = factory.getOrderChains(queryOptions2.lock, x.tokenB.typeScript, addOrders2, null);
       orders1.forEach((x) => orders2.push(x));
@@ -172,8 +175,9 @@ export class DexLiquidityPoolService {
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
+    const infoCells = await this.getLiquidityPools();
     const orderLock = this.getOrderLock(infoCell);
-    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell);
+    const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell, infoCells);
 
     const queryOptions: QueryOptions = {
       lock: {
@@ -184,6 +188,7 @@ export class DexLiquidityPoolService {
       order: 'desc',
       fromBlock: this.blockNumber,
     };
+
     const addOrders = await this.dexRepository.collectTransactions(queryOptions, true, true);
     const orders = factory.getOrderChains(queryOptions.lock, infoCell.tokenB.typeScript, addOrders, null);
     orders.forEach((x) => liquidityOrders.push(x));

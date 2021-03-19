@@ -65,9 +65,9 @@ export class PoolInfo {
     ];
   }
 
-  static getTypeScriptByPoolId(poolId: string): Script {
-    return PoolInfo.getTypeScripts().find((x) => x.toHash() === poolId);
-  }
+  // static getTypeScriptByPoolId(poolId: string): Script {
+  //   return PoolInfo.getTypeScripts().find((x) => x.toHash() === poolId);
+  // }
 }
 
 export class PoolInfoHolder {
