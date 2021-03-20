@@ -128,7 +128,12 @@ export class DexSwapOrderChain extends DexOrderChain {
 
       if (tokens) {
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
-          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+          const token = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
+          if (this._isIn) {
+            return token.toERC20Token();
+          } else {
+            return token;
+          }
         }
         return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
       } else {
@@ -160,8 +165,13 @@ export class DexSwapOrderChain extends DexOrderChain {
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
       if (tokens) {
+        const token = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
-          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
+          if (this._isIn) {
+            return token;
+          } else {
+            return token.toERC20Token();
+          }
         }
         return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
       } else {

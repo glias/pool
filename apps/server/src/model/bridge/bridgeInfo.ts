@@ -1,5 +1,6 @@
 import { Script } from '@ckb-lumos/base';
 import { SWAP_LOCK_CODE_HASH } from '../../config';
+import * as tokenToken from '../../config/tokenToken';
 
 export interface BridgeInfo {
   id: number;
@@ -86,7 +87,11 @@ export class BridgeInfoMatchChainFactory {
       new ChainHandle(
         false,
         true,
-        crossTxs.eth_to_ckb.filter((x) => x.recipient_lockscript.code_hash !== SWAP_LOCK_CODE_HASH),
+        crossTxs.eth_to_ckb.filter(
+          (x) =>
+            x.recipient_lockscript.code_hash !== SWAP_LOCK_CODE_HASH &&
+            x.recipient_lockscript.code_hash !== tokenToken.SWAP_LOCK_CODE_HASH,
+        ),
       ),
     );
     // handels.push(new ChainHandle(true, false, crossTxs.ckb_to_eth));
@@ -95,7 +100,11 @@ export class BridgeInfoMatchChainFactory {
       new ChainHandle(
         true,
         true,
-        crossTxs.eth_to_ckb.filter((x) => x.recipient_lockscript.code_hash === SWAP_LOCK_CODE_HASH),
+        crossTxs.eth_to_ckb.filter(
+          (x) =>
+            x.recipient_lockscript.code_hash === SWAP_LOCK_CODE_HASH ||
+            x.recipient_lockscript.code_hash === tokenToken.SWAP_LOCK_CODE_HASH,
+        ),
       ),
     );
 
