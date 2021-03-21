@@ -81,10 +81,17 @@ export class DexSwapOrderChain extends DexOrderChain {
         amountOut.balance = argsData.amountOutMin.toString();
       } else {
         if (tokens && tokens.isSudtSudt()) {
-          amountOut.balance = CellInfoSerializationHolderFactory.getInstance()
-            .getSudtCellSerialization()
-            .decodeData(this.getLastOrder().data)
-            .toString();
+          let amount = BigInt(0);
+          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
+            if (
+              this.equalScript(this.getLastOrder().tx.transaction.outputs[i].lock, this.userLock) &&
+              this.equalScript(this.getLastOrder().tx.transaction.outputs[i].type, amountOut.typeScript)
+            ) {
+              const data = this.getLastOrder().tx.transaction.outputsData[i];
+              amount += CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(data);
+            }
+          }
+          amountOut.balance = amount.toString();
         } else {
           if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
             // sudt => ckb
