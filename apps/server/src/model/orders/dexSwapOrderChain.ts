@@ -80,23 +80,30 @@ export class DexSwapOrderChain extends DexOrderChain {
       if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
         amountOut.balance = argsData.amountOutMin.toString();
       } else {
-        if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
-          // sudt => ckb
-          amountOut.balance = (
-            this.getLastOrder()
-              .tx.transaction.outputs.filter((x) => this.equalScript(x.lock, this.userLock))
-              .reduce((total, cell) => total + BigInt(cell.capacity), BigInt(0)) - BigInt(227_0000_0000)
-          ).toString();
+        if (tokens && tokens.isSudtSudt()) {
+          amountOut.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getSudtCellSerialization()
+            .decodeData(this.getLastOrder().data)
+            .toString();
         } else {
-          // ckb => sudt
-          let amount = BigInt(0);
-          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
-            if (this.equalScript(this.getLastOrder().tx.transaction.outputs[i].lock, this.userLock)) {
-              const data = this.getLastOrder().tx.transaction.outputsData[i];
-              amount += CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(data);
+          if (argsData.sudtTypeHash === CKB_TYPE_HASH) {
+            // sudt => ckb
+            amountOut.balance = (
+              this.getLastOrder()
+                .tx.transaction.outputs.filter((x) => this.equalScript(x.lock, this.userLock))
+                .reduce((total, cell) => total + BigInt(cell.capacity), BigInt(0)) - BigInt(227_0000_0000)
+            ).toString();
+          } else {
+            // ckb => sudt
+            let amount = BigInt(0);
+            for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
+              if (this.equalScript(this.getLastOrder().tx.transaction.outputs[i].lock, this.userLock)) {
+                const data = this.getLastOrder().tx.transaction.outputsData[i];
+                amount += CellInfoSerializationHolderFactory.getInstance().getSwapCellSerialization().decodeData(data);
+              }
             }
+            amountOut.balance = amount.toString();
           }
-          amountOut.balance = amount.toString();
         }
       }
     }
@@ -128,12 +135,7 @@ export class DexSwapOrderChain extends DexOrderChain {
 
       if (tokens) {
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
-          const token = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
-          if (this._isIn) {
-            return token.toERC20Token();
-          } else {
-            return token;
-          }
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
         }
         return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
       } else {
@@ -165,13 +167,8 @@ export class DexSwapOrderChain extends DexOrderChain {
     if (this.getType() === SWAP_ORDER_TYPE.CrossChain) {
       const token = TokenHolderFactory.getInstance().getTokenByShadowFromAddress(this._bridgeInfo.token_addr);
       if (tokens) {
-        const token = TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
         if (this.cell.type.toHash() === tokens.tokenA.typeHash) {
-          if (this._isIn) {
-            return token;
-          } else {
-            return token.toERC20Token();
-          }
+          return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenB.typeHash);
         }
         return TokenHolderFactory.getInstance().getTokenByTypeHash(tokens.tokenA.typeHash);
       } else {
