@@ -11,6 +11,7 @@ import { BridgeAPI } from 'suite/api/bridgeAPI';
 
 export const GliaswapProvider: React.FC = (props) => {
   const [api, setAPI] = useState<GliaswapAPI>(() => new ServerGliaswapAPI());
+  const [address, setAddress] = useState<undefined | string>();
   const [assetList, setAssetList] = useState<Asset[]>([]);
   const bridgeAPI = useConstant(() => BridgeAPI.getInstance());
 
@@ -38,7 +39,10 @@ export const GliaswapProvider: React.FC = (props) => {
       setAssetList(list);
     })();
 
-    adapter.on('connectStatusChanged', () => setAPI(new ServerGliaswapAPI(adapter.web3)));
+    adapter.on('connectStatusChanged', (status, signer) => {
+      setAPI(new ServerGliaswapAPI(adapter.web3));
+      setAddress(signer && signer.address);
+    });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -51,7 +55,7 @@ export const GliaswapProvider: React.FC = (props) => {
     <QueryClientProvider client={queryClient}>
       <AdapterProvider adapter={adapter}>
         {assetList.length > 0 ? (
-          <AssetProvider api={api} assetList={assetList} bridgeAPI={bridgeAPI}>
+          <AssetProvider address={address} api={api} assetList={assetList} bridgeAPI={bridgeAPI}>
             {props.children}
           </AssetProvider>
         ) : null}

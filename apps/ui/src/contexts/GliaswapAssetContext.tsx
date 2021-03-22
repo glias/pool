@@ -1,7 +1,6 @@
 import { Asset, GliaswapAPI, GliaswapAssetWithBalance, isCkbAsset, isEthAsset } from '@gliaswap/commons';
 import { addressToScript } from '@nervosnetwork/ckb-sdk-utils';
-import { useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { createAssetWithBalance } from 'suite';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
@@ -27,32 +26,27 @@ type ProviderProps = React.PropsWithChildren<{
   assetList: Asset[];
   api: GliaswapAPI;
   bridgeAPI: BridgeAPI;
+  address?: string;
 }>;
 
 export const Provider: React.FC<ProviderProps> = (props) => {
-  const { children, assetList, api, bridgeAPI } = props;
+  const { children, assetList, api, bridgeAPI, address } = props;
   const [assetsWithBalance, setAssetsWithBalance] = useState<RealtimeAssetsWithBalance>({
     lastUpdated: 0,
     value: assetList.map((asset) => ({ ...asset, balance: '0' } as GliaswapAssetWithBalance)),
   });
 
-  const adapter = useWalletAdapter<Web3ModalAdapter>();
-  const { raw, status: connectStatus } = adapter;
-
-  const lockScript = useMemo(() => {
-    if (adapter.status !== 'connected') return null;
-    return addressToScript(adapter.signer.address);
-  }, [adapter]);
+  const lockScript = address ? addressToScript(address) : null;
 
   // const currentEthAddress = useMemo(() => {
   //   return lockScript?.args ?? '';
   // }, [lockScript]);
 
   const { data, status } = useQuery(
-    ['getAssetsWithBalance', lockScript],
+    ['getAssetsWithBalance', { lock: lockScript }],
     () => api.getAssetsWithBalance(lockScript!, assetList),
-    // TODO: use the env to define the
-    { refetchInterval: 10000, enabled: lockScript != null && !!raw.web3 },
+    // TODO: use the env to define the refetchInterval
+    { refetchInterval: 10000, enabled: lockScript != null },
   );
 
   const setBalance = useCallback(
@@ -77,7 +71,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   );
 
   useEffect(() => {
-    if (connectStatus !== 'connected') {
+    if (!lockScript) {
       setAssetsWithBalance({
         lastUpdated: Date.now(),
         value: assetsWithBalance.value.map((asset) => createAssetWithBalance(asset, 0)),
@@ -85,7 +79,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
       return;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectStatus]);
+  }, [lockScript]);
 
   useEffect(() => {
     if (status !== 'success' || !data) return;
