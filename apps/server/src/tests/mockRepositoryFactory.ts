@@ -57,4 +57,8 @@ export class MockRepository implements DexRepository {
   mockCollectTransactions(): sinon.SinonStub<unknown[], unknown> | sinon.SinonStub<unknown[], unknown> {
     return sinon.stub(this, 'collectTransactions');
   }
+
+  getTimestampByBlockNumber(blockNumber: string): Promise<string> {
+    return Promise.resolve('');
+  }
 }
