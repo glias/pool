@@ -600,7 +600,14 @@ export class DexLiquidityPoolService {
 
   async setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: DateTime): Promise<void> {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
-    dexCache.set(poolKey, date.toJSDate().toLocaleString());
+    const dateVal = date.toJSDate().toLocaleString();
+    const lockKey = `${poolKey}${dateVal}`;
+
+    if (!(await dexCache.getLock(lockKey))) {
+      throw new Error('get cache lock key failed');
+    }
+
+    dexCache.set(poolKey, dateVal);
   }
 }
 
