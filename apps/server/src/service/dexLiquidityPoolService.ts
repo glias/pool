@@ -43,13 +43,13 @@ export class DexLiquidityPoolService {
   }
 
   async poolInfoWithStatus(tokenAHash: string, tokenBHash: string): Promise<PoolInfo> {
+    const infoCells = await this.getLiquidityPools();
     const pendingCells = await this.getPendingInfo();
-    const poolInfos = [];
     pendingCells.forEach((x) => {
-      poolInfos.push(this.toPoolInfo(x, x.cellOutput.type));
+      infoCells.push(this.toPoolInfo(x, x.cellOutput.type));
     });
 
-    const poolInfo = poolInfos.find((x) => {
+    const poolInfo = infoCells.find((x) => {
       const hashes1 = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash);
       const hashes2 = PoolInfoFactory.sortTypeHash(x.tokenA.typeHash, x.tokenB.typeHash);
 
@@ -84,8 +84,6 @@ export class DexLiquidityPoolService {
       order: 'desc',
       fromBlock: this.blockNumber,
     };
-
-    const infoPools = await this.getLiquidityPools();
 
     const userLockHash = lock.toHash().slice(2, 66);
     const removeTxs1 = await this.dexRepository.collectTransactions(removeQueryOptions1, true, true);
