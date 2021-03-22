@@ -5,7 +5,7 @@ BigNumber.config({ EXPONENTIAL_AT: 1e9 });
 
 export const UIEnvs = buildEnv({
   EXPLORER_URL: process.env.REACT_APP_CKB_EXPLORER_URL,
-  ETHERSCAN_URL: process.env.REACT_APP_ETHERSCAN_URL || 'https://ropsten.etherscan.io',
+  ETHERSCAN_URL: process.env.REACT_APP_ETHERSCAN_URL || 'https://rinkeby.etherscan.io',
   DOCS_URL: process.env.REACT_APP_DOCS_URL || 'https://zoe-zhouzhou.github.io/gliaswap-docs/docs',
   ETH_CHAIN_NAME: process.env.REACT_APP_ETH_CHAIN_NAME || 'Rinkeby',
   ETH_CHAIN_ID: process.env.REACT_APP_ETH_CHAIN_ID || '4',

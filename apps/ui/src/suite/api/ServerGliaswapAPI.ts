@@ -151,7 +151,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   }
 
   async getEthBalance(web3: Web3, ethAddr: string, asset: Asset) {
-    const balance = await web3.eth.getBalance(ethAddr);
+    const balance = await web3.eth.getBalance(ethAddr, 'pending');
     return {
       ...asset,
       balance,
@@ -171,7 +171,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
       ],
       asset.address,
     );
-    const balance = await contract.methods.balanceOf(ethAddr).call();
+    const balance = await contract.methods.balanceOf(ethAddr, 'pending').call();
     return {
       ...asset,
       balance,
