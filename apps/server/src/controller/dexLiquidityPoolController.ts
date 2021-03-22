@@ -246,14 +246,15 @@ export default class DexLiquidityPoolController {
 
     try {
       await this.service.setPoolCreationDate(tokenA.typeHash, tokenB.typeHash, now);
-      const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
-      const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
-
-      ctx.status = 200;
-      ctx.body = resp.serialize();
     } catch (_) {
-      ctx.throw(500, 'pending pool date creation failed');
+      ctx.throw(500, `write pool creation date failed`);
     }
+
+    const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
+    const resp = await this.service.buildCreateLiquidityPoolTx(ctx, req);
+
+    ctx.status = 200;
+    ctx.body = resp.serialize();
   }
 
   @request('post', '/v1/liquidity-pool/orders')
