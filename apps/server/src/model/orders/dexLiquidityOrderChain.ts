@@ -93,7 +93,7 @@ export class DexLiquidityChain extends DexOrderChain {
     const status = this.getStatus();
 
     const orderHistory: OrderHistory = {
-      poolId: PoolInfo.TYPE_SCRIPTS[amountB.info.symbol].toHash(),
+      poolId: this.poolInfo.infoCell.cellOutput.type.toHash(),
       transactionHash: transactionHash,
       timestamp: this.tx.txStatus.timestamp,
       amountIn: amountA,
