@@ -82,10 +82,6 @@ export class DexLiquidityChain extends DexOrderChain {
       }
     }
 
-    if (this.tx.transaction.hash === '0xa330fe0e103d1c45e4acdfaab3cdafd495715bb008cf72aec86be81569cfa508') {
-      console.log(1);
-    }
-
     if (tokens.isSudtSudt()) {
       if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
         for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
