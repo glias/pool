@@ -4,7 +4,7 @@ import { Context } from 'koa';
 import { DateTime } from 'luxon';
 
 import { dexCache } from '../cache';
-import { CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
+import { BLOCK_NUMBER, CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';
 import {
   INFO_LOCK_CODE_HASH,
   INFO_LOCK_HASH_TYPE,
@@ -35,8 +35,6 @@ import { txBuilder } from '.';
 export class DexLiquidityPoolService {
   private readonly dexRepository: DexRepository;
   private readonly txBuilderServiceFactory: txBuilder.TxBuilderServiceFactory;
-  private readonly blockNumber = `0x${Number(1379791).toString(16)}`;
-
   constructor(dexRepository?: DexRepository) {
     this.dexRepository = dexRepository ? dexRepository : ckbRepository;
     this.txBuilderServiceFactory = new txBuilder.TxBuilderServiceFactory();
@@ -72,7 +70,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
@@ -82,7 +80,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const userLockHash = lock.toHash().slice(2, 66);
@@ -130,7 +128,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
@@ -140,7 +138,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const userLockHash = lock.toHash().slice(2, 66);
@@ -189,7 +187,7 @@ export class DexLiquidityPoolService {
       },
       type: infoCell.tokenB.typeScript.toLumosScript(),
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const addOrders = await this.dexRepository.collectTransactions(queryOptions, true, true);
@@ -208,7 +206,7 @@ export class DexLiquidityPoolService {
       },
       type: lpTokenTypeScript.toLumosScript(),
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true, true);
@@ -316,7 +314,7 @@ export class DexLiquidityPoolService {
 
     const userLiquidityCells = await this.dexRepository.collectCells(queryOptions, true, true);
 
-    return userLiquidityCells.filter((x) => BigInt(x.blockNumber) > BigInt(this.blockNumber));
+    return userLiquidityCells.filter((x) => BigInt(x.blockNumber) > BigInt(BLOCK_NUMBER));
   }
 
   private async getPoolInfos(): Promise<PoolInfoHolder> {
@@ -434,7 +432,7 @@ export class DexLiquidityPoolService {
         argsLen: 'any',
       },
       order: 'desc',
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
     };
 
     const infoCells = await this.dexRepository.collectCells(queryOptions, false);
@@ -481,7 +479,7 @@ export class DexLiquidityPoolService {
         },
         argsLen: 'any',
       },
-      fromBlock: this.blockNumber,
+      fromBlock: BLOCK_NUMBER,
       order: 'desc',
     };
 

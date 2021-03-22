@@ -1,6 +1,6 @@
 import { QueryOptions } from '@ckb-lumos/base';
 import { Context } from 'koa';
-import { SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config/index';
+import { BLOCK_NUMBER, SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE } from '../config/index';
 import * as tokenToken from '../config/tokenToken';
 import { Logger } from '../logger';
 import {
@@ -60,6 +60,7 @@ export class DexSwapService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: BLOCK_NUMBER,
     };
 
     const txs = await this.dexRepository.collectTransactions(queryOptions, true, true);
@@ -107,6 +108,7 @@ export class DexSwapService {
         argsLen: 'any',
       },
       order: 'desc',
+      fromBlock: BLOCK_NUMBER,
     };
     const poolInfos = await this.poolService.getLiquidityPools();
 
@@ -123,7 +125,7 @@ export class DexSwapService {
     pureCrossTxs: { eth_to_ckb: BridgeInfo[]; ckb_to_eth: BridgeInfo[] },
   ): Promise<DexOrderChain[]> {
     // const pureCrossTxs = await this.dexRepository.getForceBridgeHistory(lock, ethAddress);
-    const txs: TransactionWithStatus[] = [];
+    let txs: TransactionWithStatus[] = [];
     for (const tx of pureCrossTxs.ckb_to_eth) {
       if (tx.status !== 'success') {
         continue;
@@ -143,6 +145,9 @@ export class DexSwapService {
       const transaction = await this.dexRepository.getTransaction(tx.ckb_tx_hash);
       txs.push(transaction);
     }
+
+    const timestamp = await this.dexRepository.getTimestampByBlockNumber(BLOCK_NUMBER);
+    txs = txs.filter((x) => BigInt(x.txStatus.timestamp) > BigInt(timestamp));
 
     const poolInfos = await this.poolService.getLiquidityPools();
 
