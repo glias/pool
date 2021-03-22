@@ -1,5 +1,5 @@
 import { scriptToHash } from '@nervosnetwork/ckb-sdk-utils';
-import ethereumTokenList from 'gliaswap-token-list/tokens/ethereum/ropsten.json';
+import ethereumTokenList from 'gliaswap-token-list/tokens/ethereum/rinkeby.json';
 import nervosTokenList from 'gliaswap-token-list/tokens/nervos/aggron.json';
 import { cellConver, Token, TokenHolder, TokenInfo } from '..';
 import { FORCE_BRIDGE_SETTINGS, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../../config';

@@ -160,53 +160,91 @@ export const SECP256K1_WITNESS_ARGS = {
   outputType: '',
 };
 
-export const FORCE_BRIDGE_SERVER_URL = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://121.196.29.165:3003';
+export const FORCE_BRIDGE_SERVER_URL = process.env.FORCE_BRIDGE_SERVER_ADDRESS || 'http://47.56.233.149:3005';
 export const FORCE_BRIDGE_LOCK_HASH_CODE =
   process.env.FORCE_BRIDGE_LOCK_HASH_CODE || '0x177a569f067154c4d4a65560c1a0697aff8922f1c74640f70d9cf073e4a6fec0';
 
 export const FORCE_BRIDGE_SETTINGS = {
-  eth_token_locker_addr: '0x4347818B33aaf0b442A977900585B9ad1e1B581F',
-  eth_ckb_chain_addr: '0xEab024D7A450F8168855186E7D6c8eC40EB0e99c',
+  eth_token_locker_addr: '0xf9f9cc809701529e5E396f2D68CDb3fe2E3E19EE',
+  eth_ckb_chain_addr: '0xdC1A2f8D12Aa1bA9a6edd99A473cF50710B09FbD',
   bridge_lockscript: {
-    code_hash: '177a569f067154c4d4a65560c1a0697aff8922f1c74640f70d9cf073e4a6fec0',
+    code_hash: 'b42f76b833a4fe65abe2d412ff8280603f4c6b83e988816bdeac5526b53ff8a4',
     hash_type: 1,
-    outpoint: { tx_hash: '36ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a2', index: 0, dep_type: 0 },
+    outpoint: {
+      tx_hash: '4c5cb9807df7dd648f42e3185ef8526e32041c8eea94aaa00691209d92d639a1',
+      index: 0,
+      dep_type: 0,
+    },
   },
   bridge_typescript: {
-    code_hash: 'eaf7bdcf8748a9dc57274e1eb94974b009e17a0f69cc2310b65582d7c93c3550',
+    code_hash: '83f5f181072704822f003367d574cf968cb9e83b85732762260961d92751f080',
     hash_type: 1,
-    outpoint: { tx_hash: '36ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a2', index: 1, dep_type: 0 },
+    outpoint: {
+      tx_hash: '4c5cb9807df7dd648f42e3185ef8526e32041c8eea94aaa00691209d92d639a1',
+      index: 1,
+      dep_type: 0,
+    },
   },
   light_client_typescript: {
-    code_hash: 'b0664a84bd9039cb75e77d03232b62e3bee24de7de4b44c8ccd8993bff44ef6c',
+    code_hash: '7e74f0ea75d4530d1c6d9a16bd37879556d2c72dfcef9281d7d72384b8e05000',
     hash_type: 1,
-    outpoint: { tx_hash: '36ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a2', index: 3, dep_type: 0 },
+    outpoint: {
+      tx_hash: '4c5cb9807df7dd648f42e3185ef8526e32041c8eea94aaa00691209d92d639a1',
+      index: 3,
+      dep_type: 0,
+    },
   },
   recipient_typescript: {
-    code_hash: 'd532d5f4a46fe8577ad3efc07fbdd12d866e89d4afe75588d76504996d00d600',
+    code_hash: '6299a3ddb1b4ddfe8e5def025fe03bfbf15bf53e369efc16becd43b12d716775',
     hash_type: 1,
-    outpoint: { tx_hash: '36ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a2', index: 2, dep_type: 0 },
+    outpoint: {
+      tx_hash: '4c5cb9807df7dd648f42e3185ef8526e32041c8eea94aaa00691209d92d639a1',
+      index: 2,
+      dep_type: 0,
+    },
   },
   simple_bridge_typescript: {
-    code_hash: 'c38af159c9e67286051343b49ecdde8d0ffef9c00029b232a2ec4e17d1e75c7f',
+    code_hash: '08c3b82c5a596b04de4a7d8ee6528510f8ce7b98e8046005d7da00b3e5c2110e',
     hash_type: 1,
-    outpoint: { tx_hash: '36ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a2', index: 4, dep_type: 0 },
+    outpoint: {
+      tx_hash: '4c5cb9807df7dd648f42e3185ef8526e32041c8eea94aaa00691209d92d639a1',
+      index: 4,
+      dep_type: 0,
+    },
   },
   sudt: {
     code_hash: 'c5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
     hash_type: 1,
-    outpoint: { tx_hash: 'e12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769', index: 0, dep_type: 0 },
+    outpoint: {
+      tx_hash: 'e12877ebd2c3c364dc46c5c992bcfaf4fee33fa13eebdf82c591fc9825aab769',
+      index: 0,
+      dep_type: 0,
+    },
   },
   light_client_cell_script: {
     cell_script:
-      '59000000100000003000000031000000b0664a84bd9039cb75e77d03232b62e3bee24de7de4b44c8ccd8993bff44ef6c012400000036ca52255886dc406e99e599c253597f792ca61e7344086c876a968ab6a3d4a205000000',
+      '590000001000000030000000310000007e74f0ea75d4530d1c6d9a16bd37879556d2c72dfcef9281d7d72384b8e050000124000000b0579ff4509580f554cee7326a1ee17167b6bfb03f31357aaf4d0608bc9e06b500000000',
   },
-  multisig_address: { addresses: ['ckt1qyqv608y8u9sjaclqtx4ul6fpzqes4hldjssgk25xj'], require_first_n: 0, threshold: 1 },
-  ckb_relay_mutlisig_threshold: { threshold: 1 },
+  multisig_address: {
+    addresses: ['ckt1qyqw2acss3ykp96lyaxrzemdqj0e24kwkqgsltvzrw'],
+    require_first_n: 0,
+    threshold: 1,
+  },
+  ckb_relay_mutlisig_threshold: {
+    threshold: 1,
+  },
   pw_locks: {
     inner: [
-      { tx_hash: '57a62003daeab9d54aa29b944fc3b451213a5ebdf2e232216a3cfed0dde61b38', index: 0, dep_type: 0 },
-      { tx_hash: 'f8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37', index: 0, dep_type: 1 },
+      {
+        tx_hash: '57a62003daeab9d54aa29b944fc3b451213a5ebdf2e232216a3cfed0dde61b38',
+        index: 0,
+        dep_type: 0,
+      },
+      {
+        tx_hash: 'f8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37',
+        index: 0,
+        dep_type: 1,
+      },
     ],
   },
 };
