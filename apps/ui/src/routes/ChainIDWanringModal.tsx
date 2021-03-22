@@ -19,7 +19,7 @@ export const ChainIDWarningModal = () => {
     <Modal closable={false} width={360} visible={visible} footer={false}>
       <WarningOutlined style={{ color: '#faad14', fontSize: '18px', marginRight: '8px' }} />
       {i18n.t(
-        `Only ${chainName} Network is supported at this stage. Please connect your Ethereum wallet to ${chainName} Test Network.Only Rinkeby Network is supported at this stage. Please connect your Ethereum wallet to Rinkeby Test Network.`,
+        `Only ${chainName} Network is supported at this stage. Please connect your Ethereum wallet to ${chainName} Test Network.`,
       )}
     </Modal>
   );
