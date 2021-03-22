@@ -9128,7 +9128,7 @@ github-slugger@^1.0.0:
 
 "gliaswap-token-list@https://github.com/glias/token-list#master":
   version "0.0.1"
-  resolved "https://github.com/glias/token-list#16b772eaa1ba218b0652ad32b5d13ccad19c5222"
+  resolved "https://github.com/glias/token-list#2cc92501ea3a297525e642115d35a954ab1830dc"
 
 glob-base@^0.3.0:
   version "0.3.0"
