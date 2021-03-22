@@ -583,6 +583,13 @@ export class DexLiquidityPoolService {
     return await this.txBuilderServiceFactory.cancel().build(ctx, req);
   }
 
+  async lockPool(tokenAHash: string, tokenBHash: string): Promise<boolean> {
+    const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
+    const lockKey = `${poolKey}lock`;
+
+    return await dexCache.getLock(lockKey);
+  }
+
   async poolCreationDate(tokenAHash: string, tokenBHash: string): Promise<DateTime> {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
 
@@ -598,16 +605,9 @@ export class DexLiquidityPoolService {
     }
   }
 
-  async setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: DateTime): Promise<void> {
+  setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: DateTime): void {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
-    const dateVal = date.toJSDate().toLocaleString();
-    const lockKey = `${poolKey}${dateVal}`;
-
-    if (!(await dexCache.getLock(lockKey))) {
-      throw new Error('get cache lock key failed');
-    }
-
-    dexCache.set(poolKey, dateVal);
+    dexCache.set(poolKey, date.toJSDate().toLocaleString());
   }
 }
 
