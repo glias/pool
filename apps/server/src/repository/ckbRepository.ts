@@ -301,7 +301,7 @@ export class CkbRepository implements DexRepository {
     return groupByInputOutPoint;
   }
 
-  private async getTimestampByBlockNumber(blockNumber: string): Promise<string> {
+  async getTimestampByBlockNumber(blockNumber: string): Promise<string> {
     const req = [];
     req.push(['getHeaderByNumber', blockNumber]);
     const block = await this.ckbNode.rpc.createBatchRequest(req).exec();

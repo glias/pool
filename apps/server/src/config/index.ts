@@ -43,6 +43,10 @@ export const explorerConfig: ExplorerConfig = {
     : 'https://explorer.nervos.org/',
 };
 
+export const BLOCK_NUMBER = process.env.BLOCK_NUMBER
+  ? `0x${Number(process.env.BLOCK_NUMBER).toString(16)}`
+  : `0x${Number(1399517).toString(16)}`;
+
 // INFO CELL
 export const INFO_TYPE_CODE_HASH =
   process.env.INFO_TYPE_CODE_HASH || '0x2e44a62e4e447a2ae5acd0ca186a95f25f86d13571f6a177c5658ab0e63591e9';
