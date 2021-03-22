@@ -30,8 +30,6 @@ export const GliaswapProvider: React.FC = (props) => {
     });
   });
 
-  adapter.on('connectStatusChanged', () => setAPI(new ServerGliaswapAPI(adapter.web3)));
-
   useEffect(() => {
     (async () => {
       const hide = message.loading('launching app...', 0);
@@ -39,6 +37,9 @@ export const GliaswapProvider: React.FC = (props) => {
       hide();
       setAssetList(list);
     })();
+
+    adapter.on('connectStatusChanged', () => setAPI(new ServerGliaswapAPI(adapter.web3)));
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
