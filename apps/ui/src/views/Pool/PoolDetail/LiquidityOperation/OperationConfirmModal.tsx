@@ -48,7 +48,7 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
   const { data: txHash, mutate: sendTransaction, isLoading: isSendingTransaction, reset, status, error } = useMutation<
     string,
     Error
-  >(['sendTransaction'], onOk);
+  >(['sendTransaction'], () => onOk());
 
   function onModalCancel(cb?: () => void) {
     if (isSendingTransaction) return;
