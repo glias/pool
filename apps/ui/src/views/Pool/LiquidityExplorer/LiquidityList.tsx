@@ -1,5 +1,5 @@
 import { PoolInfoWithStatus } from '@gliaswap/commons';
-import { Empty, Spin } from 'antd';
+import { Empty, Spin, List } from 'antd';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
 import { Section, SpaceBetweenRow } from 'components/Layout';
 import i18n from 'i18n';
@@ -63,22 +63,27 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
       {pools.length <= 0 ? (
         <Empty style={{ color: '#fff' }}>{i18n.t('No liquidity found. Go to Explore Pool to add liquidity')}</Empty>
       ) : (
-        pools.map(({ assets, poolId, status }) => (
-          <Section
-            key={poolId}
-            className="liquidity-item"
-            onClick={() => status === 'completed' && history.push(`/pool/${poolId}`)}
-          >
-            <Spin spinning={status === 'pending'}>
-              <SpaceBetweenRow style={{ padding: 0, fontSize: '14px' }}>
-                <div className="asset-symbol">
-                  <PoolAssetSymbol assets={assets} />
-                </div>
-                <AssetBalanceList assets={assets} hideSymbolIcon />
-              </SpaceBetweenRow>
-            </Spin>
-          </Section>
-        ))
+        <List
+          pagination={{ position: 'bottom', size: 'small', pageSize: 8, style: { paddingBottom: '20px' } }}
+          bordered={false}
+          dataSource={pools}
+          renderItem={({ assets, poolId, status }) => (
+            <Section
+              key={poolId}
+              className="liquidity-item"
+              onClick={() => status === 'completed' && history.push(`/pool/${poolId}`)}
+            >
+              <Spin spinning={status === 'pending'}>
+                <SpaceBetweenRow style={{ padding: 0, fontSize: '14px' }}>
+                  <div className="asset-symbol">
+                    <PoolAssetSymbol assets={assets} />
+                  </div>
+                  <AssetBalanceList assets={assets} hideSymbolIcon />
+                </SpaceBetweenRow>
+              </Spin>
+            </Section>
+          )}
+        />
       )}
     </LiquidityListWrapper>
   );
