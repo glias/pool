@@ -18,7 +18,7 @@ import {
 import { addressToScript } from '@nervosnetwork/ckb-sdk-utils';
 import { ConnectStatus, useWalletAdapter, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { AdapterContextState, ConnectedAdapterState } from 'commons/WalletAdapter/Provider';
-import { RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
+import { AssetManagerState, RealtimeInfo, useGliaswapContext } from 'contexts/GliaswapAssetContext';
 import { useMemo } from 'react';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
 
@@ -47,11 +47,13 @@ interface GliaswapState {
   currentEthAddress: string;
 
   bridgeAPI: BridgeAPI;
+
+  refreshAssetsWithBalance: AssetManagerState['refreshAssetsWithBalance'];
 }
 
 export function useGliaswap(): GliaswapState {
   const adapter = useWalletAdapter<Web3ModalAdapter>();
-  const { assets, api, bridgeAPI } = useGliaswapContext();
+  const { assets, api, bridgeAPI, refreshAssetsWithBalance } = useGliaswapContext();
 
   const currentUserLock = useMemo(() => {
     if (adapter.status === 'connected') return addressToScript(adapter.signer.address);
@@ -83,6 +85,7 @@ export function useGliaswap(): GliaswapState {
     currentCkbAddress,
     currentEthAddress,
     bridgeAPI,
+    refreshAssetsWithBalance,
   };
 }
 
