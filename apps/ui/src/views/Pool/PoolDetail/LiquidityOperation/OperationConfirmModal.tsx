@@ -15,6 +15,8 @@ interface LiquidityOperationConfirmProps {
   onCancel?: () => void;
   className?: string;
   visible?: boolean;
+  onSuccessfulDismiss?: () => void;
+  onErrorDismiss?: () => void;
 }
 
 const OperationConfirmationWrapper = styled.div`
@@ -40,25 +42,27 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
   onCancel,
   visible,
   confirmButtonType = 'primary',
+  onErrorDismiss = onCancel,
+  onSuccessfulDismiss = onCancel,
 }) => {
   const { data: txHash, mutate: sendTransaction, isLoading: isSendingTransaction, reset, status, error } = useMutation<
     string,
     Error
-  >(['sendTransaction', onOk], () => onOk());
+  >(['sendTransaction'], onOk);
 
-  function onModalCancel() {
+  function onModalCancel(cb?: () => void) {
     if (isSendingTransaction) return;
-    onCancel?.();
+    cb?.();
     reset();
   }
 
   const confirmContent = (() => {
     if (status === 'success' && txHash) {
-      return <SuccessResult txHash={txHash} onDismiss={onModalCancel} />;
+      return <SuccessResult txHash={txHash} onDismiss={() => onModalCancel(onSuccessfulDismiss)} />;
     }
 
     if (status === 'error' && error) {
-      return <DeclineResult errMessage={error?.message} onDismiss={onModalCancel} />;
+      return <DeclineResult errMessage={error?.message} onDismiss={() => onModalCancel(onErrorDismiss)} />;
     }
 
     return (
@@ -74,7 +78,13 @@ export const OperationConfirmModal: React.FC<LiquidityOperationConfirmProps> = (
   })();
 
   return (
-    <ModalContainer onCancel={onModalCancel} width={360} title={i18n.t('Review')} visible={visible} footer={false}>
+    <ModalContainer
+      onCancel={() => onModalCancel(onCancel)}
+      width={360}
+      title={i18n.t('Review')}
+      visible={visible}
+      footer={false}
+    >
       {confirmContent}
     </ModalContainer>
   );
