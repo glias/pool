@@ -117,7 +117,7 @@ export const CreatePool: React.FC = () => {
 
   const form = useFormik<InputFields>({
     initialValues: { amount1: '', amount2: '' },
-    async onSubmit(_fields, actions) {
+    onSubmit: async function genesisLiquidity(_fields, actions) {
       if (!readyToAddAmounts) return;
       actions.setSubmitting(true);
 
@@ -243,6 +243,11 @@ export const CreatePool: React.FC = () => {
     );
   }
 
+  async function afterSendGenesisLiquiditySuccessful() {
+    if (poolWithStatus.status !== 'created') throw new Error('the pool is not created');
+    history.push(`/pool/${poolWithStatus.pool.poolId}`);
+  }
+
   const pendingCreate = poolStatus === 'pending' || createStatus === 'loading';
   const pendingGenesisLiquidity = form.isSubmitting || confirming;
   const poolAssets = poolQuery.data?.assets;
@@ -250,7 +255,7 @@ export const CreatePool: React.FC = () => {
   return (
     <CreatePoolWrapper>
       <Section>
-        <strong>{i18n.t('You are the first liquidity provider')}</strong>
+        <strong>{i18n.t('You may be the first liquidity provider')}</strong>
         <p style={{ lineHeight: '16px' }}>
           {i18n.t(
             'Create the pool before adding liquidity. And the ratio of tokens you add will set the price of this pool.',
@@ -320,6 +325,7 @@ export const CreatePool: React.FC = () => {
           onOk={() => sendReadyToAddLiquidityTransaction()}
           onCancel={() => setConfirming(false)}
           operation={<Text strong>{i18n.t('Add Liquidity')}</Text>}
+          onSuccessfulDismiss={afterSendGenesisLiquiditySuccessful}
         >
           {confirming && poolAssets && poolQuery.data && (
             <>
