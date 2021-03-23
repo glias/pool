@@ -8,13 +8,18 @@ export interface Signer<Unsigned, Signed> {
   address: string;
 
   signTransaction?: (rawTransaction: Unsigned) => Promise<Signed>;
-  // send the signed transaction or sign and send the signed transaction
+  /**
+   * @deprecated please migrate to {@link WalletAdapter.sendTransaction}
+   * send the signed transaction or sign and send the signed transaction
+   * @param signed
+   */
   sendTransaction: (signed: Unsigned | Signed) => Promise<TransactionHash>;
 }
 
 export interface WalletAdapterListener<Unsigned, Signed> {
   on(event: 'signerChanged', listener: (signer: Signer<Unsigned, Signed> | null) => void): void;
   on(event: 'connectStatusChanged', listener: (status: ConnectStatus, signer?: Signer<Unsigned, Signed>) => void): void;
+  on(event: 'sendTransactionSuccessful', listener: (txHash: string) => void): void;
 }
 
 export interface Wallet<Unsigned, Signed> {
@@ -25,6 +30,8 @@ export interface Wallet<Unsigned, Signed> {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   signer: Signer<Unsigned, Signed> | null;
+
+  sendTransaction: (tx: Unsigned | Signed) => Promise<string>;
 }
 
 export interface WalletAdapter<Unsigned, Signed>

@@ -14,10 +14,11 @@ export type RealtimeInfo<T> = {
 
 type RealtimeAssetsWithBalance = RealtimeInfo<GliaswapAssetWithBalance[]>;
 
-interface AssetManagerState {
+export interface AssetManagerState {
   assets: RealtimeAssetsWithBalance;
   api: GliaswapAPI;
   bridgeAPI: BridgeAPI;
+  refreshAssetsWithBalance: () => Promise<unknown>;
 }
 
 const AssetManagerContext = createContext<AssetManagerState | null>(null);
@@ -42,7 +43,7 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   //   return lockScript?.args ?? '';
   // }, [lockScript]);
 
-  const { data, status } = useQuery(
+  const { data, status, refetch: refreshBalance } = useQuery(
     ['getAssetsWithBalance', { lock: lockScript }],
     () => api.getAssetsWithBalance(lockScript!, assetList),
     // TODO: use the env to define the refetchInterval
@@ -87,7 +88,9 @@ export const Provider: React.FC<ProviderProps> = (props) => {
   }, [status, assetList, setBalance, data]);
 
   return (
-    <AssetManagerContext.Provider value={{ assets: assetsWithBalance, api, bridgeAPI }}>
+    <AssetManagerContext.Provider
+      value={{ assets: assetsWithBalance, api, bridgeAPI, refreshAssetsWithBalance: refreshBalance }}
+    >
       {children}
     </AssetManagerContext.Provider>
   );

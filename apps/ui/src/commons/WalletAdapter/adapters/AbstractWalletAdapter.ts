@@ -6,7 +6,7 @@ export abstract class AbstractWalletAdapter<Unsigned, Signed> implements WalletA
 
   async closeConnection(): Promise<void> {}
 
-  protected emitter: EventEmitter = new EventEmitter();
+  protected emitter = new EventEmitter();
 
   signer: Signer<Unsigned, Signed> | null = null;
 
@@ -47,5 +47,13 @@ export abstract class AbstractWalletAdapter<Unsigned, Signed> implements WalletA
 
   async disconnect() {
     return this.closeConnection().finally(() => this.afterDisconnected());
+  }
+
+  async sendTransaction(tx: Unsigned | Signed): Promise<string> {
+    if (!this.signer) throw new Error('Unable to send the transaction since the wallet is not connected,');
+    // TODO replace with signTransaction when the Signer implemented it
+    const txHash = this.signer?.sendTransaction(tx);
+    this.emitter.emit('sendTransactionSuccessful', txHash);
+    return txHash;
   }
 }
