@@ -107,7 +107,7 @@ export class DexLiquidityChain extends DexOrderChain {
         }
       } else {
         if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
-          amountA.balance = CellInfoSerializationHolderFactory.getInstance()
+          amountB.balance = CellInfoSerializationHolderFactory.getInstance()
             .getLiquidityCellSudtSudtSerialization()
             .decodeArgs(this.cell.lock.args)
             .sudtYMin.toString();
