@@ -42,7 +42,9 @@ export class DexLiquidityChain extends DexOrderChain {
     const amountB =
       this.getType() === LIQUIDITY_ORDER_TYPE.ADD
         ? TokenHolderFactory.getInstance().getTokenByTypeHash(this.cell.type.toHash())
-        : PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell).tokenB;
+        : TokenHolderFactory.getInstance().getTokenByTypeHash(
+            PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell).tokenB.typeHash,
+          );
     // FIXME:
     if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
       if (tokens.isSudtSudt()) {
@@ -63,15 +65,21 @@ export class DexLiquidityChain extends DexOrderChain {
         amountA.balance = (BigInt(this.cell.capacity) - MIN_SUDT_CAPACITY * 2n).toString();
       }
     } else {
-      const lpTokenScript = this.buildLpTokenTypeScript();
       if (tokens.isSudtSudt()) {
-        for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
-          const cell = this.tx.transaction.outputs[i];
-          if (this.equalCell(cell, LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE, lpTokenScript)) {
-            amountA.balance = CellInfoSerializationHolderFactory.getInstance()
-              .getSudtCellSerialization()
-              .decodeData(this.tx.transaction.outputsData[i])
-              .toString();
+        if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+          amountA.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getLiquidityCellSudtSudtSerialization()
+            .decodeArgs(this.cell.lock.args)
+            .sudtXMin.toString();
+        } else {
+          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
+            const cell = this.getLastOrder().tx.transaction.outputs[i];
+            if (this.equalCell(cell, this.userLock, tokens.tokenA.typeScript)) {
+              amountA.balance = CellInfoSerializationHolderFactory.getInstance()
+                .getSudtCellSerialization()
+                .decodeData(this.getLastOrder().tx.transaction.outputsData[i])
+                .toString();
+            }
           }
         }
       } else {
@@ -86,7 +94,11 @@ export class DexLiquidityChain extends DexOrderChain {
       if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
         for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
           const cell = this.tx.transaction.outputs[i];
-          if (this.equalCell(cell, LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE, tokens.tokenB.typeScript)) {
+          if (
+            cell.lock.codeHash === LIQUIDITY_LOCK_CODE_HASH &&
+            cell.lock.hashType === LIQUIDITY_LOCK_HASH_TYPE &&
+            scriptEquals.equalsTypeScript(cell.type, tokens.tokenB.typeScript)
+          ) {
             amountB.balance = CellInfoSerializationHolderFactory.getInstance()
               .getSudtCellSerialization()
               .decodeData(this.tx.transaction.outputsData[i])
@@ -94,14 +106,20 @@ export class DexLiquidityChain extends DexOrderChain {
           }
         }
       } else {
-        const lpTokenScript = this.buildLpTokenTypeScript();
-        for (let i = 0; i < this.tx.transaction.outputs.length; i++) {
-          const cell = this.tx.transaction.outputs[i];
-          if (this.equalCell(cell, LIQUIDITY_LOCK_CODE_HASH, LIQUIDITY_LOCK_HASH_TYPE, lpTokenScript)) {
-            amountB.balance = CellInfoSerializationHolderFactory.getInstance()
-              .getSudtCellSerialization()
-              .decodeData(this.tx.transaction.outputsData[i])
-              .toString();
+        if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
+          amountA.balance = CellInfoSerializationHolderFactory.getInstance()
+            .getLiquidityCellSudtSudtSerialization()
+            .decodeArgs(this.cell.lock.args)
+            .sudtYMin.toString();
+        } else {
+          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
+            const cell = this.getLastOrder().tx.transaction.outputs[i];
+            if (this.equalCell(cell, this.userLock, tokens.tokenB.typeScript)) {
+              amountB.balance = CellInfoSerializationHolderFactory.getInstance()
+                .getSudtCellSerialization()
+                .decodeData(this.getLastOrder().tx.transaction.outputsData[i])
+                .toString();
+            }
           }
         }
       }
@@ -200,23 +218,11 @@ export class DexLiquidityChain extends DexOrderChain {
     // return false;
   }
 
-  private equalCell(cell: Output, lockCodeHash: string, lockHashType: string, typeScript?: Script): boolean {
-    if (
-      cell.lock.codeHash === lockCodeHash &&
-      cell.lock.hashType === lockHashType &&
-      scriptEquals.equalsTypeScript(cell.type, typeScript)
-    ) {
+  private equalCell(cell: Output, lockScript: Script, typeScript: Script): boolean {
+    if (scriptEquals.equalsLockScript(cell.lock, lockScript) && scriptEquals.equalsTypeScript(cell.type, typeScript)) {
       return true;
     }
 
     return false;
-  }
-
-  private buildLpTokenTypeScript(): Script {
-    return new Script(
-      '0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4',
-      'type',
-      this.poolInfo.infoCell.cellOutput.lock.toHash(),
-    );
   }
 }
