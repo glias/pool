@@ -176,6 +176,9 @@ export class DexLiquidityPoolService {
   async getOrders(poolId: string, lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: DexOrderChain[] = [];
     const infoCell = await this.getLiquidityPoolByPoolId(poolId);
+    if (!infoCell) {
+      return [];
+    }
     const infoCells = await this.getLiquidityPools();
     const orderLock = this.getOrderLock(infoCell);
     const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell, infoCells);
@@ -484,6 +487,9 @@ export class DexLiquidityPoolService {
     };
 
     const infoCells = await this.dexRepository.collectCells(queryOptions, false);
+    if (!infoCells) {
+      return [];
+    }
 
     const infoCellMap: Map<string, Cell> = new Map();
     infoCells.forEach((x) => {
