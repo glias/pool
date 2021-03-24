@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
 import { AssetWithBalance, CkbAssetWithBalance, CkbModel, Models } from '@gliaswap/commons';
 import { Button, Col, Divider, Form, Input, Row, Select, Typography } from 'antd';
 import { ButtonProps } from 'antd/lib/button';
@@ -265,6 +265,45 @@ export const CreatePool: React.FC = () => {
   const pendingGenesisLiquidity = form.isSubmitting || confirming;
   const poolAssets = poolQuery.data?.assets;
 
+  const mainButton = (() => {
+    if (poolStatus === 'liquid') {
+      return (
+        <Button type="primary" block onClick={redirectToPool}>
+          {i18n.t('To the pool')}
+        </Button>
+      );
+    }
+
+    const createPoolButton =
+      poolStatus === 'created' ? (
+        <Button block icon={<CheckOutlined />} style={{ color: '#00cc9b', borderColor: '#00cc9b' }}>
+          {i18n.t('Created')}
+        </Button>
+      ) : (
+        <StepButton icon="1" disabled={poolStatus !== 'uncreated'} loading={pendingCreate} onClick={() => createPool()}>
+          {i18n.t('Create Pool')}
+        </StepButton>
+      );
+
+    const addLiquidityButton = (
+      <StepButton
+        icon="2"
+        disabled={poolStatus !== 'created'}
+        loading={pendingGenesisLiquidity}
+        onClick={() => form.submitForm()}
+      >
+        {i18n.t('Add Liquidity')}
+      </StepButton>
+    );
+
+    return (
+      <Row justify="space-between" gutter={16}>
+        <Col span={12}>{createPoolButton}</Col>
+        <Col span={12}>{addLiquidityButton}</Col>
+      </Row>
+    );
+  })();
+
   return (
     <CreatePoolWrapper>
       <Section>
@@ -303,34 +342,7 @@ export const CreatePool: React.FC = () => {
             label: i18n.t('Asset 2'),
           })}
 
-          {poolStatus === 'liquid' ? (
-            <Button type="primary" block onClick={redirectToPool}>
-              {i18n.t('To the pool')}
-            </Button>
-          ) : (
-            <Row justify="space-between" gutter={16}>
-              <Col span={12}>
-                <StepButton
-                  icon="1"
-                  disabled={poolStatus !== 'uncreated'}
-                  loading={pendingCreate}
-                  onClick={() => createPool()}
-                >
-                  {i18n.t('Create Pool')}
-                </StepButton>
-              </Col>
-              <Col span={12}>
-                <StepButton
-                  icon="2"
-                  disabled={poolStatus !== 'created'}
-                  loading={pendingGenesisLiquidity}
-                  onClick={() => form.submitForm()}
-                >
-                  {i18n.t('Add Liquidity')}
-                </StepButton>
-              </Col>
-            </Row>
-          )}
+          {mainButton}
         </Form>
 
         <OperationConfirmModal
