@@ -209,7 +209,7 @@ export const CreatePool: React.FC = () => {
     label: React.ReactNode;
     form: FormikProps<any>;
     index: number;
-    onMaxLabelClicked: () => void;
+    onMaxLabelClicked?: () => void;
   }) {
     const selectedAsset = selectedAssets[index];
     const userAsset = ckbAssets.find((userAsset) => CkbModel.equals(userAsset, selectedAsset));
@@ -324,23 +324,23 @@ export const CreatePool: React.FC = () => {
             </Select>
           </Form.Item>
 
-          {renderAssetInput({
-            form,
-            index: 0,
-            onMaxLabelClicked: console.log,
-            name: 'amount1',
-            label: i18n.t('Asset 1'),
-          })}
+          <div style={{ marginBottom: '16px' }}>
+            {renderAssetInput({
+              form,
+              index: 0,
+              name: 'amount1',
+              label: i18n.t('Asset 1'),
+            })}
 
-          <PlusOutlined className="plus-icon" />
+            <PlusOutlined className="plus-icon" />
 
-          {renderAssetInput({
-            form,
-            index: 1,
-            onMaxLabelClicked: console.log,
-            name: 'amount2',
-            label: i18n.t('Asset 2'),
-          })}
+            {renderAssetInput({
+              form,
+              index: 1,
+              name: 'amount2',
+              label: i18n.t('Asset 2'),
+            })}
+          </div>
 
           {mainButton}
         </Form>
