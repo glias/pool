@@ -1,5 +1,14 @@
 import * as lumos from '@ckb-lumos/base';
-import { BridgeInfoMatchChain, Input, Script, scriptEquals, TransactionWithStatus, CellOutput, PoolInfo } from '..';
+import {
+  BridgeInfoMatchChain,
+  Input,
+  Script,
+  scriptEquals,
+  TransactionWithStatus,
+  CellOutput,
+  PoolInfo,
+  PoolInfoFactory,
+} from '..';
 import { DexLiquidityChain } from './dexLiquidityOrderChain';
 import { DexOrderChain } from './dexOrderChain';
 import { DexSwapOrderChain } from './dexSwapOrderChain';
@@ -152,6 +161,21 @@ export class DexOrderChainFactory {
         const key = this.formatOutPoint(input.previousOutput.txHash, parseInt(input.previousOutput.index, 16));
         inputOutPointWithTransaction.set(key, x);
       });
+
+      if (!this.isSwapOrder) {
+        const tokens = PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell);
+        if (tokens.isSudtSudt()) {
+          const tokenA = x.transaction.outputs.find((x) =>
+            scriptEquals.equalsTypeScript(tokens.tokenA.typeScript, x.type),
+          );
+          const tokenB = x.transaction.outputs.find((x) =>
+            scriptEquals.equalsTypeScript(tokens.tokenB.typeScript, x.type),
+          );
+          if (!tokenA || !tokenB) {
+            return;
+          }
+        }
+      }
 
       x.transaction.outputs.forEach((output, index) => {
         if (!this.orderMatcher.match(output)) {
