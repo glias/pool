@@ -124,7 +124,7 @@ export const RemoveLiquidity: React.FC<RemoveLiquidityProps> = (props) => {
       <Section bordered>
         <SpaceBetweenRow style={{ padding: '0 0 8px' }}>
           <div className="label" style={{ lineHeight: '1.57' }}>
-            {i18n.t('Receive(EST)')}
+            {i18n.t('Receive(EST.)')}
           </div>
         </SpaceBetweenRow>
         <ReceiveAssets assets={readyToReceiveAssets} />
