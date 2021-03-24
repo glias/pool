@@ -35,7 +35,7 @@ export const SwapModal = () => {
     resetForm,
     isBid,
   } = useSwapContainer();
-  const { currentUserLock, currentEthAddress, assertsConnectedAdapter } = useGliaswap();
+  const { currentUserLock, currentEthAddress, assertsConnectedAdapter, refreshAssetsWithBalance } = useGliaswap();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { shadowEthAssets } = useGliaswapAssets();
 
@@ -67,7 +67,7 @@ export const SwapModal = () => {
 
   const placeLockOrder = useCallback(async () => {
     if (currentEthTx) {
-      const txHash = await sendEthTransaction(currentEthTx);
+      const txHash = await sendEthTransaction(currentEthTx, undefined, refreshAssetsWithBalance);
       const isCrossChainOrder = swapMode === SwapMode.CrossChainOrder;
       const shadowAsset = isCrossChainOrder
         ? shadowEthAssets.find((a) => isEthAsset(tokenA) && a.shadowFrom.address === tokenA.address)
@@ -95,6 +95,7 @@ export const SwapModal = () => {
     swapMode,
     shadowEthAssets,
     slippage,
+    refreshAssetsWithBalance,
   ]);
 
   const placeCrossOut = useCallback(async () => {
@@ -144,7 +145,12 @@ export const SwapModal = () => {
       }
       try {
         if (swapMode === SwapMode.NormalOrder) {
-          await queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]);
+          await Promise.all([
+            queryClient.refetchQueries(['swap-list', currentUserLock, currentEthAddress]),
+            refreshAssetsWithBalance,
+          ]);
+        } else if (swapMode === SwapMode.CrossOut) {
+          await refreshAssetsWithBalance();
         }
       } catch (error) {
         //
@@ -166,6 +172,7 @@ export const SwapModal = () => {
     queryClient,
     currentEthAddress,
     currentUserLock,
+    refreshAssetsWithBalance,
   ]);
 
   const onCancel = useCallback(() => {
