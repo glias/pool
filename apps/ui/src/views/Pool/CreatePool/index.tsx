@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { AssetWithBalance, CkbAssetWithBalance, CkbModel } from '@gliaswap/commons';
+import { AssetWithBalance, CkbAssetWithBalance, CkbModel, Models } from '@gliaswap/commons';
 import { Button, Col, Divider, Form, Input, Row, Select, Typography } from 'antd';
 import { ButtonProps } from 'antd/lib/button';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
@@ -26,7 +26,7 @@ const Text = Typography.Text;
 
 const CreatePoolWrapper = styled.div`
 
-  .ant-form{
+  .ant-form {
     font-weight: bold;
   }
 
@@ -128,8 +128,14 @@ export const CreatePool: React.FC = () => {
     },
     validate({ amount1, amount2 }) {
       if (!userFreeBalances) return { amount1: 'User balance is not loaded' };
+      if (!poolAssets) throw new Error('pool info is not loaded, please wait');
 
-      const [userBalance1, userBalance2] = userFreeBalances;
+      // the order of the assets selected by the user is not always the same as the order of the assets in the pool
+      // so we need to find the correct index first
+      const [userBalance1, userBalance2] = selectedAssets.map(
+        (selectedAsset) =>
+          userFreeBalances[poolAssets.findIndex((poolAsset) => CkbModel.equals(selectedAsset, poolAsset))],
+      );
       const [poolAsset1, poolAsset2] = selectedAssets;
 
       if (!userBalance1) return { amount1: `Cannot find ${poolAsset1.symbol}` };
@@ -182,7 +188,14 @@ export const CreatePool: React.FC = () => {
     if (!/^\d*(\.\d*)?$/.test(e.target.value)) return;
 
     form.handleChange(e);
-    onUserInputReadyToAddAmount(e.target.value, index);
+
+    const selectedAsset = selectedAssets[index];
+    const poolAssetIndex = poolAssets?.findIndex((asset) => CkbModel.equals(selectedAsset, asset));
+    if (poolAssetIndex === undefined || poolAssetIndex === -1) {
+      throw new Error(`cannot find the asset ${Models.get(selectedAsset)?.identity(selectedAsset)} in pool`);
+    }
+
+    onUserInputReadyToAddAmount(e.target.value, poolAssetIndex);
   }
 
   function renderAssetInput({
