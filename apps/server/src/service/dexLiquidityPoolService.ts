@@ -596,24 +596,24 @@ export class DexLiquidityPoolService {
     return await dexCache.getLock(lockKey);
   }
 
-  async poolCreationDate(tokenAHash: string, tokenBHash: string): Promise<DateTime> {
+  async poolCreationDate(tokenAHash: string, tokenBHash: string): Promise<number> {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
 
     try {
       const dateString = await dexCache.get(poolKey);
       if (dateString === '') {
-        return DateTime.now();
+        return null;
       }
 
-      return DateTime.fromJSDate(new Date(dateString));
+      return Number(dateString);
     } catch (e) {
-      return DateTime.now();
+      return null;
     }
   }
 
-  setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: DateTime): void {
+  setPoolCreationDate(tokenAHash: string, tokenBHash: string, date: number): void {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
-    dexCache.set(poolKey, date.toJSDate().toLocaleString());
+    dexCache.set(poolKey, date.toString());
   }
 }
 
