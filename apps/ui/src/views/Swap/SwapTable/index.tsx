@@ -22,7 +22,7 @@ import i18n from 'i18n';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { getAvailableBalance } from 'suite';
+import { Amount, getAvailableBalance } from 'suite';
 import { CROSS_CHAIN_FEE } from 'suite/constants';
 import { getValidBalanceString } from 'utils';
 import { SwapMode, useSwapContainer } from '../context';
@@ -291,11 +291,22 @@ export const SwapTable: React.FC = () => {
   useEffect(() => {
     const prevTokenA = previousPair?.tokenA;
     const prevTokenB = previousPair?.tokenB;
-    const receive = form.getFieldValue('receive');
-    const pay = form.getFieldValue('pay');
-    if (isEmpty(prevTokenA) || isEmpty(prevTokenB) || isEmpty(receive) || isEmpty(pay)) {
+    const receiveFromInput = form.getFieldValue('receive');
+    const payFromInput = form.getFieldValue('pay');
+
+    if (isEmpty(prevTokenA) || isEmpty(prevTokenB) || isEmpty(receiveFromInput) || isEmpty(payFromInput)) {
       return;
     }
+
+    const receive = new Amount(
+      new BigNumber(receiveFromInput).times(10 ** tokenB.decimals),
+      tokenB.decimals,
+    ).toHumanizeWithMaxDecimal();
+    const pay = new Amount(
+      new BigNumber(payFromInput).times(10 ** tokenA.decimals),
+      tokenA.decimals,
+    ).toHumanizeWithMaxDecimal();
+
     if (CkbModel.isCurrentChainAsset(tokenA) && !CkbModel.equals(tokenA, prevTokenA as CkbAsset)) {
       fillPayWithReceive(receive, true);
       return;
