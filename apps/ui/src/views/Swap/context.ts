@@ -14,12 +14,13 @@ import { Form } from 'antd';
 import BigNumber from 'bignumber.js';
 import { crossChainOrdersCache } from 'cache/index';
 import { useGliaswap, useGliaswapAssets } from 'hooks';
+import { useCrossChainOrdersContainer } from 'hooks/useCrossChainOrders';
 import i18n from 'i18n';
 import { cloneDeep } from 'lodash';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { MAX_TRANSACTION_FEE, SWAP_CELL_ASK_CAPACITY, SWAP_CELL_BID_CAPACITY } from 'suite/constants';
 import { createContainer } from 'unstated-next';
-import { TransactionConfig } from 'web3-core';
+import { TransactionConfig, TransactionReceipt } from 'web3-core';
 
 export enum SwapMode {
   CrossIn = 'CrossIn',
@@ -57,9 +58,7 @@ const useSwap = () => {
   const [pay, setPay] = useState('');
   const [receive, setReceive] = useState('');
   const { currentEthAddress: ethAddress, adapter, currentCkbAddress, realtimeAssets, bridgeAPI } = useGliaswap();
-  const [crossChainOrders, setCrossChainOrders] = useState<Array<SwapOrder>>(
-    crossChainOrdersCache.get(currentCkbAddress),
-  );
+  const { crossChainOrders, setCrossChainOrders } = useCrossChainOrdersContainer();
 
   const previousPair = usePrevious({ tokenA, tokenB });
 
@@ -69,7 +68,7 @@ const useSwap = () => {
     } else {
       setCrossChainOrders([]);
     }
-  }, [adapter.status, currentCkbAddress]);
+  }, [adapter.status, currentCkbAddress, setCrossChainOrders]);
 
   const { web3 } = adapter.raw;
   const swapMode = useMemo(() => {
@@ -205,7 +204,11 @@ const useSwap = () => {
   );
 
   const sendEthTransaction = useCallback(
-    (tx: TransactionConfig, cb?: (txHash: string) => Promise<void>): Promise<string> => {
+    (
+      tx: TransactionConfig,
+      onSended?: (txHash: string) => Promise<any>,
+      onConfirmed?: (receipt: TransactionReceipt) => Promise<any>,
+    ): Promise<string> => {
       if (!web3 || !ethAddress) {
         return Promise.resolve('');
       }
@@ -219,12 +222,14 @@ const useSwap = () => {
             from: ethAddress,
           })
           .once('transactionHash', async (txHash) => {
-            await cb?.(txHash);
+            await onSended?.(txHash);
             resolve(txHash);
           })
-          .once('confirmation', (_, receipt) => {
+          .once('confirmation', async (_, receipt) => {
+            await onConfirmed?.(receipt);
             setAndCacheCrossChainOrders((orders) => {
-              return orders.map((order) => {
+              return orders.map((o) => {
+                const order = cloneDeep(o);
                 const txhash = order.stage.steps[0].transactionHash;
                 if (
                   (order.type === SwapOrderType.CrossChainOrder || order.type === SwapOrderType.CrossChain) &&

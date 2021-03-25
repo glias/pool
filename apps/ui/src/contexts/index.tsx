@@ -4,6 +4,7 @@ import { message } from 'antd';
 import { Provider as AdapterProvider, Web3ModalAdapter } from 'commons/WalletAdapter';
 import { useConstant } from 'commons/use-constant';
 import { Provider as AssetProvider } from 'contexts/GliaswapAssetContext';
+import { CrossChainOrderProvider } from 'hooks/useCrossChainOrders';
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ServerGliaswapAPI } from 'suite/api/ServerGliaswapAPI';
@@ -54,11 +55,13 @@ export const GliaswapProvider: React.FC = (props) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AdapterProvider adapter={adapter}>
-        {assetList.length > 0 ? (
-          <AssetProvider address={address} api={api} assetList={assetList} bridgeAPI={bridgeAPI}>
-            {props.children}
-          </AssetProvider>
-        ) : null}
+        <CrossChainOrderProvider>
+          {assetList.length > 0 ? (
+            <AssetProvider address={address} api={api} assetList={assetList} bridgeAPI={bridgeAPI}>
+              {props.children}
+            </AssetProvider>
+          ) : null}
+        </CrossChainOrderProvider>
       </AdapterProvider>
     </QueryClientProvider>
   );

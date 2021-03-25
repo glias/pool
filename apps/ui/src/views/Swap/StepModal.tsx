@@ -4,6 +4,7 @@ import { MetaContainer } from 'components/MetaContainer';
 import { ModalContainer } from 'components/ModalContainer';
 import { useGliaswap } from 'hooks';
 import i18n from 'i18n';
+import { cloneDeep } from 'lodash';
 import React from 'react';
 import { useMemo } from 'react';
 import { Trans } from 'react-i18next';
@@ -243,7 +244,8 @@ export const StepModal = () => {
       onSuccess: (res) => {
         if (res?.txStatus?.status === 'committed') {
           setAndCacheCrossChainOrders((orders) => {
-            return orders.map((order) => {
+            return orders.map((o) => {
+              const order = cloneDeep(o);
               const txhash = res?.transaction?.hash;
               const isMatched = order.stage.steps.some((s) => s.transactionHash === txhash);
               const step = {

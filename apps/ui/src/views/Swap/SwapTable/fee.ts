@@ -1,30 +1,36 @@
 import { GliaswapAssetWithBalance } from '@gliaswap/commons';
 import BigNumber from 'bignumber.js';
 
-const SWAP_FEE = BigInt(997);
-const FEE_DECIMAL = BigInt(1000);
+const SWAP_FEE = new BigNumber(997);
+const FEE_DECIMAL = new BigNumber(1000);
 
 export function calcReceiveWithPay(pay: string, payReserve: string, receiveReserve: string) {
-  const p = BigInt(pay);
-  const pR = BigInt(payReserve);
-  const rR = BigInt(receiveReserve);
+  const p = new BigNumber(pay);
+  const pR = new BigNumber(payReserve);
+  const rR = new BigNumber(receiveReserve);
 
   try {
-    const receive = (SWAP_FEE * p * rR) / (SWAP_FEE * p + FEE_DECIMAL * pR);
-    return receive.toString();
+    // const receive = (SWAP_FEE * p * rR) / (SWAP_FEE * p + FEE_DECIMAL * pR);
+    const receive = SWAP_FEE.times(p)
+      .times(rR)
+      .div(SWAP_FEE.times(p).plus(FEE_DECIMAL.times(pR)));
+    return receive.toFixed(0);
   } catch (error) {
     return '0';
   }
 }
 
 export function calcPayWithReceive(receive: string, payReserve: string, receiveReserve: string) {
-  const r = BigInt(receive || 0);
-  const pR = BigInt(payReserve);
-  const rR = BigInt(receiveReserve);
+  const r = new BigNumber(receive || 0);
+  const pR = new BigNumber(payReserve);
+  const rR = new BigNumber(receiveReserve);
 
   try {
-    const pay = (FEE_DECIMAL * pR * r) / (SWAP_FEE * (rR - r));
-    return pay.toString();
+    // const pay = (FEE_DECIMAL * pR * r) / (SWAP_FEE * (rR - r));
+    const pay = FEE_DECIMAL.times(pR)
+      .times(r)
+      .div(SWAP_FEE.times(rR.minus(r)));
+    return pay.toFixed(0);
   } catch (error) {
     return '';
   }

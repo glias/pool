@@ -1,6 +1,8 @@
-import { Asset, GliaswapAPI, GliaswapAssetWithBalance, isCkbAsset, isEthAsset } from '@gliaswap/commons';
+import { Asset, EthModel, GliaswapAPI, GliaswapAssetWithBalance, isCkbAsset, isEthAsset } from '@gliaswap/commons';
 import { addressToScript } from '@nervosnetwork/ckb-sdk-utils';
+import { useCrossChainOrdersContainer } from 'hooks/useCrossChainOrders';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+// import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { createAssetWithBalance } from 'suite';
 import { BridgeAPI } from 'suite/api/bridgeAPI';
@@ -50,6 +52,8 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     { refetchInterval: 10000, enabled: lockScript != null },
   );
 
+  const { pendingEthTrasnactionDict } = useCrossChainOrdersContainer();
+
   const setBalance = useCallback(
     (assetList: Asset[]) => {
       const updatedAssets = assetList.map((asset) => {
@@ -86,6 +90,26 @@ export const Provider: React.FC<ProviderProps> = (props) => {
     if (status !== 'success' || !data) return;
     setBalance(assetList);
   }, [status, assetList, setBalance, data]);
+
+  useEffect(() => {
+    if (status !== 'success' || !data) return;
+    setAssetsWithBalance(() => {
+      const assets = data;
+      return {
+        lastUpdated: Date.now(),
+        value: assets.map((asset) => {
+          if (EthModel.isCurrentChainAsset(asset)) {
+            const pendingBalance = pendingEthTrasnactionDict[asset.address] ?? BigInt(0);
+            return {
+              ...asset,
+              balance: (BigInt(asset.balance) - pendingBalance).toString(),
+            };
+          }
+          return asset;
+        }),
+      };
+    });
+  }, [pendingEthTrasnactionDict, data, status]);
 
   return (
     <AssetManagerContext.Provider
