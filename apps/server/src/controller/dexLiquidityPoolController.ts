@@ -243,9 +243,6 @@ export default class DexLiquidityPoolController {
     const pendingPoolCreationDate = await this.service.poolCreationDate(tokenA.typeHash, tokenB.typeHash);
     if (pendingPoolCreationDate) {
       const timeout = PENDING_POOL_CREATION_TIMEOUT_MINUTES * 60 * 1000;
-      console.log(timeout);
-      console.log(now);
-      console.log(pendingPoolCreationDate);
       if (pendingPoolCreationDate + timeout > now) {
         ctx.throw(
           400,
