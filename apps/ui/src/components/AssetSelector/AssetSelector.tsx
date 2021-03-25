@@ -41,6 +41,8 @@ export interface TokenSelectorProps<T extends Asset, K extends Key> extends Asse
   group?: (asset: T) => string;
 
   bold?: boolean;
+
+  destroyModalOnClose?: boolean;
 }
 
 export function AssetSelector<A extends Asset, K extends Key>(
@@ -56,6 +58,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
     children,
     enableSearch,
     balanceCaculator,
+    destroyModalOnClose,
     ...otherProps
   } = props;
   const [modalVisible, setModalVisible] = useState(false);
@@ -127,6 +130,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
         renderKey={renderKey}
         enableSearch={enableSearch}
         group={group}
+        destroyOnClose={destroyModalOnClose}
         disabledKeys={disabledKeys ? disabledKeys : selectedAsset ? ([selectedKey] as K[]) : undefined}
       />
     );
@@ -142,6 +146,7 @@ export function AssetSelector<A extends Asset, K extends Key>(
     disabledKeys,
     enableSearch,
     balanceCaculator,
+    destroyModalOnClose,
   ]);
 
   return (

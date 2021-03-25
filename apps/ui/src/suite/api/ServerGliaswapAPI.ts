@@ -369,7 +369,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     };
   };
 
-  async searchERC20(address: string): Promise<EthErc20AssetWithBalance | undefined> {
+  searchERC20 = async (address: string): Promise<EthErc20AssetWithBalance | undefined> => {
     try {
       const web3 = this.web3!;
       const contract = new web3.eth.Contract(INFO_ABI, address);
@@ -387,7 +387,7 @@ export class ServerGliaswapAPI implements GliaswapAPI {
     } catch (error) {
       return undefined;
     }
-  }
+  };
 
   async generateCreateLiquidityPoolTransaction(
     payload: GenerateCreateLiquidityPoolTransactionPayload,
