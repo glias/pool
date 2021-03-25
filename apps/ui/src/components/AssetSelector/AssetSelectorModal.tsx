@@ -1,6 +1,6 @@
 import { Asset } from '@gliaswap/commons';
 import { Modal } from 'antd';
-import { ModalFuncProps } from 'antd/es/modal';
+import { ModalProps } from 'antd/es/modal';
 import i18n from 'i18n';
 import React, { Key, useMemo } from 'react';
 import styled from 'styled-components';
@@ -14,7 +14,7 @@ const AssetSelectorModalWrapper = styled.div`
   }
 `;
 
-interface AssetSelectorModalProps<A extends Asset, K extends Key> extends AssetListProps<A, K>, ModalFuncProps {
+interface AssetSelectorModalProps<A extends Asset, K extends Key> extends AssetListProps<A, K>, ModalProps {
   visible?: boolean;
 
   group?: (asset: A) => string;

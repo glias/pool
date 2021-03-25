@@ -436,6 +436,7 @@ export const SwapTable: React.FC = () => {
             bold: true,
             enableSearch: true,
             balanceCaculator: getAvailableBalance,
+            destroyModalOnClose: true,
           }}
         />
         <div className={`swap ${isPairToggleable ? 'clickable' : 'unclickable'}`} onClick={changePair}>
@@ -464,6 +465,7 @@ export const SwapTable: React.FC = () => {
             bold: true,
             enableSearch: true,
             balanceCaculator: getAvailableBalance,
+            destroyModalOnClose: true,
           }}
         />
         {disabled ? null : (
