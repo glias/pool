@@ -248,7 +248,7 @@ export default class DexLiquidityPoolController {
           400,
           `The pool is creating, please try again later. eta: ${
             (pendingPoolCreationDate + timeout - now) / 1000
-          } minute(s)`,
+          } seconds(s)`,
         );
       }
     }
@@ -569,8 +569,14 @@ export default class DexLiquidityPoolController {
         hashes = [hashes[1], hashes[0]];
       }
 
-      const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
-      lpTokenAmount.typeScript = lpTokenTypeScript;
+      // const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
+      // lpTokenAmount.typeScript = lpTokenTypeScript;
+      const poolInfo = await this.service.getLiquidityPoolByPoolId(poolId, cellConver.converScript(lock));
+      lpTokenAmount.typeScript = new Script(
+        poolInfo.tokenB.typeScript.codeHash,
+        'type',
+        poolInfo.infoCell.cellOutput.lock.toHash(),
+      );
     }
 
     const req = new txBuilder.RemoveLiquidityRequest(
