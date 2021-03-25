@@ -165,13 +165,20 @@ export class DexOrderChainFactory {
       if (!this.isSwapOrder) {
         const tokens = PoolInfoFactory.getTokensByCell(this.poolInfo.infoCell);
         if (tokens.isSudtSudt()) {
+          const lpTokenTypeScript = new Script(
+            this.poolInfo.tokenB.typeScript.codeHash,
+            'type',
+            this.poolInfo.infoCell.cellOutput.lock.toHash(),
+          );
+          const isRemove = x.transaction.outputs.find((x) => scriptEquals.equalsTypeScript(lpTokenTypeScript, x.type));
+
           const tokenA = x.transaction.outputs.find((x) =>
             scriptEquals.equalsTypeScript(tokens.tokenA.typeScript, x.type),
           );
           const tokenB = x.transaction.outputs.find((x) =>
             scriptEquals.equalsTypeScript(tokens.tokenB.typeScript, x.type),
           );
-          if (!tokenA || !tokenB) {
+          if (!isRemove && (!tokenA || !tokenB)) {
             return;
           }
         }
