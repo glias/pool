@@ -239,14 +239,23 @@ export default class DexLiquidityPoolController {
       ctx.throw(500, 'pool lock failed');
     }
 
-    const now = DateTime.now();
+    const now = Date.now();
     const pendingPoolCreationDate = await this.service.poolCreationDate(tokenA.typeHash, tokenB.typeHash);
-    const elapsed = now.diff(pendingPoolCreationDate);
-    const timeout = Duration.fromMillis(PENDING_POOL_CREATION_TIMEOUT_MINUTES * 60 * 1000);
-    if (elapsed < timeout) {
-      const eta = timeout.minus(elapsed).minutes;
-      ctx.throw(400, `The pool is creating, please try again later. eta: ${eta} minute(s)`);
+    if (pendingPoolCreationDate) {
+      const timeout = PENDING_POOL_CREATION_TIMEOUT_MINUTES * 60 * 1000;
+      console.log(timeout);
+      console.log(now);
+      console.log(pendingPoolCreationDate);
+      if (pendingPoolCreationDate + timeout > now) {
+        ctx.throw(
+          400,
+          `The pool is creating, please try again later. eta: ${
+            (pendingPoolCreationDate + timeout - now) / 1000
+          } minute(s)`,
+        );
+      }
     }
+
     this.service.setPoolCreationDate(tokenA.typeHash, tokenB.typeHash, now);
 
     const req = new txBuilder.CreateLiquidityPoolRequest(tokenA, tokenB, Script.deserialize(lock));
