@@ -100,9 +100,10 @@ export const Provider: React.FC<ProviderProps> = (props) => {
         value: assets.map((asset) => {
           if (EthModel.isCurrentChainAsset(asset)) {
             const pendingBalance = pendingEthTrasnactionDict[asset.address] ?? BigInt(0);
+            const balance = BigInt(asset.balance) - pendingBalance;
             return {
               ...asset,
-              balance: (BigInt(asset.balance) - pendingBalance).toString(),
+              balance: balance < 0 ? '0' : balance.toString(),
             };
           }
           return asset;
