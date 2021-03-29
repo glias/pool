@@ -269,7 +269,7 @@ export const CreatePool: React.FC = () => {
     if (poolStatus === 'liquid') {
       return (
         <Button type="primary" block onClick={redirectToPool}>
-          {i18n.t('To the pool')}
+          {i18n.t('Go to the existing pool')}
         </Button>
       );
     }
