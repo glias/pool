@@ -3,7 +3,7 @@
 ## Example
 
 ```ts
-import { cacheable, createLRUE } from '@gliaswap/cacheable';
+import { cacheable, createExpiredLRUCache } from '@gliaswap/cacheable';
 
 async function fetchTransaction() {
   // ...
@@ -21,6 +21,8 @@ const cFetchTransaction = cachable(fetchTransaction, {
 ## For Class Methods
 
 ```ts
+import { cacheable } from '@gliaswap/cacheable';
+
 class ClassExample {
   async unbound(input) {}
 }
