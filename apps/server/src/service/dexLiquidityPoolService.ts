@@ -179,13 +179,13 @@ export class DexLiquidityPoolService {
       return [];
     }
     const infoCells = await this.getLiquidityPools();
-    const orderLock = this.getOrderLock(infoCell);
+    const orderLock = this.getOrderLock(infoCell, lock);
     const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell, infoCells);
 
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
-        argsLen: 'any',
+        argsLen: 130,
       },
       type: infoCell.tokenB.typeScript.toLumosScript(),
       order: 'desc',
@@ -238,13 +238,17 @@ export class DexLiquidityPoolService {
       .reverse();
   }
 
-  private getOrderLock(infoCell: PoolInfo): Script {
+  private getOrderLock(infoCell: PoolInfo, lock: Script): Script {
     const tokens = PoolInfoFactory.getTokensByCell(infoCell.infoCell);
     if (!tokens.isSudtSudt()) {
-      return ScriptBuilder.buildLiquidityOrderLockScript();
+      const script = ScriptBuilder.buildLiquidityOrderLockScript();
+      script.args = `${infoCell.infoCell.cellOutput.type.toHash()}${lock.toHash().slice(2, 66)}`;
+      return script;
     }
 
-    return ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
+    const script = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
+    script.args = `${infoCell.infoCell.cellOutput.type.toHash()}${lock.toHash().slice(2, 66)}`;
+    return script;
   }
 
   async getLiquidityPools(lock?: Script): Promise<PoolInfo[]> {

@@ -101,11 +101,11 @@ export class DexSwapService {
   }
 
   private async getSudtSudt(lock: Script, bridgeInfoMatch: BridgeInfoMatchChain) {
-    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
+    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, lock.toHash());
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
-        argsLen: 'any',
+        argsLen: 130,
       },
       order: 'desc',
       fromBlock: BLOCK_NUMBER,

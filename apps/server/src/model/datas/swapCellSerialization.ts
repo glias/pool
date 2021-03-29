@@ -24,24 +24,23 @@ export class DefaultSwapCellSerialization implements SwapCellSerialization {
     const data = this.getStructDefine();
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
 
-    return `${sudtTypeHash}${data
+    return `${sudtTypeHash}${userlockHash.slice(2)}${data
       .encode({
         version,
         amountOutMin,
       })
-      .toString('hex')}${userlockHash.slice(2)}${tipsArgs}`;
+      .toString('hex')}${tipsArgs}`;
   };
 
   decodeArgs = (argsHex: string): SwapOrderCellArgs => {
     const args = this.getStructDefine();
 
-    const dataLength = 66 + 2 + 32;
-
+    const dataLength = 66 + 64;
     const sudtTypeHash = argsHex.slice(0, 66);
-    const userLockHash = `0x${argsHex.slice(dataLength, dataLength + 64)}`;
-    const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(dataLength + 64, argsHex.length));
+    const userLockHash = `0x${argsHex.slice(66, dataLength)}`;
+    const structObj = args.decode(Buffer.from(argsHex.slice(dataLength, dataLength + 34), 'hex'));
+    const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(dataLength + 34, argsHex.length));
 
-    const structObj = args.decode(Buffer.from(argsHex.slice(66, dataLength), 'hex'));
     return {
       sudtTypeHash,
       ...structObj,

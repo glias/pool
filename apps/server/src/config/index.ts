@@ -53,8 +53,8 @@ export const INFO_TYPE_CODE_HASH =
 export const INFO_TYPE_HASH_TYPE = <HashType>process.env.INFO_TYPE_HASH_TYPE || 'type';
 
 export const INFO_LOCK_CODE_HASH =
-  process.env.INFO_LOCK_CODE_HASH || '0x74f5bee3f3ebc5ff31dbeb4da1b37099dfde61fe5f251375fe3ca9618542cca2';
-export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'data';
+  process.env.INFO_LOCK_CODE_HASH || '0x8d35ff0c7402fd3ae7b1b90a854fb4d87c12d3956b7e40c9e973496753d7c1c6';
+export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'type';
 
 export const LIQUIDITY_LOCK_CODE_HASH =
   process.env.LIQUIDITY_LOCK_CODE_HASH || '0x74bfec21398da1990285d70df943b01e84399be1b6cf19e916f72f4e44bdb225';
@@ -91,7 +91,7 @@ export const PW_LOCK_DEP = {
 export const LIQUIDITY_LOCK_DEP = {
   outPoint: {
     txHash:
-      process.env.LIQUIDITY_LOCK_DEP_TX_HASH || '0x74b0d1a9dcae10b3d9f6dd86bdd06abde1df9a0a6a4866afab20bcb3413a56a0',
+      process.env.LIQUIDITY_LOCK_DEP_TX_HASH || '0x93fca4df3e4a4129ce91d41d15ea6d2c8d2fc3cc1d3822ad6e6ffd2454cf70dc',
     index: '0x0',
   },
   depType: 'code',
@@ -99,7 +99,7 @@ export const LIQUIDITY_LOCK_DEP = {
 
 export const SWAP_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.SWAP_LOCK_DEP_TX_HASH || '0xc48d1abd6b37b4fcf9525d361e0c528b4c9bcae82e1f6b1bc2743a401aef7206',
+    txHash: process.env.SWAP_LOCK_DEP_TX_HASH || '0x78d87f03206e0d1c378b203b67f2c65ee5546b59d057525065a000a68bbf6e70',
     index: '0x0',
   },
   depType: 'code',
@@ -107,7 +107,7 @@ export const SWAP_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x86b757df2d9f20c950b6bfeec48349ce7b4c48c9c89575f1ff68cc13cf487fc8',
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x267a07cd17f9354e30e7bbd02d5ae61faf40f495622f5a2a84a1c663eca06301',
     index: '0x0',
   },
   depType: 'code',
@@ -115,7 +115,7 @@ export const INFO_TYPE_DEP = {
 
 export const INFO_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.INFO_LOCK_DEP_TX_HASH || '0x611833ecfb298026d554ce3a8183d8c31867172b12d1ef81d45d6c1d91f0d5fc',
+    txHash: process.env.INFO_LOCK_DEP_TX_HASH || '0xc2f00dc7a1028874564ef556dd7d8f5dd627506614848f42dad808640a4a8803',
     index: '0x0',
   },
   depType: 'code',
