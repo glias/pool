@@ -47,7 +47,7 @@ export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
 
   const decimalPlaces = balanceNum.decimalPlaces();
   const balance: string = (() => {
-    if (maxToFormat !== undefined) return balanceNum.toFormat(Math.min(maxToFormat, decimalPlaces));
+    if (maxToFormat !== undefined) return balanceNum.toFormat(Math.min(maxToFormat, decimalPlaces, asset.decimals));
     if (decimalPlaces >= 4) return balanceNum.toFormat(4);
     return balanceNum.toFormat();
   })();
