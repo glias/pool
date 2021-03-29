@@ -30,7 +30,7 @@ export interface LiquidityInfoFilter {
 }
 
 export interface LiquidityOperationSummaryFilter {
-  poolId: string;
+  poolId?: string;
   lock: Script;
   stage?: LiquidityOperationStage[];
 }
