@@ -45,18 +45,8 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
     }
 
     // Generate info type script
-    // FIXME: index should be u64 to_le_bytes
-    // const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
-    // const infoType = new Script(config.INFO_TYPE_CODE_HASH, config.INFO_TYPE_HASH_TYPE, id);
-
-    // For testnet, we use default hardcode id for each token pool
-    const reqToken = req.tokenA.typeHash == CKB_TYPE_HASH ? req.tokenB : req.tokenA;
-    const id = PoolInfo.TYPE_ARGS[reqToken.info.symbol];
+    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
     const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
-    const infoTypeHash = infoType.toHash();
-    if (infoTypeHash != PoolInfo.TYPE_SCRIPTS[reqToken.info.symbol].toHash()) {
-      ctx.throw(400, `created test pool id don't match one in config, ${reqToken.info.symbol} id: ${infoTypeHash}`);
-    }
 
     // Generate info lock script
     const typeHash = infoType.toHash();
@@ -65,7 +55,7 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
       const hashes = ['ckb', token.typeHash];
       return utils.blake2b(hashes);
     })();
-    const infoLockArgs = `0x${pairHash.slice(2)}${typeHash.slice(2)}`;
+    const infoLockArgs = `0x${utils.trim0x(pairHash)}${utils.trim0x(typeHash)}`;
     const infoLock = new Script(PoolInfo.LOCK_CODE_HASH, PoolInfo.LOCK_HASH_TYPE, infoLockArgs);
 
     // Generate liquidity provider token type script
