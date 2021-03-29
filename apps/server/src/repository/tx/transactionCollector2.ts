@@ -27,9 +27,9 @@ export class TransactionCollector2 {
       const txJson = await this.dexCache.get(hash);
       if (!txJson) {
         tx = await this.rpc.get_transaction(hash);
-        // const timestamp = await this.getBlockTimestampByHash(tx.tx_status.block_hash);
-        // tx.txStatus.timestamp = timestamp;
-        this.dexCache.set(hash, JSON.stringify(tx));
+        if (tx.tx_status.block_hash) {
+          this.dexCache.set(hash, JSON.stringify(tx));
+        }
       } else {
         tx = JSON.parse(txJson);
       }
@@ -42,8 +42,6 @@ export class TransactionCollector2 {
   async getBlockTimestampByHash(blockHash: string): Promise<string> {
     const timestamp = await this.dexCache.get(`timestamp:${blockHash}`);
     if (!timestamp) {
-      // const req = [];
-      // req.push(['getBlock', blockHash]);
       const block = await this.rpc.get_block(blockHash);
       this.dexCache.set(`timestamp:${blockHash}`, block.header.timestamp);
       return block.header.timestamp;
