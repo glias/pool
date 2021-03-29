@@ -1,7 +1,6 @@
 import { QueryOptions, ScriptWrapper } from '@ckb-lumos/base';
 import { BigNumber } from 'bignumber.js';
 import { Context } from 'koa';
-import { DateTime } from 'luxon';
 
 import { dexCache } from '../cache';
 import { BLOCK_NUMBER, CKB_TOKEN_TYPE_HASH, SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE } from '../config';

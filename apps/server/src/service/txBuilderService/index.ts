@@ -58,9 +58,14 @@ export class TokenLPTypeScriptBuilder {
       ? [config.INFO_LOCK_CODE_HASH, config.INFO_LOCK_HASH_TYPE]
       : [config.tokenTokenConfig.INFO_LOCK_CODE_HASH, config.tokenTokenConfig.INFO_LOCK_HASH_TYPE];
 
+    let sortedTypeHashes = tokenTypeHashes.sort();
+    if (sortedTypeHashes[1] == 'ckb') {
+      sortedTypeHashes = [sortedTypeHashes[1], sortedTypeHashes[0]];
+    }
+
     // Generate info lock script
     const infoTypeHash = poolId;
-    const pairHash = utils.blake2b(tokenTypeHashes.sort());
+    const pairHash = utils.blake2b(sortedTypeHashes);
     const infoLockArgs = `0x${utils.trim0x(pairHash)}${utils.trim0x(infoTypeHash)}`;
     const infoLock = new Script(lockCodeHash, lockHashType, infoLockArgs);
 

@@ -1,7 +1,6 @@
 import * as commons from '@gliaswap/commons';
 import { CKB_TYPE_HASH } from '@gliaswap/constants';
 import { body, Context, description, request, responses, summary, tags } from 'koa-swagger-decorator';
-import { DateTime, Duration } from 'luxon';
 
 import * as config from '../config';
 import { cellConver, Script, Token, TokenHolderFactory, TokenHolder, PoolInfo } from '../model';
@@ -569,14 +568,8 @@ export default class DexLiquidityPoolController {
         hashes = [hashes[1], hashes[0]];
       }
 
-      // const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
-      // lpTokenAmount.typeScript = lpTokenTypeScript;
-      const poolInfo = await this.service.getLiquidityPoolByPoolId(poolId, cellConver.converScript(lock));
-      lpTokenAmount.typeScript = new Script(
-        poolInfo.tokenB.typeScript.codeHash,
-        'type',
-        poolInfo.infoCell.cellOutput.lock.toHash(),
-      );
+      const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
+      lpTokenAmount.typeScript = lpTokenTypeScript;
     }
 
     const req = new txBuilder.RemoveLiquidityRequest(
