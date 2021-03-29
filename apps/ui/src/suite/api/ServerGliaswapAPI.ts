@@ -249,9 +249,6 @@ export class ServerGliaswapAPI implements GliaswapAPI {
   async getLiquidityOperationSummaries(filter: LiquidityOperationSummaryFilter): Promise<LiquidityOperationSummary[]> {
     const summariesRes = await this.axios.post<ServerTypes.LiquidityOperationInfo[]>(`/liquidity-pool/orders`, filter);
     const summaries = ServerTypes.transformLiquidityOperationInfo(summariesRes.data);
-    // TODO the lpToken amount of add summaries in response is wrong, replace me when server fixed it
-    const pool = await this.getLiquidityInfo({ poolId: filter.poolId });
-    if (!pool) throw new Error(`Cannot find the pool ${filter.poolId}`);
 
     if (filter.stage && filter.stage.length > 0) {
       return summaries.filter((summary) => filter.stage?.includes(summary.stage.status));

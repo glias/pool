@@ -14,7 +14,9 @@ import i18n from 'i18n';
 import { upperFirst } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { truncateMiddle } from 'utils';
 import { OperationConfirmModal } from './LiquidityOperation/OperationConfirmModal';
 import { LiquidityPoolTokenTooltip } from './LiquidityOperation/components/LiquidityPoolTokenLabel';
 import { TransactionFeeLabel } from './LiquidityOperation/components/TransactionFeeLabel';
@@ -23,6 +25,7 @@ import { LiquidityOperationDetail } from './LiquidityOperationSteps';
 const { Text } = Typography;
 
 interface LiquidityOrderItemProps {
+  showPoolId: boolean;
   summary: LiquidityOperationSummary;
   onCancel: () => void;
   onViewInfo: () => void;
@@ -47,18 +50,26 @@ const LiquidityOrderSummarySection: React.FC<LiquidityOrderItemProps> = (props) 
       return '';
     })(),
   );
+
+  const isCancelRequest = useMemo(() => status === 'canceled' || status === 'canceling', [status]);
+
   return (
     <LiquidityOrderSummarySectionWrapper>
       <SpaceBetweenRow>
         <div className="label">{i18n.t('Time')}</div>
         <div>{dayjs(summary.time).format('YYYY/MM/DD HH:mm:ss')}</div>
       </SpaceBetweenRow>
-      {/*<SpaceBetweenRow>*/}
-      {/*  <div className="label">{i18n.t('Pool ID')}</div>*/}
-      {/*  <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>*/}
-      {/*</SpaceBetweenRow>*/}
+      {props.showPoolId && (
+        <SpaceBetweenRow>
+          <div className="label">{i18n.t('Pool ID')}</div>
+          <Link to={`/pool/${summary.poolId}`}>{truncateMiddle(summary.poolId)}</Link>
+        </SpaceBetweenRow>
+      )}
       <SpaceBetweenRow>
-        <div className="label">{i18n.t(upperFirst(summary.type))}</div>
+        <div className="label">
+          {i18n.t(upperFirst(summary.type))}
+          {isCancelRequest && <small>({i18n.t('cancel')})</small>}
+        </div>
         <AssetBalanceList assets={summary.assets} hideSymbolIcon />
       </SpaceBetweenRow>
       <SpaceBetweenRow>
@@ -102,7 +113,7 @@ const LiquidityOrderListWrapper = styled(Section)`
   }
 `;
 
-type StatusSelector = 'pending' | 'completed';
+type StatusSelector = 'pending' | 'completed' | 'all';
 
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const poolId = props.poolId;
@@ -111,17 +122,22 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const [viewingSummary, setViewingSummary] = useState<LiquidityOperationSummary | null>(null);
   const [statusSelector, setStatusSelector] = useState<StatusSelector>('pending');
 
-  const stage = useMemo<LiquidityOperationStage[]>(() => {
+  const stageFilter = useMemo<LiquidityOperationStage[]>(() => {
     if (statusSelector === 'pending') return ['pending', 'open', 'canceling'];
     if (statusSelector === 'completed') return ['completed', 'canceled'];
     return [];
   }, [statusSelector]);
 
+  const poolIdFilter = useMemo<string | undefined>(() => {
+    if (statusSelector === 'all') return undefined;
+    return poolId;
+  }, [statusSelector, poolId]);
+
   const query = useQuery(
-    ['getLiquidityOperationSummaries', { poolId, currentUserLock, stage }],
+    ['getLiquidityOperationSummaries', { poolId: poolIdFilter, currentUserLock, stage: stageFilter }],
     () => {
       if (!currentUserLock) throw new Error('The current user is lock is not found, maybe the wallet is disconnected');
-      return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId, stage });
+      return api.getLiquidityOperationSummaries({ lock: currentUserLock, poolId: poolIdFilter, stage: stageFilter });
     },
     { enabled: currentUserLock != null, refetchInterval: 10000 },
   );
@@ -169,6 +185,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
           <Select<StatusSelector> bordered={false} defaultValue="pending" onSelect={setStatusSelector}>
             <Select.Option value="pending">{i18n.t('My Pending Request')}</Select.Option>
             <Select.Option value="completed">{i18n.t('My History Request')}</Select.Option>
+            <Select.Option value="all">{i18n.t('My All Request')}</Select.Option>
           </Select>
           <QueryTips query={query} />
         </div>
@@ -182,6 +199,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
         renderItem={(summary) => (
           <List.Item key={summary.txHash}>
             <LiquidityOrderSummarySection
+              showPoolId={statusSelector === 'all'}
               summary={summary}
               onCancel={() => prepareCancelOperation(summary)}
               onViewInfo={() => setViewingSummary(summary)}
