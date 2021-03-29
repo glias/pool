@@ -77,11 +77,17 @@ export function cacheable<F extends (...input: unknown[]) => Promise<unknown>>(
     lockingTasks.set(key, Date.now());
     runningTasks.set(key, task);
 
-    Promise.resolve(task).then((result) => {
-      cacher.set(key, result);
-      runningTasks.delete(key);
-      setTimeout(() => lockingTasks.delete(key), expired);
-    });
+    Promise.resolve(task).then(
+      async (result) => {
+        cacher.set(key, result);
+        runningTasks.delete(key);
+        setTimeout(() => lockingTasks.delete(key), expired);
+      },
+      () => {
+        runningTasks.delete(key);
+        lockingTasks.delete(key);
+      },
+    );
 
     return task;
   }
