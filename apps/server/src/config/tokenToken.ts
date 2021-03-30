@@ -5,14 +5,14 @@ export const INFO_TYPE_DEP = {
   outPoint: {
     txHash:
       process.env.TOKEN_TOKEN_INFO_TYPE_DEP_TX_HASH ||
-      '0x866325440764e745db704f02cea4e2405cf417d9ead65e91970b1ecc44c4ffac',
+      '0x7ae70dd9ff1e3e22887dc56d0436249087751dd61c21a50c0f9bec492195948a',
     index: '0x0',
   },
   depType: 'code',
 };
 
 export const INFO_TYPE_CODE_HASH =
-  process.env.TOKEN_TOKEN_INFO_TYPE_CODE_HASH || '0xbfe20d82913643f67602be999d593b4a91debe29fb8e2475cef8d01fd03cb983';
+  process.env.TOKEN_TOKEN_INFO_TYPE_CODE_HASH || '0x539bc48ccda7a866d4734d1f3f378ea6416ecbce3f64a8fe75d241465495fbe8';
 export const INFO_TYPE_HASH_TYPE = <HashType>process.env.TOKEN_TOKEN_INFO_TYPE_HASH_TYPE || 'type';
 
 // INFO LOCK CELL DEL
