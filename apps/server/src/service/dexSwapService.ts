@@ -79,7 +79,7 @@ export class DexSwapService {
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
     const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
-      if (x.cell.lock.args.slice(100, 164) === userLockHash) {
+      if (x.cell.lock.args.slice(66, 130) === userLockHash) {
         orders.push(x);
       }
     });
@@ -101,7 +101,7 @@ export class DexSwapService {
   }
 
   private async getSudtSudt(lock: Script, bridgeInfoMatch: BridgeInfoMatchChain) {
-    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, lock.toHash());
+    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
