@@ -1,0 +1,8 @@
+{
+  "name": "@gliaswap/cacheable",
+  "version": "0.0.1",
+  "main": "./lib/index.js",
+  "dependencies": {
+    "lru_map": "^0.4.1"
+  }
+}
