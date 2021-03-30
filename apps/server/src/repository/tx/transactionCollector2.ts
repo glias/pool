@@ -107,6 +107,7 @@ export class TransactionCollector2 {
       hash_type: script.hashType === 'data' ? 0 : 1,
     });
     if ('0x' != script.args) {
+      console.log(argsBuffer);
       query = query.whereRaw('substring(args, 1, ?) = ?', [argsBuffer.byteLength, argsBuffer]);
     }
 
