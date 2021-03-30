@@ -103,7 +103,7 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
       return cellConver.converToInput(cell);
     });
     const userLockDeps = config.LOCK_DEPS[req.userLock.codeHash];
-    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps);
+    const cellDeps = [config.INFO_TYPE_DEP, config.SUDT_TYPE_DEP].concat(userLockDeps).concat(config.INFO_LOCK_DEP);
     const witnessArgs =
       req.userLock.codeHash == config.PW_LOCK_CODE_HASH
         ? [config.PW_WITNESS_ARGS.Secp256k1]

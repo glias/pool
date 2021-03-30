@@ -45,6 +45,10 @@ export const GliaswapProvider: React.FC = (props) => {
       setAddress(signer && signer.address);
     });
 
+    adapter.on('signerChanged', (signer) => {
+      setAddress(signer?.address);
+    });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
