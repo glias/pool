@@ -25,24 +25,24 @@ export class DefaultLiquidityCellSerialization implements LiquidityCellSerializa
     const data = this.getStructDefine();
 
     const tipsArgs = this.tipsArgsSerialization.encodeArgs(tips, tipsSudt);
-    return `${infoTypeHash}${data
+    return `${infoTypeHash}${userlockHash.slice(2, 66)}${data
       .encode({
         version,
         sudtMin,
         ckbMin,
       })
-      .toString('hex')}${userlockHash.slice(2, 66)}${tipsArgs}`;
+      .toString('hex')}${tipsArgs}`;
   };
 
   decodeArgs = (argsHex: string): LiquidityOrderCellArgs => {
     const args = this.getStructDefine();
-    const decodeLenght = 66 + 2 + 32 + 16;
+    const decodeLenght = 130;
 
     const infoTypeHash = argsHex.slice(0, 66);
-    const userLockHash = `0x${argsHex.slice(decodeLenght, decodeLenght + 64)}`;
-    const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(decodeLenght + 64, argsHex.length));
+    const userLockHash = `0x${argsHex.slice(66, decodeLenght)}`;
+    const tips: TipsCellArgs = this.tipsArgsSerialization.decodeArgs(argsHex.slice(decodeLenght + 50, argsHex.length));
 
-    const structObj = args.decode(Buffer.from(argsHex.slice(66, decodeLenght), 'hex'));
+    const structObj = args.decode(Buffer.from(argsHex.slice(decodeLenght, decodeLenght + 50), 'hex'));
 
     return {
       infoTypeHash,

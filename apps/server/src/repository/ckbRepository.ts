@@ -58,7 +58,12 @@ export class CkbRepository implements DexRepository {
   }
 
   async collectCells(queryOptions: QueryOptions, filterPool = true, includePoolOutput?: boolean): Promise<Cell[]> {
+    const sw = new StopWatch();
+    sw.start();
     const lumosCells = await this.lumosRepository.collectCells(queryOptions);
+
+    Logger.info('query cells:', sw.split());
+
     const dexCells = lumosCells.map((x) => cellConver.conver(x));
     const result: Cell[] = [];
 
