@@ -45,7 +45,7 @@ export class CkbTokenTxBuilderService implements TxBuilderService {
     }
 
     // Generate info type script
-    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0']);
+    const id = utils.blake2b([inputCells[0].outPoint.txHash, '0x0000000000000000']);
     const infoType = new Script(PoolInfo.TYPE_CODE_HASH, PoolInfo.TYPE_HASH_TYPE, id);
 
     // Generate info lock script

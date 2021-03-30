@@ -31,6 +31,7 @@ app.use(accessLogger);
 app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(3000, () => {
+const port = process.env.HTTP_LISTEN_PORT;
+app.listen(Number(port == null ? 3000 : port), () => {
   console.log('Koa started');
 });
