@@ -86,7 +86,7 @@ export class DexSwapService {
 
     const sudtOrders = await this.getSudtSudt(lock, bridgeInfoMatch);
     sudtOrders.forEach((x) => {
-      if (x.cell.lock.args.slice(100, 164) === userLockHash || x.cell.lock.args.slice(66, 130) === userLockHash) {
+      if (x.cell.lock.args.slice(66, 130) === userLockHash) {
         orders.push(x);
       }
     });
@@ -105,7 +105,7 @@ export class DexSwapService {
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
-        argsLen: 130,
+        argsLen: 'any',
       },
       order: 'desc',
       fromBlock: BLOCK_NUMBER,
