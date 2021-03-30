@@ -596,7 +596,7 @@ export class DexLiquidityPoolService {
     const poolKey = PoolInfoFactory.sortTypeHash(tokenAHash, tokenBHash).join('');
     const lockKey = `${poolKey}lock`;
 
-    return await dexCache.getLock(lockKey);
+    return await dexCache.getLock(lockKey, 30);
   }
 
   async poolCreationDate(tokenAHash: string, tokenBHash: string): Promise<number> {

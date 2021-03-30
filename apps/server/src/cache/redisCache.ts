@@ -34,8 +34,8 @@ class RedisCache implements DexCache {
     this.client.setex(key, 30, value);
   }
 
-  async getLock(key: string): Promise<boolean> {
-    for (let i = 0; i < 30; i++) {
+  async getLock(key: string, time: number): Promise<boolean> {
+    for (let i = 0; i < time; i++) {
       const value = await this.get(key);
       if (value) {
         await this.sleep(1000);

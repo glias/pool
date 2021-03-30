@@ -1,12 +1,14 @@
 import { Cell, QueryOptions, TransactionWithStatus } from '@ckb-lumos/base';
 import { CellCollector, Indexer } from '@ckb-lumos/sql-indexer';
 import knex from 'knex';
+import { dexCache, DexCache } from '../cache';
 import { ckbConfig, env, mysqlInfo } from '../config';
 import { TransactionCollector2 } from './tx/transactionCollector2';
 
 export class SqlIndexerWrapper {
   private indexer: Indexer;
   private knex: knex;
+  private dexCache: DexCache = dexCache;
 
   constructor() {
     this.init();
@@ -23,6 +25,9 @@ export class SqlIndexerWrapper {
 
     this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
     if (env !== 'development') {
+      if (!dexCache.getLock('syncNode', 10)) {
+        return;
+      }
       setTimeout(() => {
         this.indexer.startForever();
 
