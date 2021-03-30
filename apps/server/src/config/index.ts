@@ -49,7 +49,7 @@ export const BLOCK_NUMBER = process.env.BLOCK_NUMBER
 
 // INFO CELL
 export const INFO_TYPE_CODE_HASH =
-  process.env.INFO_TYPE_CODE_HASH || '0x261bc173414b9e4f68d31e8db37a766d76db2352cd1554024ea5dac0264ad72d';
+  process.env.INFO_TYPE_CODE_HASH || '0xd11b1beb2a4b1a9ad7a211511e76fbfcf7747ea4c2c47fbca43f0e51d3562c84';
 export const INFO_TYPE_HASH_TYPE = <HashType>process.env.INFO_TYPE_HASH_TYPE || 'type';
 
 export const INFO_LOCK_CODE_HASH =
@@ -107,7 +107,7 @@ export const SWAP_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0xb807fc2c27296886093c8d9ba6102043929459205ef473701486bbdad5bac583',
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x94ddb96f24a64cec41e25c57d3fafeb17b306a5a15a1715c839a8b6518fa5ef3',
     index: '0x0',
   },
   depType: 'code',
