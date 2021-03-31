@@ -111,7 +111,7 @@ export class TxBuilderCellCollector implements CellCollector {
       type: token.typeScript.toLumosScript(),
     };
 
-    const cells = await this.ckbRepository.collectCells(queryOptions);
+    const cells = await this.ckbRepository.collectCells(queryOptions, true);
     for (const cell of cells) {
       if (inputToken >= token.getBalance()) {
         break;
