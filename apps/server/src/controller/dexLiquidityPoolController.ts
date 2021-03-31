@@ -560,16 +560,12 @@ export default class DexLiquidityPoolController {
 
     const lpTokenAmount = Token.fromAsset(lpToken as AssetSchema);
     if (!lpTokenAmount.typeScript) {
-      const tokenLPTypeScriptBuilder = new txBuilder.TxBuilderServiceFactory().tokenLPTypeScript();
-      let hashes = [tokenAMinAmount.typeHash, tokenBMinAmount.typeHash].map((hash) => {
-        return hash == CKB_TYPE_HASH ? 'ckb' : hash;
-      });
-      if (hashes[1] == 'ckb') {
-        hashes = [hashes[1], hashes[0]];
-      }
-
-      const lpTokenTypeScript = tokenLPTypeScriptBuilder.build(poolId, hashes);
-      lpTokenAmount.typeScript = lpTokenTypeScript;
+      const poolInfo = await this.service.getLiquidityPoolByPoolId(poolId);
+      lpTokenAmount.typeScript = lpTokenAmount.typeScript = new Script(
+        poolInfo.tokenB.typeScript.codeHash,
+        'type',
+        poolInfo.infoCell.cellOutput.lock.toHash(),
+      );
     }
 
     const req = new txBuilder.RemoveLiquidityRequest(
