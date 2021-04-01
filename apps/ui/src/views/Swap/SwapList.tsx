@@ -101,7 +101,8 @@ export const SwapList: React.FC = () => {
       ];
       return (
         differenceWith(currentPair, pair, (a, b) => {
-          const model = Models.get(a.chainType)!;
+          const model = Models.get(a.chainType);
+          if (!model) return false;
           return model.isCurrentChainAsset(a) && model.isCurrentChainAsset(b) && model.equals(a, b);
         }).length === 0
       );
