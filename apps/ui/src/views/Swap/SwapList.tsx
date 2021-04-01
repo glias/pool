@@ -1,9 +1,11 @@
-import { SwapOrder } from '@gliaswap/commons';
-import { List } from 'antd';
+import { EthModel, Models, SwapOrder, SwapOrderType } from '@gliaswap/commons';
+import { Checkbox, List } from 'antd';
 import { Block } from 'components/Block';
 import { OrderSelectorStatus, OrdersSelector } from 'components/OrdersSelector';
 import { useGliaswap } from 'hooks';
 import { useSwapOrders } from 'hooks/usePendingCancelOrders';
+import i18n from 'i18n';
+import { differenceWith } from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { useState } from 'react';
 import React from 'react';
@@ -42,10 +44,19 @@ export function isSameTxHash(hash1?: string, hash2?: string) {
   return normalizeTxHash(hash1) === normalizeTxHash(hash2);
 }
 
+const Header = styled.header`
+  display: flex;
+  label {
+    margin-left: auto;
+    margin-top: 1px;
+    font-size: 12px;
+  }
+`;
+
 export const SwapList: React.FC = () => {
   const { currentUserLock, currentEthAddress } = useGliaswap();
   const { api } = useGliaswap();
-  const { setAndCacheCrossChainOrders, crossChainOrders, setSwapList } = useSwapContainer();
+  const { setAndCacheCrossChainOrders, crossChainOrders, setSwapList, tokenA, tokenB } = useSwapContainer();
   const { data, status } = useQuery(
     ['swap-list', currentUserLock, currentEthAddress],
     () => {
@@ -75,9 +86,32 @@ export const SwapList: React.FC = () => {
 
   const { pendingOrders, historyOrders } = useSwapOrders(orderList);
   const [orderSelectorStatus, setOrderSelectorStatus] = useState(OrderSelectorStatus.Pending);
+  const [currentPairOnly, setCurrentPairOnly] = useState(false);
+  const pairFilter = useCallback(
+    (order: SwapOrder) => {
+      const currentPair = [tokenA, tokenB];
+      const { amountIn, amountOut } = order;
+      const pair = [
+        EthModel.isShadowEthAsset(amountIn) && order.type === SwapOrderType.CrossChainOrder
+          ? amountIn.shadowFrom
+          : amountIn,
+        EthModel.isShadowEthAsset(amountOut) && order.type === SwapOrderType.CrossChainOrder
+          ? amountOut.shadowFrom
+          : amountOut,
+      ];
+      return (
+        differenceWith(currentPair, pair, (a, b) => {
+          const model = Models.get(a.chainType)!;
+          return model.isCurrentChainAsset(a) && model.isCurrentChainAsset(b) && model.equals(a, b);
+        }).length === 0
+      );
+    },
+    [tokenA, tokenB],
+  );
   const matchedOrders = useMemo(() => {
-    return orderSelectorStatus === OrderSelectorStatus.Pending ? pendingOrders : historyOrders;
-  }, [orderSelectorStatus, pendingOrders, historyOrders]);
+    const orders = orderSelectorStatus === OrderSelectorStatus.Pending ? pendingOrders : historyOrders;
+    return orders.filter(currentPairOnly ? pairFilter : Boolean);
+  }, [orderSelectorStatus, pendingOrders, historyOrders, currentPairOnly, pairFilter]);
 
   useEffect(() => {
     setSwapList(matchedOrders);
@@ -89,11 +123,16 @@ export const SwapList: React.FC = () => {
 
   return (
     <Block>
-      <OrdersSelector
-        status={orderSelectorStatus}
-        pendingOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.Pending)}
-        historyOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.History)}
-      />
+      <Header>
+        <OrdersSelector
+          status={orderSelectorStatus}
+          pendingOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.Pending)}
+          historyOnClick={() => setOrderSelectorStatus(OrderSelectorStatus.History)}
+        />
+        <Checkbox className="checkbox" checked={currentPairOnly} onChange={(e) => setCurrentPairOnly(e.target.checked)}>
+          {i18n.t('Current pair')}
+        </Checkbox>
+      </Header>
       <ListContainer>
         <List
           pagination={{ position: 'bottom', size: 'small' }}
