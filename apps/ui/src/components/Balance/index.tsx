@@ -35,9 +35,10 @@ export interface BalanceProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
   const { asset, value = asset.balance || 0, showSuffix, maxToFormat, ...otherProps } = props;
 
-  const balanceNum = Amount.from(value, asset.decimals).withDecimal();
+  const amount = Amount.from(value, asset.decimals);
+  const amountWithDecimal = amount.withDecimal();
 
-  if (balanceNum.isNaN()) {
+  if (amountWithDecimal.isNaN()) {
     return (
       <BalanceWrapper {...otherProps}>
         <span className="balance-integer">0</span>
@@ -45,18 +46,20 @@ export const HumanizeBalance: React.FC<BalanceProps> = (props) => {
     );
   }
 
-  const decimalPlaces = balanceNum.decimalPlaces();
+  const decimalPlaces = amountWithDecimal.decimalPlaces();
   const balance: string = (() => {
-    if (maxToFormat !== undefined) return balanceNum.toFormat(Math.min(maxToFormat, decimalPlaces, asset.decimals));
-    if (decimalPlaces >= 4) return balanceNum.toFormat(4);
-    return balanceNum.toFormat();
+    if (maxToFormat !== undefined) {
+      return amountWithDecimal.toFormat(Math.min(maxToFormat, decimalPlaces, asset.decimals));
+    }
+    if (decimalPlaces >= 4) return amountWithDecimal.toFormat(4);
+    return amountWithDecimal.toFormat();
   })();
 
   const [integers, decimals] = balance.split('.');
   const integerPart = decimals ? integers + '.' : integers;
 
   return (
-    <BalanceWrapper {...otherProps}>
+    <BalanceWrapper title={`${amount.toHumanizeWithMaxDecimal()} ${asset.symbol}`} {...otherProps}>
       <span className="balance-integer">{integerPart}</span>
       {decimals && <small className="balance-decimal">{decimals}</small>}
       {showSuffix && <span className="balance-suffix">{asset.symbol}</span>}

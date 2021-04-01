@@ -23,6 +23,31 @@ const SwapIcon = styled(RetweetOutlined)`
   cursor: pointer;
 `;
 
+interface AssetPriceItemProps {
+  onBaseAssetChanged: () => void;
+  baseAsset: AssetWithBalance;
+  quoteAsset: AssetWithBalance;
+}
+
+const AssetPriceItem = ({ baseAsset, quoteAsset, onBaseAssetChanged }: AssetPriceItemProps) => {
+  if (!Number(baseAsset.balance) || !Number(quoteAsset.balance)) return null;
+
+  return (
+    <span>
+      <HumanizeBalance showSuffix asset={quoteAsset} value={10 ** quoteAsset.decimals} />
+      &nbsp;=&nbsp;
+      <HumanizeBalance
+        showSuffix
+        asset={baseAsset}
+        value={BN(baseAsset.balance)
+          .times(10 ** quoteAsset.decimals)
+          .div(quoteAsset.balance)}
+      />
+      <SwapIcon onClick={() => onBaseAssetChanged()} />
+    </span>
+  );
+};
+
 export const AssetPrice: React.FC<AssetPriceProps> = (props) => {
   const [baseAssetIndex, setBaseAssetIndex] = useState(0);
 
@@ -32,18 +57,12 @@ export const AssetPrice: React.FC<AssetPriceProps> = (props) => {
   return (
     <>
       {otherAssets.map((anotherAsset, i) => (
-        <span key={i}>
-          <HumanizeBalance showSuffix asset={anotherAsset} value={10 ** anotherAsset.decimals} />
-          &nbsp;=&nbsp;
-          <HumanizeBalance
-            showSuffix
-            asset={baseAsset}
-            value={BN(baseAsset.balance)
-              .times(10 ** anotherAsset.decimals)
-              .div(anotherAsset.balance)}
-          />
-          <SwapIcon onClick={() => setBaseAssetIndex((index) => (index + 1) % props.assets.length)} />
-        </span>
+        <AssetPriceItem
+          key={i}
+          baseAsset={baseAsset}
+          quoteAsset={anotherAsset}
+          onBaseAssetChanged={() => setBaseAssetIndex((index) => (index + 1) % props.assets.length)}
+        />
       ))}
     </>
   );

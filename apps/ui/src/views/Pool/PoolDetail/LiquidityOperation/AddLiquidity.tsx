@@ -240,7 +240,11 @@ export const AddLiquidity: React.FC<AddLiquidityProps> = (props) => {
             </Form.Item>
 
             <TableRow label={i18n.t('Price')}>
-              <AssetPrice assets={poolAssets} />
+              {readyToAddAmounts && (
+                <AssetPrice
+                  assets={readyToAddAmounts.map((amount, i) => createAssetWithBalance(poolAssets[i], amount))}
+                />
+              )}
             </TableRow>
             <TableRow label={i18n.t('Add Pool Share')}>{readyToAddShareEl}</TableRow>
             <TableRow
