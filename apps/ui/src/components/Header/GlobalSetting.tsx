@@ -31,7 +31,7 @@ const SettingContent: React.FC = () => {
 
     const slippage = Number(input) / 100;
     if (isNaN(slippage) || slippage < 0) return;
-    if (slippage >= 0.5) return setSetting({ slippage: 0.499999 });
+    if (slippage >= 1) return setSetting({ slippage: 0.999999 });
 
     setSetting({ slippage });
   }
@@ -51,7 +51,7 @@ const SettingContent: React.FC = () => {
   const validateProps = useMemo<FormItemProps>(() => {
     const slippage = Number(inputSlippage) / 100;
     if (slippage <= 0.003) return { validateStatus: 'warning', help: i18n.t('Your swap may pending for a long time') };
-    if (slippage >= 0.5) return { validateStatus: 'error', help: i18n.t('Please input a valid slippage') };
+    if (slippage >= 1) return { validateStatus: 'error', help: i18n.t('Slippage must be less than 1') };
     if (slippage >= 0.05) return { validateStatus: 'warning', help: i18n.t('Your swap may be front run') };
 
     return {};
