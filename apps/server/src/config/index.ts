@@ -91,7 +91,7 @@ export const PW_LOCK_DEP = {
 export const LIQUIDITY_LOCK_DEP = {
   outPoint: {
     txHash:
-      process.env.LIQUIDITY_LOCK_DEP_TX_HASH || '0x93fca4df3e4a4129ce91d41d15ea6d2c8d2fc3cc1d3822ad6e6ffd2454cf70dc',
+      process.env.LIQUIDITY_LOCK_DEP_TX_HASH || '0x5d7b911ef89082a5194f4413ca279832ff0d7e3073487614d348bc7fc3380d4f',
     index: '0x0',
   },
   depType: 'code',
