@@ -1,10 +1,6 @@
 import { Col, Row } from 'antd';
 import i18n from 'i18n';
-import React from 'react';
-import { useEffect } from 'react';
-import { useRef } from 'react';
-import { useCallback } from 'react';
-import { useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { WalletConnectButton } from '../WalletConnectButton';
