@@ -1,6 +1,6 @@
 import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
 import { AssetWithBalance, CkbAssetWithBalance, CkbModel, Models } from '@gliaswap/commons';
-import { Button, Col, Divider, Form, Input, Row, Select, Typography } from 'antd';
+import { Button, Col, Divider, Form, Input, Modal, Row, Select, Typography } from 'antd';
 import { ButtonProps } from 'antd/lib/button';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset';
@@ -12,7 +12,7 @@ import { useGliaswapAssets } from 'hooks';
 import { useAddLiquidity } from 'hooks/useAddLiquidity';
 import i18n from 'i18n';
 import { zip } from 'lodash';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation } from 'react-query';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
@@ -113,7 +113,16 @@ export const CreatePool: React.FC = () => {
     userFreeBalances,
   } = useAddLiquidity(poolWithStatus.status === 'created' ? poolWithStatus.pool.poolId : undefined);
 
-  const { mutate: createPool, status: createStatus } = useMutation('createPool', sendCreatePoolTransaction);
+  const { mutate: createPool, status: createStatus, error } = useMutation<string, Error>(
+    'createPool',
+    sendCreatePoolTransaction,
+  );
+
+  useEffect(() => {
+    if (error && createStatus === 'error' && error.message && error.message.includes('RPC')) {
+      Modal.error({ title: 'RPC Error', content: <details>{error.message}</details> });
+    }
+  }, [createStatus, error]);
 
   const form = useFormik<InputFields>({
     initialValues: { amount1: '', amount2: '' },

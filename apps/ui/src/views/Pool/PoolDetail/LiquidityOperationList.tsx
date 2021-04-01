@@ -1,6 +1,6 @@
 import { InfoOutlined } from '@ant-design/icons';
 import { LiquidityOperationStage, LiquidityOperationSummary } from '@gliaswap/commons';
-import { Button, Divider, List, Select, Typography } from 'antd';
+import { Button, Checkbox, Divider, List, Select, Typography } from 'antd';
 import { ReactComponent as DownArrowSvg } from 'assets/svg/down-arrow.svg';
 import { AssetBalanceList, PoolAssetSymbol } from 'components/Asset/AssetBlanaceList';
 import { HumanizeBalance } from 'components/Balance';
@@ -113,7 +113,7 @@ const LiquidityOrderListWrapper = styled(Section)`
   }
 `;
 
-type StatusSelector = 'pending' | 'completed' | 'all';
+type StatusSelector = 'pending' | 'completed';
 
 export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props) => {
   const poolId = props.poolId;
@@ -121,6 +121,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   const [readyToCancelOperation, setReadyToCancelOperation] = useState<LiquidityOperationSummary | null>(null);
   const [viewingSummary, setViewingSummary] = useState<LiquidityOperationSummary | null>(null);
   const [statusSelector, setStatusSelector] = useState<StatusSelector>('pending');
+  const [currentPoolOnly, setCurrentPoolOnly] = useState<boolean>(true);
 
   const stageFilter = useMemo<LiquidityOperationStage[]>(() => {
     if (statusSelector === 'pending') return ['pending', 'open', 'canceling'];
@@ -129,9 +130,8 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
   }, [statusSelector]);
 
   const poolIdFilter = useMemo<string | undefined>(() => {
-    if (statusSelector === 'all') return undefined;
-    return poolId;
-  }, [statusSelector, poolId]);
+    if (currentPoolOnly) return poolId;
+  }, [currentPoolOnly, poolId]);
 
   const query = useQuery(
     ['getLiquidityOperationSummaries', { poolId: poolIdFilter, currentUserLock, stage: stageFilter }],
@@ -185,9 +185,17 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
           <Select<StatusSelector> bordered={false} defaultValue="pending" onSelect={setStatusSelector}>
             <Select.Option value="pending">{i18n.t('My Pending Request')}</Select.Option>
             <Select.Option value="completed">{i18n.t('My History Request')}</Select.Option>
-            <Select.Option value="all">{i18n.t('My All Request')}</Select.Option>
           </Select>
           <QueryTips query={query} />
+        </div>
+        <div>
+          <Checkbox
+            style={{ fontSize: '12px' }}
+            checked={currentPoolOnly}
+            onChange={(e) => setCurrentPoolOnly(e.target.checked)}
+          >
+            {i18n.t('Current pool')}
+          </Checkbox>
         </div>
       </SpaceBetweenRow>
       <Divider style={{ margin: '4px 0 0' }} />
@@ -199,7 +207,7 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
         renderItem={(summary) => (
           <List.Item key={summary.txHash}>
             <LiquidityOrderSummarySection
-              showPoolId={statusSelector === 'all'}
+              showPoolId={!currentPoolOnly}
               summary={summary}
               onCancel={() => prepareCancelOperation(summary)}
               onViewInfo={() => setViewingSummary(summary)}
