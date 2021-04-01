@@ -25,7 +25,7 @@ export class SqlIndexerWrapper {
 
     this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
     if (env !== 'development') {
-      if (!dexCache.getLock('syncNode', 10)) {
+      if (dexCache.getLock('syncNode', 3000)) {
         return;
       }
       setTimeout(() => {
