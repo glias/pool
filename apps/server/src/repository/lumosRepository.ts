@@ -14,7 +14,7 @@ export class SqlIndexerWrapper {
     this.init();
   }
 
-  init(): void {
+  async init(): Promise<void> {
     const knex2 = knex({
       client: 'mysql',
       connection: mysqlInfo,
@@ -25,11 +25,17 @@ export class SqlIndexerWrapper {
 
     this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
     if (env !== 'development') {
-      if (dexCache.getLock('syncNode', 3000)) {
+      if (!dexCache.getLock('syncNode', 3000)) {
         return;
       }
+      const sync = await this.dexCache.get('syncNode:mysql');
+      if (sync) {
+        return;
+      }
+
       setTimeout(() => {
         this.indexer.startForever();
+        dexCache.setEx('syncNode:mysql', '1', 3600);
 
         setInterval(async () => {
           const { block_number } = await this.indexer.tip();
