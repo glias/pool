@@ -278,7 +278,7 @@ export class DexSwapOrderChain extends DexOrderChain {
     }
 
     const orders = this.getOrders();
-    if (this.getType() === SWAP_ORDER_TYPE.Order) {
+    if (this.getType() === SWAP_ORDER_TYPE.Order || this.getType() === SWAP_ORDER_TYPE.CrossChainOrder) {
       if (orders.length === 1) {
         if (this.tx.txStatus.status === 'pending') {
           return ORDER_STATUS.PENDING;
