@@ -1,6 +1,10 @@
 import { Col, Row } from 'antd';
 import i18n from 'i18n';
 import React from 'react';
+import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useCallback } from 'react';
+import { useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { WalletConnectButton } from '../WalletConnectButton';
@@ -16,6 +20,9 @@ const HeaderWrapper = styled.header`
 
   .header {
     line-height: 60px;
+    @media (max-width: 500px) {
+      line-height: 45px;
+    }
   }
 
   .header-logo {
@@ -69,15 +76,39 @@ export const NavMenu: React.FC = () => {
   );
 };
 
+function useWidth(elementRef: React.RefObject<HTMLElement>) {
+  const [width, setWidth] = useState<number>();
+
+  const updateWidth = useCallback(() => {
+    if (elementRef && elementRef.current) {
+      const { width } = elementRef.current.getBoundingClientRect();
+      setWidth(width);
+    }
+  }, [elementRef]);
+
+  useEffect(() => {
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, [updateWidth]);
+
+  return [width];
+}
+
 export const AppHeader: React.FC = () => {
+  const headerRef = useRef(null);
+  const [width] = useWidth(headerRef);
+  const isMobile = width && width < 500;
   return (
-    <HeaderWrapper>
+    <HeaderWrapper ref={headerRef}>
       <Row wrap={false} className="header" justify="center">
         <Col md={4} className="header-logo">
           GLIASWAP
         </Col>
         <Col flex="auto" className="header-nav">
-          <NavMenu />
+          {isMobile ? null : <NavMenu />}
         </Col>
         <Col md={4} className="header-operation">
           <WalletConnectButton />
@@ -85,6 +116,13 @@ export const AppHeader: React.FC = () => {
           <GlobalSetting />
         </Col>
       </Row>
+      {isMobile ? (
+        <Row wrap={false} className="header" justify="center">
+          <Col flex="auto" className="header-nav">
+            <NavMenu />
+          </Col>
+        </Row>
+      ) : null}
     </HeaderWrapper>
   );
 };
