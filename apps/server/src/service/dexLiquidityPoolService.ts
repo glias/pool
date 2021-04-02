@@ -89,12 +89,17 @@ export class DexLiquidityPoolService {
     infoCells.forEach((x) => {
       const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
       const lpTokenTypeScript = new Script(x.tokenB.typeScript.codeHash, 'type', x.infoCell.cellOutput.lock.toHash());
-      const orders1 = factory.getOrderChains(removeQueryOptions1.lock, lpTokenTypeScript, removeTxs1, null);
-      const orders2 = factory.getOrderChains(removeQueryOptions2.lock, lpTokenTypeScript, removeTxs2, null);
-      orders1.forEach((x) => orders2.push(x));
+      let orders;
+      if (!PoolInfoFactory.getTokensByCell(x.infoCell)) {
+        orders = factory.getOrderChains(removeQueryOptions1.lock, lpTokenTypeScript, removeTxs1, null);
+      }
+
+      if (PoolInfoFactory.getTokensByCell(x.infoCell)) {
+        orders = factory.getOrderChains(removeQueryOptions2.lock, lpTokenTypeScript, removeTxs2, null);
+      }
 
       const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
-      orders2
+      orders
         .filter(
           (x) =>
             x.filterOrderHistory() &&
@@ -146,12 +151,18 @@ export class DexLiquidityPoolService {
     const infoCells = await this.getLiquidityPools();
     infoCells.forEach((x) => {
       const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
-      const orders1 = factory.getOrderChains(queryOptions1.lock, x.tokenB.typeScript, addOrders1, null);
-      const orders2 = factory.getOrderChains(queryOptions2.lock, x.tokenB.typeScript, addOrders2, null);
-      orders1.forEach((x) => orders2.push(x));
+
+      let orders;
+      if (!PoolInfoFactory.getTokensByCell(x.infoCell).isSudtSudt()) {
+        orders = factory.getOrderChains(queryOptions1.lock, x.tokenB.typeScript, addOrders1, null);
+      }
+
+      if (PoolInfoFactory.getTokensByCell(x.infoCell).isSudtSudt()) {
+        orders = factory.getOrderChains(queryOptions2.lock, x.tokenB.typeScript, addOrders2, null);
+      }
 
       const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
-      orders2
+      orders
         .filter(
           (x) =>
             x.filterOrderHistory() &&
