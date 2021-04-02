@@ -19,12 +19,14 @@ import {
 } from '../model';
 import { StopWatch } from '../model/time/stopWatch';
 import { lumosRepository, SqlIndexerWrapper } from './lumosRepository';
+import { poolCache, PoolCache } from './poolCache';
 import { DexRepository, txHash } from '.';
 
 export class CkbRepository implements DexRepository {
   private readonly lumosRepository: SqlIndexerWrapper;
   private readonly ckbNode: CKB;
   private readonly dexCache: DexCache = dexCache;
+  private readonly poolCache: PoolCache = poolCache;
 
   constructor() {
     this.lumosRepository = lumosRepository;
@@ -117,6 +119,8 @@ export class CkbRepository implements DexRepository {
     Logger.info('query txs timestamp:', sw.split());
 
     if (includePool) {
+      const alreadyHash: Set<string> = new Set();
+      result.forEach((x) => alreadyHash.add(x.transaction.hash));
       const pendingTxs = await this.getPoolTxs();
       const hashes: string[] = [];
       for (const tx of pendingTxs) {
@@ -129,7 +133,11 @@ export class CkbRepository implements DexRepository {
       filter
         .getTransactionFilter()
         .matchTransactions(queryOptions)
-        .forEach((x) => result.push(x));
+        .forEach((x) => {
+          if (!alreadyHash.has(x.transaction.hash)) {
+            result.push(x);
+          }
+        });
     }
 
     Logger.info('includePool:', sw.split());
@@ -258,40 +266,41 @@ export class CkbRepository implements DexRepository {
   }
 
   async getPoolTxs(): Promise<TransactionWithStatus[]> {
-    try {
-      const QueryOptions = {
-        url: ckbConfig.nodeUrl,
-        method: 'POST',
-        json: true,
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {
-          id: 42,
-          jsonrpc: '2.0',
-          method: 'get_raw_tx_pool',
-          params: [true],
-        },
-      };
-      const result = await rp(QueryOptions);
-      const hashes: string[] = [];
-      for (const hash of Object.keys(result.result.pending)) {
-        hashes.push(hash);
-      }
+    return await this.poolCache.getTxs();
+    // try {
+    //   const QueryOptions = {
+    //     url: ckbConfig.nodeUrl,
+    //     method: 'POST',
+    //     json: true,
+    //     headers: {
+    //       'content-type': 'application/json',
+    //     },
+    //     body: {
+    //       id: 42,
+    //       jsonrpc: '2.0',
+    //       method: 'get_raw_tx_pool',
+    //       params: [true],
+    //     },
+    //   };
+    //   const result = await rp(QueryOptions);
+    //   const hashes: string[] = [];
+    //   for (const hash of Object.keys(result.result.pending)) {
+    //     hashes.push(hash);
+    //   }
+    //
+    //   for (const hash of Object.keys(result.result.proposed)) {
+    //     hashes.push(hash);
+    //   }
+    //
+    //   if (hashes.length === 0) {
+    //     return [];
+    //   }
 
-      for (const hash of Object.keys(result.result.proposed)) {
-        hashes.push(hash);
-      }
-
-      if (hashes.length === 0) {
-        return [];
-      }
-
-      return await this.getTransactions(hashes);
-    } catch (error) {
-      console.error(error);
-      throw new BizException('query tx pool error!');
-    }
+    // return await this.getTransactions(hashes);
+    // } catch (error) {
+    //   console.error(error);
+    //   throw new BizException('query tx pool error!');
+    // }
   }
 
   async getPoolCells(): Promise<Map<string, TransactionWithStatus>> {
