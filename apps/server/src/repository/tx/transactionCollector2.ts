@@ -27,7 +27,7 @@ export class TransactionCollector2 {
       const txJson = await this.dexCache.get(hash);
       if (!txJson) {
         tx = await this.rpc.get_transaction(hash);
-        if (tx.tx_status.block_hash) {
+        if (tx.tx_status.block_hash && tx.tx_status.status !== 'pending') {
           this.dexCache.set(hash, JSON.stringify(tx));
         }
       } else {
