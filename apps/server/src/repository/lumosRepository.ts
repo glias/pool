@@ -25,15 +25,15 @@ export class SqlIndexerWrapper {
 
     this.indexer = new Indexer(ckbConfig.nodeUrl, this.knex);
     if (env !== 'development') {
-      if (!dexCache.getLock('syncNode', 3000)) {
-        return;
-      }
-      const sync = await this.dexCache.get('syncNode:mysql');
-      if (sync) {
-        return;
-      }
+      setTimeout(async () => {
+        if (!dexCache.getLock('syncNode', 120)) {
+          return;
+        }
 
-      setTimeout(() => {
+        const sync = await this.dexCache.get('syncNode:mysql');
+        if (sync) {
+          return;
+        }
         this.indexer.startForever();
         dexCache.setEx('syncNode:mysql', '1', 3600);
 
