@@ -53,14 +53,14 @@ export const INFO_TYPE_CODE_HASH =
 export const INFO_TYPE_HASH_TYPE = <HashType>process.env.INFO_TYPE_HASH_TYPE || 'type';
 
 export const INFO_LOCK_CODE_HASH =
-  process.env.INFO_LOCK_CODE_HASH || '0x8d35ff0c7402fd3ae7b1b90a854fb4d87c12d3956b7e40c9e973496753d7c1c6';
+  process.env.INFO_LOCK_CODE_HASH || '0x7c2b630c4471261e34d435d498285ba5b704556954ddcee4836f4af2abcd75dc';
 export const INFO_LOCK_HASH_TYPE: HashType = <HashType>process.env.INFO_LOCK_HASH_TYPE || 'type';
 
 export const LIQUIDITY_LOCK_CODE_HASH =
   process.env.LIQUIDITY_LOCK_CODE_HASH || '0x74bfec21398da1990285d70df943b01e84399be1b6cf19e916f72f4e44bdb225';
 export const LIQUIDITY_LOCK_HASH_TYPE = process.env.LIQUIDITY_LOCK_HASH_TYPE || 'type';
 export const SWAP_LOCK_CODE_HASH =
-  process.env.SWAP_LOCK_CODE_HASH || '0x9a81903addf2e696bf24ccbf7a28fec191249ae8f678c65fe813c1cea8a331b9';
+  process.env.SWAP_LOCK_CODE_HASH || '0xe989283a5301ec5d91829aec12035d3ffbd39f3109fb33afef1f9287f6a8a504';
 export const SWAP_LOCK_HASH_TYPE = process.env.SWAP_LOCK_HASH_TYPE || 'type';
 
 export const PW_LOCK_CODE_HASH =
@@ -99,7 +99,7 @@ export const LIQUIDITY_LOCK_DEP = {
 
 export const SWAP_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.SWAP_LOCK_DEP_TX_HASH || '0x78d87f03206e0d1c378b203b67f2c65ee5546b59d057525065a000a68bbf6e70',
+    txHash: process.env.SWAP_LOCK_DEP_TX_HASH || '0xfbdea6573abd0b6288577f1715ac393fb90afd49ffbc94ee4e0f3afa24fc3edf',
     index: '0x0',
   },
   depType: 'code',
@@ -115,7 +115,7 @@ export const INFO_TYPE_DEP = {
 
 export const INFO_LOCK_DEP = {
   outPoint: {
-    txHash: process.env.INFO_LOCK_DEP_TX_HASH || '0xc2f00dc7a1028874564ef556dd7d8f5dd627506614848f42dad808640a4a8803',
+    txHash: process.env.INFO_LOCK_DEP_TX_HASH || '0x016968c4eb8b707cf7fbed26880159a9b19e7007e706718d7adbaffcb990569a',
     index: '0x0',
   },
   depType: 'code',
