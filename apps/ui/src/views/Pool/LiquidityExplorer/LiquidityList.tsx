@@ -67,9 +67,9 @@ export const LiquidityList: React.FC<LiquidityListProps> = (props) => {
           pagination={{ position: 'bottom', size: 'small', pageSize: 8, style: { paddingBottom: '20px' } }}
           bordered={false}
           dataSource={pools}
+          rowKey={(pool) => pool.poolId}
           renderItem={({ assets, poolId, status }) => (
             <Section
-              key={poolId}
               className="liquidity-item"
               onClick={() => status === 'completed' && history.push(`/pool/${poolId}`)}
             >
