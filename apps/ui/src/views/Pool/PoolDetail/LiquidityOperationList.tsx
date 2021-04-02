@@ -203,9 +203,10 @@ export const LiquidityOperationList: React.FC<LiquidityOrderListProps> = (props)
       <List
         pagination={{ position: 'bottom', size: 'small' }}
         bordered={false}
+        rowKey={(s) => s.txHash}
         dataSource={summaries}
         renderItem={(summary) => (
-          <List.Item key={summary.txHash}>
+          <List.Item>
             <LiquidityOrderSummarySection
               showPoolId={!currentPoolOnly}
               summary={summary}
