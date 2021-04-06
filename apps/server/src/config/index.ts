@@ -107,7 +107,7 @@ export const SWAP_LOCK_DEP = {
 
 export const INFO_TYPE_DEP = {
   outPoint: {
-    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0942a05b6a71bf45be60362b4c96030385835ad7d6767c8ff57484d8229891b7',
+    txHash: process.env.INFO_TYPE_DEP_TX_HASH || '0x0942a05b6a71bf45be60362b4c96030385835ad7d6767c8ff57484d8229891b7',
     index: '0x0',
   },
   depType: 'code',
