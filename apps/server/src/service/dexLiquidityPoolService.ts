@@ -65,10 +65,14 @@ export class DexLiquidityPoolService {
 
     const userLockHash = lock.toHash().slice(2, 66);
     const infoCells = await this.getLiquidityPools();
-    infoCells.forEach(async (x) => {
-      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
-      const lpTokenTypeScript = new Script(x.tokenB.typeScript.codeHash, 'type', x.infoCell.cellOutput.lock.toHash());
-      const orderLock = this.getOrderLock(x, lock);
+    for (const infoCell of infoCells) {
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell, infoCells);
+      const lpTokenTypeScript = new Script(
+        infoCell.tokenB.typeScript.codeHash,
+        'type',
+        infoCell.infoCell.cellOutput.lock.toHash(),
+      );
+      const orderLock = this.getOrderLock(infoCell, lock);
       const removeQueryOptions: QueryOptions = {
         lock: {
           script: orderLock.toLumosScript(),
@@ -81,7 +85,7 @@ export class DexLiquidityPoolService {
 
       const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true, true);
       let orders = [];
-      if (!PoolInfoFactory.getTokensByCell(x.infoCell)) {
+      if (!PoolInfoFactory.getTokensByCell(infoCell.infoCell)) {
         orders = factory.getOrderChains(
           removeQueryOptions.lock,
           lpTokenTypeScript,
@@ -90,7 +94,7 @@ export class DexLiquidityPoolService {
         );
       }
 
-      if (PoolInfoFactory.getTokensByCell(x.infoCell)) {
+      if (PoolInfoFactory.getTokensByCell(infoCell.infoCell)) {
         orders = factory.getOrderChains(
           removeQueryOptions.lock,
           lpTokenTypeScript,
@@ -99,7 +103,11 @@ export class DexLiquidityPoolService {
         );
       }
 
-      const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
+      const typeScript = new Script(
+        SUDT_TYPE_CODE_HASH,
+        SUDT_TYPE_HASH_TYPE,
+        infoCell.infoCell.cellOutput.lock.toHash(),
+      );
       orders
         .filter(
           (x) =>
@@ -116,7 +124,7 @@ export class DexLiquidityPoolService {
           history.lpToken = lpToken;
           liquidityOrders.push(history);
         });
-    });
+    }
 
     const addOrders = await this.batchAddOrder(lock);
     addOrders.forEach((x) => liquidityOrders.push(x));
