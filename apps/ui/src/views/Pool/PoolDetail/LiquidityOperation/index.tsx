@@ -2,9 +2,8 @@ import { Tabs } from 'antd';
 import { Section } from 'components/Layout';
 import { useLiquidityDetail } from 'hooks/useLiquidityDetail';
 import i18n from 'i18n';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { Amount } from 'suite';
 import { AddLiquidity } from './AddLiquidity';
 import { RemoveLiquidity } from './RemoveLiquidity';
 
@@ -18,23 +17,12 @@ export const LiquidityOperation: React.FC<LiquidityOperationProps> = (props) => 
   const { poolLiquidityQuery, userLiquidityQuery } = useLiquidityDetail(props.poolId);
   const { data: poolLiquidity } = poolLiquidityQuery;
   const { data: userLiquidity } = userLiquidityQuery;
-  const [activeKey, setActiveKey] = useState('add');
-
-  function switchToAddLiquidityWhenNoLiquidity() {
-    if (activeKey !== 'remove') return;
-
-    if (!userLiquidity || Amount.fromAsset(userLiquidity.lpToken).value.eq(0) /* no lp token */) {
-      setActiveKey('add');
-    }
-  }
-
-  useEffect(switchToAddLiquidityWhenNoLiquidity, [userLiquidity, activeKey]);
 
   if (!poolLiquidity) return null;
 
   return (
     <LiquidityOperationWrapper>
-      <Tabs onChange={setActiveKey} activeKey={activeKey} size="small" centered tabBarGutter={16}>
+      <Tabs size="small" centered tabBarGutter={16}>
         <Tabs.TabPane key="add" tab={i18n.t('Add Liquidity')}>
           <AddLiquidity poolLiquidity={poolLiquidity} />
         </Tabs.TabPane>

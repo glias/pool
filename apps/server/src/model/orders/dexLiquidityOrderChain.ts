@@ -124,29 +124,10 @@ export class DexLiquidityChain extends DexOrderChain {
         }
       }
     } else {
-      if (this.getStatus() !== ORDER_STATUS.COMPLETED) {
-        amountB.balance = CellInfoSerializationHolderFactory.getInstance()
-          .getLiquidityCellSerialization()
-          .decodeArgs(this.cell.lock.args)
-          .sudtMin.toString();
-      } else {
-        if (this.getType() === LIQUIDITY_ORDER_TYPE.ADD) {
-          amountB.balance = CellInfoSerializationHolderFactory.getInstance()
-            .getLiquidityCellSerialization()
-            .decodeData(this.data)
-            .toString();
-        } else {
-          for (let i = 0; i < this.getLastOrder().tx.transaction.outputs.length; i++) {
-            const cell = this.getLastOrder().tx.transaction.outputs[i];
-            if (this.equalCell(cell, this.userLock, tokens.tokenB.typeScript)) {
-              amountB.balance = CellInfoSerializationHolderFactory.getInstance()
-                .getSudtCellSerialization()
-                .decodeData(this.getLastOrder().tx.transaction.outputsData[i])
-                .toString();
-            }
-          }
-        }
-      }
+      amountB.balance = CellInfoSerializationHolderFactory.getInstance()
+        .getLiquidityCellSerialization()
+        .decodeData(this.data)
+        .toString();
     }
     const steps = this.buildStep();
     const status = this.getStatus();

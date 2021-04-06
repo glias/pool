@@ -20,11 +20,8 @@ export class QueryOptionsWrapper {
     return 'asc';
   }
 
-  getLockArgsLen(): string | number {
-    if ('argsLen' in this.queryOptions.lock) {
-      return this.queryOptions.lock.argsLen;
-    }
-    return null;
+  getArgsLen(): string | number {
+    return this.queryOptions.argsLen;
   }
 
   private converScript(script: lumos.Script | lumos.ScriptWrapper | 'empty'): Script {
