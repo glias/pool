@@ -1,31 +1,31 @@
-# GLIAS POOL
+# Gliaswap
 
-## Requirement
+This project contains front-end, back-end and some general libs related
+to [Gliaswap](https://zoe-zhouzhou.github.io/gliaswap-docs/docs/), a DEX(Decentralized Exchange) based on the Nervos
+ecosystem, which shows how to create a DEX application directly on top of Nervos Layer 1.
 
-- yarn 1.x
-- node.js 12+
+## Documentation
 
-## Quick Start
+- [About Gliaswap](https://zoe-zhouzhou.github.io/gliaswap-docs/docs/)
+- [Tutorial](docs/tutorial.md)
 
-1. clone the repo
-2. run `yarn install`
-3. run `yarn start:ui` or `yarn start:server`
+## Contribution
+
+### Project Structure
 
 ```
-## Structure
 ├── apps
 │   ├── server
 │   └── ui
 │   └── ...
 └── packages
+    └── commons
     └── constants
     └── ...
 ```
 
-- apps: The applications
-- packages: Commons libraries, such as `constants`, etc.
-
-## Contribution
+- apps: The applications, includes front and back-end code
+- packages: Common libs, such as `constants`, etc.
 
 Before committing the code, you can use the following command to see if there are any errors
 
