@@ -53,11 +53,11 @@ export class DexSwapService {
 
     const orders: DexOrderChain[] = [];
 
-    const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, '0x');
+    const orderLock: Script = new Script(SWAP_LOCK_CODE_HASH, SWAP_LOCK_HASH_TYPE, lock.toHash());
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
-        argsLen: 'any',
+        argsLen: -2,
       },
       order: 'desc',
       fromBlock: BLOCK_NUMBER,
@@ -77,18 +77,18 @@ export class DexSwapService {
 
     const factory = new DexOrderChainFactory(lock, ORDER_TYPE.SWAP, null, poolInfos);
     const ckbOrders = factory.getOrderChains(queryOptions.lock, null, txs, bridgeInfoMatch);
-    const userLockHash = lock.toHash().slice(2, 66);
+    // const userLockHash = lock.toHash().slice(2, 66);
     ckbOrders.forEach((x) => {
-      if (x.cell.lock.args.slice(66, 130) === userLockHash) {
-        orders.push(x);
-      }
+      // if (x.cell.lock.args.slice(66, 130) === userLockHash) {
+      orders.push(x);
+      // }
     });
 
     const sudtOrders = await this.getSudtSudt(lock, bridgeInfoMatch);
     sudtOrders.forEach((x) => {
-      if (x.cell.lock.args.slice(66, 130) === userLockHash) {
-        orders.push(x);
-      }
+      // if (x.cell.lock.args.slice(66, 130) === userLockHash) {
+      orders.push(x);
+      // }
     });
 
     Logger.info('total:', sw.total());
@@ -101,11 +101,11 @@ export class DexSwapService {
   }
 
   private async getSudtSudt(lock: Script, bridgeInfoMatch: BridgeInfoMatchChain) {
-    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, '0x');
+    const orderLock: Script = new Script(tokenToken.SWAP_LOCK_CODE_HASH, tokenToken.SWAP_LOCK_HASH_TYPE, lock.toHash());
     const queryOptions: QueryOptions = {
       lock: {
         script: orderLock.toLumosScript(),
-        argsLen: 'any',
+        argsLen: -2,
       },
       order: 'desc',
       fromBlock: BLOCK_NUMBER,
