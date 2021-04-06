@@ -54,7 +54,7 @@ export class TransactionCollector2 {
   // left join `transactions_scripts` on `transaction_digests`.`id` = `transactions_scripts`.`transaction_digest_id`
   // where (`script_id` in (?)) and (`transaction_digests`.`id` in (?, ?.....))'
   private async getTxHashes(): Promise<string[]> {
-    const lockIds = await this.getScriptIds(this.queryOptions.getLockScript());
+    const lockIds = await this.getScriptIds(this.queryOptions.getLockScript(), 'lock');
     // lockIds.forEach((x) => console.log(x));
     let query = this.db('transaction_digests')
       .leftJoin('transactions_scripts', 'transaction_digests.id', 'transactions_scripts.transaction_digest_id')
@@ -63,7 +63,7 @@ export class TransactionCollector2 {
       });
 
     if (this.queryOptions.getTypeScript()) {
-      const ids = await this.getScriptIds(this.queryOptions.getTypeScript());
+      const ids = await this.getScriptIds(this.queryOptions.getTypeScript(), 'type');
       // console.log('type id:', ids);
       // 'select distinct `transaction_digests`.`id` from `transaction_digests`
       // left join `transactions_scripts` on `transaction_digests`.`id` = `transactions_scripts`.`transaction_digest_id` where (`script_id` in (?))'
@@ -94,7 +94,7 @@ export class TransactionCollector2 {
   }
 
   // 'select * from `scripts` where `code_hash` = ? and substring(args, 1, ?) = ?'
-  private async getScriptIds(script: Script) {
+  private async getScriptIds(script: Script, type: string) {
     const begin = new Date().getTime();
     if (!script) {
       return [];
@@ -106,13 +106,15 @@ export class TransactionCollector2 {
       code_hash: Buffer.from(new Reader(script.codeHash).toArrayBuffer()),
       hash_type: script.hashType === 'data' ? 0 : 1,
     });
-    if ('0x' != script.args) {
+
+    if ('0x' != script.args && this.queryOptions.getLockArgsLen() !== -2) {
       query = query.whereRaw('substring(args, 1, ?) = ?', [argsBuffer.byteLength, argsBuffer]);
     }
 
-    // if (this.queryOptions.getArgsLen() !== 'any' && this.queryOptions.getArgsLen() > 0) {
-    //   query = query.whereRaw('length(args) = ?', [this.queryOptions.getArgsLen()]);
-    // }
+    if (script.args !== 'any' && this.queryOptions.getLockArgsLen() === -2 && type === 'lock') {
+      // query = query.whereRaw('substring(hex(args), 65, 128) = ?', [script.args.slice(2, 66)]);
+      query = query.whereRaw(`hex(args) like '%${script.args.slice(2, 66)}%'`);
+    }
 
     const items = await query.select('id');
     const end = new Date().getTime();
