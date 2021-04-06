@@ -62,43 +62,52 @@ export class DexLiquidityPoolService {
 
   async getBatchOrders(lock: Script): Promise<OrderHistory[]> {
     const liquidityOrders: OrderHistory[] = [];
-    const orderLock1 = ScriptBuilder.buildLiquidityOrderLockScript();
-    const removeQueryOptions1: QueryOptions = {
-      lock: {
-        script: orderLock1.toLumosScript(),
-        argsLen: 'any',
-      },
-      order: 'desc',
-      fromBlock: BLOCK_NUMBER,
-    };
-
-    const orderLock2 = ScriptBuilder.buildSudtSudtLiquidityOrderLockScript();
-    const removeQueryOptions2: QueryOptions = {
-      lock: {
-        script: orderLock2.toLumosScript(),
-        argsLen: 'any',
-      },
-      order: 'desc',
-      fromBlock: BLOCK_NUMBER,
-    };
 
     const userLockHash = lock.toHash().slice(2, 66);
-    const removeTxs1 = await this.dexRepository.collectTransactions(removeQueryOptions1, true, true);
-    const removeTxs2 = await this.dexRepository.collectTransactions(removeQueryOptions2, true, true);
     const infoCells = await this.getLiquidityPools();
-    infoCells.forEach((x) => {
-      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, x, infoCells);
-      const lpTokenTypeScript = new Script(x.tokenB.typeScript.codeHash, 'type', x.infoCell.cellOutput.lock.toHash());
-      let orders;
-      if (!PoolInfoFactory.getTokensByCell(x.infoCell)) {
-        orders = factory.getOrderChains(removeQueryOptions1.lock, lpTokenTypeScript, removeTxs1, null);
+    for (const infoCell of infoCells) {
+      const factory = new DexOrderChainFactory(lock, ORDER_TYPE.LIQUIDITY, infoCell, infoCells);
+      const lpTokenTypeScript = new Script(
+        infoCell.tokenB.typeScript.codeHash,
+        'type',
+        infoCell.infoCell.cellOutput.lock.toHash(),
+      );
+      const orderLock = this.getOrderLock(infoCell, lock);
+      const removeQueryOptions: QueryOptions = {
+        lock: {
+          script: orderLock.toLumosScript(),
+          argsLen: 'any',
+        },
+        type: lpTokenTypeScript.toLumosScript(),
+        order: 'desc',
+        fromBlock: BLOCK_NUMBER,
+      };
+
+      const removeTxs = await this.dexRepository.collectTransactions(removeQueryOptions, true, true);
+      let orders = [];
+      if (!PoolInfoFactory.getTokensByCell(infoCell.infoCell)) {
+        orders = factory.getOrderChains(
+          removeQueryOptions.lock,
+          lpTokenTypeScript,
+          this.filterTxs(removeTxs, lpTokenTypeScript),
+          null,
+        );
       }
 
-      if (PoolInfoFactory.getTokensByCell(x.infoCell)) {
-        orders = factory.getOrderChains(removeQueryOptions2.lock, lpTokenTypeScript, removeTxs2, null);
+      if (PoolInfoFactory.getTokensByCell(infoCell.infoCell)) {
+        orders = factory.getOrderChains(
+          removeQueryOptions.lock,
+          lpTokenTypeScript,
+          this.filterTxs(removeTxs, lpTokenTypeScript),
+          null,
+        );
       }
 
-      const typeScript = new Script(SUDT_TYPE_CODE_HASH, SUDT_TYPE_HASH_TYPE, x.infoCell.cellOutput.lock.toHash());
+      const typeScript = new Script(
+        SUDT_TYPE_CODE_HASH,
+        SUDT_TYPE_HASH_TYPE,
+        infoCell.infoCell.cellOutput.lock.toHash(),
+      );
       orders
         .filter(
           (x) =>
@@ -115,12 +124,23 @@ export class DexLiquidityPoolService {
           history.lpToken = lpToken;
           liquidityOrders.push(history);
         });
-    });
+    }
 
     const addOrders = await this.batchAddOrder(lock);
     addOrders.forEach((x) => liquidityOrders.push(x));
 
     return liquidityOrders.sort((o1, o2) => parseInt(o1.timestamp) - parseInt(o2.timestamp)).reverse();
+  }
+
+  filterTxs(txs: TransactionWithStatus[], lpToken: Script): TransactionWithStatus[] {
+    const hash = lpToken.toHash();
+    return txs.filter((x) => {
+      const output = x.transaction.outputs.find((x) => x.type && x.type.toHash() === hash);
+      const input = x.transaction.inputs.find((x) => x.cellOutput.type && x.cellOutput.type.toHash() === hash);
+      if (output || input) {
+        return x;
+      }
+    });
   }
 
   async batchAddOrder(lock: Script): Promise<OrderHistory[]> {
