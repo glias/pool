@@ -1,14 +1,11 @@
 # @gliaswap/commons
 
-This library contains some public components of gliaswap as well as interface definitions
+This library contains some common lib of gliaswap as well as interface definitions
 
 ## Example
 
 ```ts
-import { GliaswapAPI, envs, isCkbNativeAsset } from '@gliaswap/commons';
-
-// 1. set the default env variables
-envs.set('ERC20_USDT_ADDRESS', '0x...');
+import { GliaswapAPI } from '@gliaswap/commons';
 
 @Controller
 class GliaswapServerController implements GliaswapAPI {
