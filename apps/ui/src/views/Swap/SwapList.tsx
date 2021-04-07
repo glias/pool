@@ -95,9 +95,7 @@ export const SwapList: React.FC = () => {
         EthModel.isShadowEthAsset(amountIn) && order.type === SwapOrderType.CrossChainOrder
           ? amountIn.shadowFrom
           : amountIn,
-        EthModel.isShadowEthAsset(amountOut) && order.type === SwapOrderType.CrossChainOrder
-          ? amountOut.shadowFrom
-          : amountOut,
+        amountOut,
       ];
       return (
         differenceWith(currentPair, pair, (a, b) => {
