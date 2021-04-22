@@ -8,7 +8,6 @@ import styled from 'styled-components';
 import Pool from 'views/Pool';
 import Swap from 'views/Swap';
 import { ChainIDWarningModal } from './ChainIDWanringModal';
-import { ProtectionModal } from './ProtectionModal';
 
 export enum RoutePath {
   Launch = '/',
@@ -107,7 +106,6 @@ const Routers = () => {
           </Switch>
         </MainWrapper>
       </Suspense>
-      <ProtectionModal />
       <ChainIDWarningModal />
     </BrowserRouter>
   );
